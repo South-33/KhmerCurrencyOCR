@@ -98,6 +98,63 @@ def fit_size(source: Image.Image, canvas_size: tuple[int, int]) -> tuple[int, in
     return max(1, int(source.width * scale)), max(1, int(source.height * scale))
 
 
+def load_row_image(row: dict[str, str]) -> Image.Image:
+    source = ROOT / row["crop_path"]
+    if not source.exists() or source.suffix.lower() not in IMAGE_SUFFIXES:
+        raise SystemExit(f"Missing or unsupported source image: {source}")
+    with Image.open(source) as opened:
+        return opened.convert("RGBA")
+
+
+def cover_resize(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    src_w, src_h = image.size
+    dst_w, dst_h = size
+    scale = max(dst_w / src_w, dst_h / src_h)
+    resized = image.resize((int(src_w * scale) + 1, int(src_h * scale) + 1), Image.Resampling.LANCZOS)
+    left = (resized.width - dst_w) // 2
+    top = (resized.height - dst_h) // 2
+    return resized.crop((left, top, left + dst_w, top + dst_h))
+
+
+def feather_mask(size: tuple[int, int], border: int) -> Image.Image:
+    width, height = size
+    border = max(1, min(border, width // 3, height // 3))
+    mask = Image.new("L", size, 255)
+    draw = ImageDraw.Draw(mask)
+    for offset in range(border):
+        alpha = int(255 * offset / border)
+        draw.rectangle((offset, offset, width - offset - 1, height - offset - 1), outline=alpha)
+    return mask.filter(ImageFilter.GaussianBlur(radius=max(1, border // 8)))
+
+
+def paste_scene_context(source: Image.Image, canvas_size: tuple[int, int], index: int) -> Image.Image:
+    source = source.convert("RGBA")
+    background = cover_resize(source.convert("RGB"), canvas_size)
+    background = background.filter(ImageFilter.GaussianBlur(radius=28))
+    background = ImageOps.autocontrast(background, cutoff=1)
+    overlay = Image.new("RGB", canvas_size, (156, 150, 132))
+    background = Image.blend(background, overlay, 0.22)
+
+    canvas_w, canvas_h = canvas_size
+    max_w = int(canvas_w * 0.78)
+    max_h = int(canvas_h * 0.70)
+    scale = min(max_w / source.width, max_h / source.height, 2.2)
+    resized = source.resize((max(1, int(source.width * scale)), max(1, int(source.height * scale))), Image.Resampling.LANCZOS)
+    x = (canvas_w - resized.width) // 2 + int(math.sin(index * 1.7) * canvas_w * 0.025)
+    y = (canvas_h - resized.height) // 2 + int(math.cos(index * 1.3) * canvas_h * 0.025)
+    x = max(8, min(canvas_w - resized.width - 8, x))
+    y = max(8, min(canvas_h - resized.height - 8, y))
+
+    alpha = resized.getchannel("A")
+    edge_mask = feather_mask(resized.size, border=max(12, min(resized.size) // 18))
+    alpha = Image.composite(alpha, Image.new("L", resized.size, 0), edge_mask)
+    resized.putalpha(alpha)
+
+    result = background.convert("RGBA")
+    result.alpha_composite(resized, (x, y))
+    return result.convert("RGB")
+
+
 def paste_with_shadow(canvas: Image.Image, source: Image.Image, index: int) -> Image.Image:
     source = source.convert("RGBA")
     resized = source.resize(fit_size(source, canvas.size), Image.Resampling.LANCZOS)
@@ -147,23 +204,29 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
-def make_batches(rows: list[dict[str, str]], out_dir: Path, batch_size: int, canvas_size: tuple[int, int], quality: int) -> list[dict[str, str]]:
+def make_batches(
+    rows: list[dict[str, str]],
+    out_dir: Path,
+    batch_size: int,
+    canvas_size: tuple[int, int],
+    quality: int,
+) -> list[dict[str, str]]:
     if batch_size < 1:
         raise SystemExit("--batch-size must be at least 1")
     manifest_rows: list[dict[str, str]] = []
     for index, row in enumerate(rows, start=1):
-        source = ROOT / row["crop_path"]
-        if not source.exists() or source.suffix.lower() not in IMAGE_SUFFIXES:
-            raise SystemExit(f"Missing or unsupported source image: {source}")
         batch_number = (index - 1) // batch_size + 1
         batch_dir = out_dir / f"batch_{batch_number:03d}"
         batch_dir.mkdir(parents=True, exist_ok=True)
         target = batch_dir / output_name(row, index)
 
-        with Image.open(source) as image:
+        image = load_row_image(row)
+        if row.get("kind") == "scene_crop":
+            upload_image = paste_scene_context(image, canvas_size, index)
+        else:
             canvas = table_background(canvas_size, index)
             upload_image = paste_with_shadow(canvas, image, index)
-            upload_image.save(target, quality=quality, optimize=True)
+        upload_image.save(target, quality=quality, optimize=True)
 
         manifest_rows.append(
             {
