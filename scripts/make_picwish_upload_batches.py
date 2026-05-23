@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--force", action="store_true", help="Clear the output folder before writing.")
     parser.add_argument("--write-manifest", action="store_true", help="Also write an output CSV mapping uploads to sources.")
+    parser.add_argument("--only-stems-file", help="Optional text file of output stems to include, one per line.")
     return parser.parse_args()
 
 
@@ -61,6 +62,22 @@ def read_manifest(input_dir: Path) -> list[dict[str, str]]:
     if not rows:
         raise SystemExit(f"No crop_path rows found in {manifest}")
     return rows
+
+
+def read_stem_filter(path: str | None) -> set[str] | None:
+    if not path:
+        return None
+    stems_path = (ROOT / path).resolve()
+    if not stems_path.exists():
+        raise SystemExit(f"Missing stems file: {stems_path}")
+    stems = {
+        line.strip()
+        for line in stems_path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    if not stems:
+        raise SystemExit(f"No stems found in {stems_path}")
+    return stems
 
 
 def table_background(size: tuple[int, int], index: int) -> Image.Image:
@@ -283,19 +300,26 @@ def make_batches(
     quality: int,
     mode: str,
     context_scale: float,
+    only_stems: set[str] | None,
 ) -> list[dict[str, str]]:
     if batch_size < 1:
         raise SystemExit("--batch-size must be at least 1")
     manifest_rows: list[dict[str, str]] = []
+    written = 0
     for index, row in enumerate(rows, start=1):
-        batch_number = (index - 1) // batch_size + 1
-        batch_dir = out_dir / f"batch_{batch_number:03d}"
-        batch_dir.mkdir(parents=True, exist_ok=True)
         source = ROOT / row["crop_path"]
         if not source.exists() or source.suffix.lower() not in IMAGE_SUFFIXES:
             raise SystemExit(f"Missing or unsupported source image: {source}")
         target_suffix = source.suffix if mode == "copy" else ".jpg"
-        target = batch_dir / output_name(row, index, target_suffix)
+        target_name = output_name(row, index, target_suffix)
+        if only_stems and Path(target_name).stem not in only_stems:
+            continue
+
+        written += 1
+        batch_number = (written - 1) // batch_size + 1
+        batch_dir = out_dir / f"batch_{batch_number:03d}"
+        batch_dir.mkdir(parents=True, exist_ok=True)
+        target = batch_dir / target_name
 
         if mode == "copy":
             shutil.copy2(source, target)
@@ -335,6 +359,7 @@ def main() -> None:
     input_dir = (ROOT / args.input).resolve()
     out_dir = (ROOT / args.out).resolve()
     rows = read_manifest(input_dir)
+    only_stems = read_stem_filter(args.only_stems_file)
 
     if out_dir.exists() and not args.force:
         raise SystemExit(f"Output already exists; pass --force to replace it: {out_dir}")
@@ -348,6 +373,7 @@ def main() -> None:
         quality=args.quality,
         mode=args.mode,
         context_scale=args.context_scale,
+        only_stems=only_stems,
     )
     if args.write_manifest:
         write_csv(out_dir / "manifest.csv", manifest_rows)
