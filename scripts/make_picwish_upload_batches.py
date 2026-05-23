@@ -24,6 +24,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--canvas-width", type=int, default=1200, help="Output canvas width.")
     parser.add_argument("--canvas-height", type=int, default=900, help="Output canvas height.")
     parser.add_argument("--quality", type=int, default=94, help="JPEG quality for upload images.")
+    parser.add_argument(
+        "--mode",
+        choices=["copy", "scene-context", "table"],
+        default="copy",
+        help="Upload image mode: copy originals, blend scene crops, or place every image on a table canvas.",
+    )
     parser.add_argument("--force", action="store_true", help="Clear the output folder before writing.")
     parser.add_argument("--write-manifest", action="store_true", help="Also write an output CSV mapping uploads to sources.")
     return parser.parse_args()
@@ -177,12 +183,12 @@ def paste_with_shadow(canvas: Image.Image, source: Image.Image, index: int) -> I
     return result.convert("RGB")
 
 
-def output_name(row: dict[str, str], index: int) -> str:
+def output_name(row: dict[str, str], index: int, suffix: str) -> str:
     label = row.get("label", "unknown")
     kind = row.get("kind", "asset")
     source_stem = Path(row["crop_path"]).stem
     safe_stem = "".join(char if char.isalnum() or char in "-_" else "_" for char in source_stem)
-    return f"{index:04d}_{label}_{kind}_{safe_stem}.jpg"
+    return f"{index:04d}_{label}_{kind}_{safe_stem}{suffix.lower()}"
 
 
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
@@ -210,6 +216,7 @@ def make_batches(
     batch_size: int,
     canvas_size: tuple[int, int],
     quality: int,
+    mode: str,
 ) -> list[dict[str, str]]:
     if batch_size < 1:
         raise SystemExit("--batch-size must be at least 1")
@@ -218,15 +225,22 @@ def make_batches(
         batch_number = (index - 1) // batch_size + 1
         batch_dir = out_dir / f"batch_{batch_number:03d}"
         batch_dir.mkdir(parents=True, exist_ok=True)
-        target = batch_dir / output_name(row, index)
+        source = ROOT / row["crop_path"]
+        if not source.exists() or source.suffix.lower() not in IMAGE_SUFFIXES:
+            raise SystemExit(f"Missing or unsupported source image: {source}")
+        target_suffix = source.suffix if mode == "copy" else ".jpg"
+        target = batch_dir / output_name(row, index, target_suffix)
 
-        image = load_row_image(row)
-        if row.get("kind") == "scene_crop":
-            upload_image = paste_scene_context(image, canvas_size, index)
+        if mode == "copy":
+            shutil.copy2(source, target)
         else:
-            canvas = table_background(canvas_size, index)
-            upload_image = paste_with_shadow(canvas, image, index)
-        upload_image.save(target, quality=quality, optimize=True)
+            image = load_row_image(row)
+            if mode == "scene-context" and row.get("kind") == "scene_crop":
+                upload_image = paste_scene_context(image, canvas_size, index)
+            else:
+                canvas = table_background(canvas_size, index)
+                upload_image = paste_with_shadow(canvas, image, index)
+            upload_image.save(target, quality=quality, optimize=True)
 
         manifest_rows.append(
             {
@@ -260,6 +274,7 @@ def main() -> None:
         batch_size=args.batch_size,
         canvas_size=(args.canvas_width, args.canvas_height),
         quality=args.quality,
+        mode=args.mode,
     )
     if args.write_manifest:
         write_csv(out_dir / "manifest.csv", manifest_rows)
