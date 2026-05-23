@@ -57,23 +57,42 @@ class NoteRef:
 
 
 def parse_note_class(path: Path) -> str | None:
+    for part in path.parts:
+        if part in CLASS_TO_ID:
+            return part
     for token in re.findall(r"\d+", path.stem):
         if token in TARGET_KHR:
             return TARGET_KHR[token]
     return None
 
 
-def load_refs(source: Path) -> list[NoteRef]:
+def load_refs(sources: list[Path], allowed_classes: set[str] | None = None) -> list[NoteRef]:
     refs: list[NoteRef] = []
-    for path in sorted(source.iterdir()):
-        if path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
-            continue
-        class_name = parse_note_class(path)
-        if class_name:
-            refs.append(NoteRef(path=path, class_name=class_name))
+    for source in sources:
+        for path in sorted(source.rglob("*")):
+            if path.suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
+                continue
+            class_name = parse_note_class(path)
+            if class_name and (allowed_classes is None or class_name in allowed_classes) and looks_like_whole_note(path):
+                refs.append(NoteRef(path=path, class_name=class_name))
     if not refs:
-        raise SystemExit(f"No target KHR reference images found in {source}")
+        raise SystemExit(f"No target KHR reference images found in {sources}")
     return refs
+
+
+def looks_like_whole_note(path: Path) -> bool:
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+    except OSError:
+        return False
+    if width < 80 or height < 30:
+        return False
+    aspect = max(width, height) / max(1, min(width, height))
+    # KHR/USD notes are long rectangles. Numista sometimes includes square-ish
+    # security-detail closeups; those are useful references, but bad synthetic
+    # source assets.
+    return 1.55 <= aspect <= 3.35
 
 
 def specimen_score(path: Path) -> float:
@@ -280,7 +299,18 @@ def visible_box(id_mask: np.ndarray, instance_id: int) -> tuple[int, int, int, i
     return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
 
 
-def make_scene(refs: list[NoteRef], image_size: int, rng: random.Random) -> tuple[Image.Image, list[str]]:
+def prepared_note(ref: NoteRef, cache: dict[Path, Image.Image]) -> Image.Image:
+    if ref.path not in cache:
+        cache[ref.path] = note_alpha(Image.open(ref.path)).copy()
+    return cache[ref.path].copy()
+
+
+def make_scene(
+    refs: list[NoteRef],
+    image_size: int,
+    rng: random.Random,
+    note_cache: dict[Path, Image.Image] | None = None,
+) -> tuple[Image.Image, list[str]]:
     canvas = make_background(image_size, rng).convert("RGBA")
     id_mask = np.zeros((image_size, image_size), dtype=np.uint16)
     labels: list[tuple[str, int]] = []
@@ -299,7 +329,7 @@ def make_scene(refs: list[NoteRef], image_size: int, rng: random.Random) -> tupl
 
     for i in range(note_count):
         ref = rng.choice(refs)
-        note = note_alpha(Image.open(ref.path))
+        note = prepared_note(ref, note_cache) if note_cache is not None else note_alpha(Image.open(ref.path))
         if layout_mode == "strip_fan":
             target_w = int(image_size * rng.uniform(0.72, 0.96))
         elif layout_mode == "tight_fan":
@@ -427,7 +457,7 @@ def write_yaml(out: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument("--source", type=Path, nargs="+", default=[DEFAULT_SOURCE])
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--count", type=int, default=1000)
     parser.add_argument("--image-size", type=int, default=640)
@@ -436,10 +466,15 @@ def main() -> None:
     parser.add_argument("--test-frac", type=float, default=0.1)
     parser.add_argument("--clean", action="store_true", help="Delete an existing output directory before generating.")
     parser.add_argument("--allow-specimen", action="store_true", help="Allow reference images that appear to contain SPECIMEN marks.")
+    parser.add_argument("--classes", default="", help="Optional comma-separated canonical classes to generate.")
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
-    refs = load_refs(args.source)
+    allowed_classes = {item.strip() for item in args.classes.split(",") if item.strip()} or None
+    unknown = sorted((allowed_classes or set()) - set(CLASS_TO_ID))
+    if unknown:
+        raise SystemExit(f"Unknown classes in --classes: {unknown}")
+    refs = load_refs(args.source, allowed_classes)
     if not args.allow_specimen:
         before = len(refs)
         refs = filter_specimen_refs(refs)
@@ -458,11 +493,12 @@ def main() -> None:
 
     counts = {"train": 0, "val": 0, "test": 0}
     boxes = {"train": 0, "val": 0, "test": 0}
+    note_cache: dict[Path, Image.Image] = {}
     i = 0
     attempts = 0
     while i < args.count:
         attempts += 1
-        image, labels = make_scene(refs, args.image_size, rng)
+        image, labels = make_scene(refs, args.image_size, rng, note_cache)
         if not labels:
             if attempts > args.count * 5:
                 raise SystemExit("Too many empty synthetic scenes; check reference images.")

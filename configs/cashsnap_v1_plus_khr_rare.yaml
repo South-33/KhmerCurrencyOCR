@@ -1,0 +1,23 @@
+# CashSnap v1 plus targeted synthetic coverage for weak KHR rare classes.
+# Used to stabilize KHR_20000/KHR_50000 before heavier fan/cutout training.
+path: D:/Project/KhmerCurrencyOCR
+train:
+  - data/cashsnap_v1/images/train
+  - data/synthetic/khr_rare_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000

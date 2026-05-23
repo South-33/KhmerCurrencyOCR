@@ -66,6 +66,24 @@ Generated KHR synthetic overlap/fan data with `scripts/generate_synthetic_fan_da
 
 Conclusion: dense synthetic overlap helps the target failure case, but synthetic-only data has not solved fanned KHR counting. The next highest-value data step is real fanned/overlapped phone photos with labels, especially for `KHR_20000` and `KHR_50000`. Real YOLO crops were extracted, but the generated v5 audit showed rectangular background artifacts; do not train on real-crop synthetic until masking/segmentation is improved.
 
+## Rare KHR Coverage Probe
+
+The original merged train split has only `17` `KHR_20000` boxes and `18` `KHR_50000` boxes. Based on the rare-KHR research PDFs, the minimum visual families to cover are:
+
+- `KHR_20000`: 1995, 2008, and 2017-dated / 2018-issued.
+- `KHR_50000`: 1995/1998-style, 2001, and 2013-dated / 2014-issued.
+
+Added a bridge synthetic dataset at `data/synthetic/khr_rare_v1/` using NBC and Numista references:
+
+- Source filter kept `13` whole-note references after aspect-ratio and specimen filtering.
+- Train: `950` images, `3,876` `KHR_20000` boxes, `6,234` `KHR_50000` boxes.
+- Val: `130` images, `522` `KHR_20000` boxes, `830` `KHR_50000` boxes.
+- Test: `120` images, `451` `KHR_20000` boxes, `741` `KHR_50000` boxes.
+
+Visual audit improved after excluding square-ish Numista security-detail closeups, but the dataset still has jagged catalog-mask artifacts. Treat `khr_rare_v1` as a bridge for short rare-class probes only. The better path remains PicWish/manual transparent cutouts scored by `scripts/score_transparent_cutouts.py`.
+
+Attempted `configs/cashsnap_v1_plus_khr_rare.yaml` fine-tuning from the baseline at `416`, but stopped early because the full combined run was too slow for quick iteration. Use a smaller probe or wait for scored PicWish cutouts before a longer combined fine-tune.
+
 ## Roboflow Model Comparison
 
 Checked the relevant Roboflow Universe projects:

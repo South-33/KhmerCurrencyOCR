@@ -20,6 +20,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Dense fan synthetic v3 is the best fan checkpoint so far: still weak, but clearly better than baseline/v2/v4 on the real fan photo.
 - Partial-slice-heavy v4 improved normal test metrics but regressed on the real fan photo, so pure slice training overcorrects.
 - Real YOLO crop compositing needs better masks first; naive real crops carried rectangular background artifacts and should not be trained as-is.
+- `khr_rare_v1` adds minimum synthetic coverage for `KHR_20000`/`KHR_50000`, but is only a bridge; catalog masks still create artifacts, so PicWish-quality transparent assets should replace it for serious training.
 - Mixed Asian-currency datasets are useful for general rotation/background augmentation, but should not be counted as proof of Cambodian old/new KHR version coverage.
 
 ## Data Gaps
