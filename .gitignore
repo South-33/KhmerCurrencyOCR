@@ -6,6 +6,7 @@ data/dedup/
 data/audit/
 data/reference/
 data/curated/
+data/asset_candidates/
 data/synthetic/
 
 # Keep manifests and reproducible scripts in git; keep downloaded/generated data local.
