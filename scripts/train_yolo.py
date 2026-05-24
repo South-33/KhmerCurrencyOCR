@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fraction", type=float, default=1.0, help="Fraction of training data to use.")
     parser.add_argument("--max-train-batches", type=int, default=None, help="Stop after this many train batches.")
     parser.add_argument("--exist-ok", action="store_true", help="Allow reusing an existing run directory.")
+    parser.add_argument("--quiet", action="store_true", help="Reduce Ultralytics training log output.")
     return parser.parse_args()
 
 
@@ -65,6 +66,7 @@ def main() -> None:
         "workers": args.workers,
         "fraction": args.fraction,
         "exist_ok": args.exist_ok,
+        "verbose": not args.quiet,
     }
     if args.device is not None:
         train_args["device"] = args.device
