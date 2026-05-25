@@ -29,6 +29,14 @@ Numista is not bulk-downloaded because licensing appears mixed/unclear. Use it f
 - Do not train directly on USD raw reference scans if a public dataset release is planned; generate size-compliant, one-sided derivative images and document compliance.
 - Do not train heavily on KHR images with SPECIMEN watermark unless the watermark is removed or strongly augmented away.
 
+## Real Fan Benchmark Rules
+
+- Before more synthetic tuning, create a small real fanned/overlapped phone-photo validation set and keep it out of training.
+- Label each visible bill slice separately by denomination. Use tight boxes around the visible region for the current YOLO detector; do not estimate hidden full-note extents unless the project deliberately switches to amodal labels.
+- Include easy, medium, and hard scenes: flat overlaps, hand-held fans, hand occlusion, partial off-frame notes, mixed KHR/USD, and weak rare classes (`KHR_20000`, `KHR_50000`).
+- Track e2/e4 and future checkpoints on this fixed set before treating synthetic validation gains as real progress.
+- Consider YOLO OBB or segmentation only after the real benchmark exists; rotated/mask labels are promising for fan slices, but they need consistent labels and a comparable scoreboard.
+
 ## Current Verification Notes
 
 - `scripts/check_yolo_dataset.py --data configs/cashsnap_v1.yaml` reports 9,048 valid boxes after repairing segmentation rows into detection boxes.

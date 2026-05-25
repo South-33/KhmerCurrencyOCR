@@ -39,8 +39,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project", default=str(ROOT / "runs" / "cashsnap"))
     parser.add_argument("--name", default="yolo26n_v1")
     parser.add_argument("--device", default=None, help="Ultralytics device selector, e.g. cpu, 0, or 0,1.")
+    parser.add_argument("--lr0", type=float, default=None, help="Initial learning rate override.")
+    parser.add_argument("--lrf", type=float, default=None, help="Final learning rate fraction override.")
+    parser.add_argument("--optimizer", default=None, help="Ultralytics optimizer override.")
+    parser.add_argument("--warmup-epochs", type=float, default=None, help="Warmup epochs override.")
+    parser.add_argument("--warmup-bias-lr", type=float, default=None, help="Warmup bias learning rate override.")
+    parser.add_argument("--warmup-momentum", type=float, default=None, help="Warmup momentum override.")
     parser.add_argument("--fraction", type=float, default=1.0, help="Fraction of training data to use.")
     parser.add_argument("--max-train-batches", type=int, default=None, help="Stop after this many train batches.")
+    parser.add_argument("--no-val", action="store_true", help="Skip validation during training.")
+    parser.add_argument("--no-plots", action="store_true", help="Skip Ultralytics training plots.")
     parser.add_argument("--exist-ok", action="store_true", help="Allow reusing an existing run directory.")
     parser.add_argument("--quiet", action="store_true", help="Reduce Ultralytics training log output.")
     return parser.parse_args()
@@ -61,8 +69,8 @@ def main() -> None:
         "project": str(project_path),
         "name": args.name,
         "pretrained": True,
-        "plots": True,
-        "val": True,
+        "plots": not args.no_plots,
+        "val": not args.no_val,
         "workers": args.workers,
         "fraction": args.fraction,
         "exist_ok": args.exist_ok,
@@ -70,6 +78,18 @@ def main() -> None:
     }
     if args.device is not None:
         train_args["device"] = args.device
+    if args.lr0 is not None:
+        train_args["lr0"] = args.lr0
+    if args.lrf is not None:
+        train_args["lrf"] = args.lrf
+    if args.optimizer is not None:
+        train_args["optimizer"] = args.optimizer
+    if args.warmup_epochs is not None:
+        train_args["warmup_epochs"] = args.warmup_epochs
+    if args.warmup_bias_lr is not None:
+        train_args["warmup_bias_lr"] = args.warmup_bias_lr
+    if args.warmup_momentum is not None:
+        train_args["warmup_momentum"] = args.warmup_momentum
 
     model = YOLO(resolve_local_model(args.model))
     if args.max_train_batches is not None:

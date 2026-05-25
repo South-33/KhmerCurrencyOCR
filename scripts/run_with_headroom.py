@@ -21,8 +21,18 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run a command while leaving system headroom for interactive use."
     )
-    parser.add_argument("--max-percent", type=float, default=90.0, help="Suspend at or above this load.")
-    parser.add_argument("--resume-percent", type=float, default=82.0, help="Resume at or below this load.")
+    parser.add_argument(
+        "--max-percent",
+        type=float,
+        default=90.0,
+        help="Suspend at or above this active CPU/GPU load.",
+    )
+    parser.add_argument(
+        "--resume-percent",
+        type=float,
+        default=82.0,
+        help="Resume at or below this active CPU/GPU load.",
+    )
     parser.add_argument("--interval", type=float, default=2.0, help="Seconds between load checks.")
     parser.add_argument("--no-priority", action="store_true", help="Do not lower child process priority.")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="Command to run after --.")
@@ -79,10 +89,10 @@ def sample_load() -> LoadSample:
 
 
 def throttle_load(sample: LoadSample) -> float:
-    values = [sample.cpu_percent, sample.ram_percent]
+    values = [sample.cpu_percent]
     if sample.gpu_percent is not None:
         values.append(sample.gpu_percent)
-    # CUDA processes usually keep VRAM while suspended, so GPU memory is reported
+    # Pausing a process does not release RAM or CUDA VRAM, so memory is reported
     # for visibility but not used as a resume gate.
     return max(values)
 

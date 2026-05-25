@@ -9,6 +9,7 @@ data/curated/
 data/asset_candidates/
 data/picwish_upload_batches/
 data/synthetic/
+data/real_fan_benchmark/
 
 # Keep manifests and reproducible scripts in git; keep downloaded/generated data local.
 

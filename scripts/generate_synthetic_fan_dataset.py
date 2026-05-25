@@ -333,21 +333,32 @@ def make_scene(
     id_mask = np.zeros((image_size, image_size), dtype=np.uint16)
     labels: list[tuple[str, int]] = []
     note_count = rng.randint(min_notes, max_notes)
-    available_modes = layout_modes or ["strip_fan", "tight_fan", "fan", "crossed", "scattered", "row"]
+    available_modes = layout_modes or [
+        "radial_slice",
+        "strip_fan",
+        "tight_fan",
+        "fan",
+        "crossed",
+        "scattered",
+        "row",
+    ]
     default_weights = {
+        "radial_slice": 0.28,
         "strip_fan": 0.24,
-        "tight_fan": 0.28,
-        "fan": 0.20,
-        "crossed": 0.15,
-        "scattered": 0.09,
-        "row": 0.04,
+        "tight_fan": 0.22,
+        "fan": 0.14,
+        "crossed": 0.07,
+        "scattered": 0.04,
+        "row": 0.01,
     }
     layout_mode = rng.choices(
         available_modes,
         weights=[default_weights.get(mode, 0.05) for mode in available_modes],
         k=1,
     )[0]
-    if layout_mode == "strip_fan":
+    if layout_mode == "radial_slice":
+        note_count = rng.randint(max(min_notes, 12), max(max_notes, 22))
+    elif layout_mode == "strip_fan":
         note_count = rng.randint(max(min_notes, 10), max(max_notes, 20))
     elif layout_mode == "tight_fan":
         note_count = rng.randint(max(min_notes, 9), max(max_notes, 18))
@@ -357,7 +368,9 @@ def make_scene(
     for i in range(note_count):
         ref = rng.choice(refs)
         note = prepared_note(ref, note_cache) if note_cache is not None else note_alpha(Image.open(ref.path))
-        if layout_mode == "strip_fan":
+        if layout_mode == "radial_slice":
+            target_w = int(image_size * rng.uniform(0.72, 1.02))
+        elif layout_mode == "strip_fan":
             target_w = int(image_size * rng.uniform(0.72, 0.96))
         elif layout_mode == "tight_fan":
             target_w = int(image_size * rng.uniform(0.64, 0.90))
@@ -376,7 +389,13 @@ def make_scene(
         if layout_mode == "strip_fan":
             note = crop_note_strip(note, rng)
 
-        if layout_mode == "strip_fan":
+        if layout_mode == "radial_slice":
+            if note_count == 1:
+                angle = rng.uniform(-16, 16)
+            else:
+                spread = rng.uniform(92, 142)
+                angle = (-spread / 2) + (spread * i / (note_count - 1)) + rng.uniform(-3, 3)
+        elif layout_mode == "strip_fan":
             if note_count == 1:
                 angle = rng.uniform(-20, 20)
             else:
@@ -403,7 +422,13 @@ def make_scene(
             angle = rng.uniform(-85, 85)
         note = note.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC)
 
-        if layout_mode == "strip_fan":
+        if layout_mode == "radial_slice":
+            offset = (i - (note_count - 1) / 2) * rng.uniform(5, 11)
+            x = int(center_x + offset + rng.randint(-5, 5) - note.width / 2)
+            y = int(pivot_y + rng.randint(-10, 8) - note.height)
+            if i < note_count * 0.15 or i > note_count * 0.85:
+                x += rng.choice([-1, 1]) * rng.randint(12, 38)
+        elif layout_mode == "strip_fan":
             offset = (i - (note_count - 1) / 2) * rng.uniform(8, 17)
             x = int(center_x + offset + rng.randint(-8, 8) - note.width / 2)
             y = int(pivot_y + rng.randint(-16, 14) - note.height)
@@ -496,7 +521,11 @@ def main() -> None:
     parser.add_argument("--classes", default="", help="Optional comma-separated canonical classes to generate.")
     parser.add_argument("--min-notes", type=int, default=4, help="Minimum notes per synthetic scene.")
     parser.add_argument("--max-notes", type=int, default=12, help="Maximum notes per synthetic scene.")
-    parser.add_argument("--layout-modes", default="", help="Optional comma-separated layout modes: strip_fan,tight_fan,fan,crossed,scattered,row.")
+    parser.add_argument(
+        "--layout-modes",
+        default="",
+        help="Optional comma-separated layout modes: radial_slice,strip_fan,tight_fan,fan,crossed,scattered,row.",
+    )
     parser.add_argument("--hand-prob", type=float, default=0.25, help="Probability of adding synthetic hand/finger occluders.")
     args = parser.parse_args()
 
@@ -506,7 +535,15 @@ def main() -> None:
     if unknown:
         raise SystemExit(f"Unknown classes in --classes: {unknown}")
     layout_modes = [item.strip() for item in args.layout_modes.split(",") if item.strip()] or None
-    valid_layout_modes = {"strip_fan", "tight_fan", "fan", "crossed", "scattered", "row"}
+    valid_layout_modes = {
+        "radial_slice",
+        "strip_fan",
+        "tight_fan",
+        "fan",
+        "crossed",
+        "scattered",
+        "row",
+    }
     unknown_layouts = sorted(set(layout_modes or []) - valid_layout_modes)
     if unknown_layouts:
         raise SystemExit(f"Unknown layout modes in --layout-modes: {unknown_layouts}")

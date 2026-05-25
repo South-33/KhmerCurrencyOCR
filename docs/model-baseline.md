@@ -63,8 +63,18 @@ Generated KHR synthetic overlap/fan data with `scripts/generate_synthetic_fan_da
   - Validation: precision `0.926`, recall `0.942`, mAP50 `0.975`, mAP50-95 `0.925`
   - Test: precision `0.960`, recall `0.924`, mAP50 `0.981`, mAP50-95 `0.937`
   - Fan image regressed versus v3: `0` detections at `416/conf=0.25`; `6` detections at `640/conf=0.05`
+- v3 plus pristine rare overlap: `yolo26n_messy_v3_pristine_overlap_e2_i416_b8`
+  - Normal validation: mAP50-95 `0.930`; rare-overlap synthetic validation: mAP50 `0.584`
+  - Held-out test: precision `0.963`, recall `0.962`, mAP50 `0.985`, mAP50-95 `0.939`
+  - Weak rare-class test rows: `KHR_20000` recall `0.941`, mAP50-95 `0.934`; `KHR_50000` recall `0.949`, mAP50-95 `0.958`
+  - Fan image: `2` detections at `416/conf=0.25`; `6` detections at `640/conf=0.05`
+- v3 plus pristine rare overlap continued: `yolo26n_messy_v3_pristine_overlap_e4_i416_b8`
+  - Normal validation: mAP50-95 `0.925`; rare-overlap synthetic validation: mAP50 `0.602`
+  - Held-out test: precision `0.957`, recall `0.970`, mAP50 `0.985`, mAP50-95 `0.942`
+  - Weak rare-class test rows: `KHR_20000` recall `0.933`, mAP50-95 `0.940`; `KHR_50000` recall `0.965`, mAP50-95 `0.968`
+  - Fan image: `2` detections at `416/conf=0.25`; `7` detections at `640/conf=0.05`, including `KHR_50000` up to confidence `0.433`
 
-Conclusion: dense synthetic overlap helps the target failure case, but synthetic-only data has not solved fanned KHR counting. The next highest-value data step is real fanned/overlapped phone photos with labels, especially for `KHR_20000` and `KHR_50000`. Real YOLO crops were extracted, but the generated v5 audit showed rectangular background artifacts; do not train on real-crop synthetic until masking/segmentation is improved.
+Conclusion: dense synthetic overlap helps the target failure case, and pristine rare-overlap continuation improves rare-slice behavior on the stress image. The e2 checkpoint is still the normal-validation leader, while e4 leads held-out test, rare-overlap synthetic validation, and the one real fan stress image. Synthetic-only data still has not solved fanned KHR counting. The next highest-value data step is real fanned/overlapped phone photos with labels, especially for `KHR_20000` and `KHR_50000`. Real YOLO crops were extracted, but the generated v5 audit showed rectangular background artifacts; do not train on real-crop synthetic until masking/segmentation is improved.
 
 ## Rare KHR Coverage Probe
 

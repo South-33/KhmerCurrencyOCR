@@ -30,7 +30,11 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Rare overlap v1 plus 2-epoch fine-tune (`yolo26n_pristine_overlap_e2_i416_b8`) improved synthetic overlap-val mAP50 from 0.418 to 0.568 and `KHR_50000` overlap recall from 0.262 to 0.439, while normal-val mAP50-95 dipped from 0.926 to 0.920.
 - On rare-overlap synthetic validation, `yolo26n_pristine_overlap_e2_i416_b8` beats older fan checkpoints v3/v4 (mAP50 0.568 vs 0.422/0.446), so pristine overlap composition is worth extending beyond rare notes.
 - Combining broad fan v3 with pristine rare overlap (`yolo26n_messy_v3_pristine_overlap_e2_i416_b8`) improved both scoreboards: normal-val mAP50-95 0.930 and rare-overlap mAP50 0.584, with `KHR_50000` overlap recall 0.475.
-- Continuing that combined checkpoint for 2 more epochs (`yolo26n_messy_v3_pristine_overlap_e4_i416_b8`) improved rare-overlap mAP50 to 0.602 (`KHR_20000`/`KHR_50000` recall 0.535/0.515) but normal-val mAP50-95 fell to 0.925, so treat it as an overlap-biased tradeoff, not the balanced best.
+- Continuing that combined checkpoint for 2 more epochs (`yolo26n_messy_v3_pristine_overlap_e4_i416_b8`) improved rare-overlap mAP50 to 0.602 (`KHR_20000`/`KHR_50000` recall 0.535/0.515) and held-out test mAP50-95 to 0.942, but normal-val mAP50-95 fell to 0.925.
+- Capped gentle-LR continuation from the combined e2 checkpoint (`yolo26n_messy_v3_pristine_overlap_gentle_lr_probe3_mb100_i416_b4`) avoided the collapse seen in the 300-batch probe, but did not beat e2/e4: normal-val mAP50-95 0.927 and rare-overlap mAP50 0.575.
+- On the real fan stress image, combined e2/e4 both improved normal-confidence detection over dense v3 (`2` vs `1` detections at `416/conf=0.25`); e4 is the better rare-slice stress candidate at permissive confidence (`7` detections with `KHR_50000` up to 0.433), but still not reliable counting.
+- Raising real fan inference to `imgsz=960` did not help v3/e2/e4; detections dropped versus `640/conf=0.05`, so prioritize data/labels over resolution-only tuning.
+- Real fan failure analysis points to label/geometry mismatch, not NMS or tiling: e4 box counts are unchanged across NMS IoU `0.30-0.90`, crops do not recover per-slice detections, and current synthetic labels have large median areas (`23-27%` of image).
 
 ## Data Gaps
 
