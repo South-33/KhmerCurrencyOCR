@@ -93,7 +93,14 @@ def main() -> None:
     configure_project_cache()
     args = parse_args()
     add_optional_pydeps(args.pydeps)
-    from mer import Mer
+    try:
+        from mer import Mer
+    except ModuleNotFoundError as exc:
+        install = (
+            "python -m pip install --target .cache_runtime/pydeps mer==1.2.1 "
+            "--no-warn-script-location"
+        )
+        raise SystemExit(f"Missing optional OCR dependency 'mer'. Install it repo-locally with: {install}") from exc
 
     image_path = resolve(args.image)
     label_path = resolve(args.labels)
