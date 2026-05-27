@@ -23,7 +23,7 @@ http://localhost:8787/demo/browser/?image=/data/real_fan_benchmark/images/candid
 Or run the headless Edge smoke from the repo root:
 
 ```powershell
-lr node scripts/smoke_browser_demo_cdp.cjs --screenshot .agent/cashsnap-browser-smoke-cdp.png
+lr node scripts/smoke_browser_demo_cdp.cjs --screenshot .agent/cashsnap-browser-smoke-cdp.png --out-csv .agent/cashsnap-browser-smoke-cdp.csv
 ```
 
 The demo reads `configs/cashsnap_two_stage_oldcommon_browser_stack.json`, then loads:

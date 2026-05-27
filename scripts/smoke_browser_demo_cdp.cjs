@@ -27,6 +27,7 @@ function parseArgs(argv) {
     debugPort: 9223,
     timeoutMs: 120000,
     screenshot: "",
+    outCsv: "",
     edge: process.env.EDGE_PATH || DEFAULT_EDGE,
   };
   for (let index = 2; index < argv.length; index += 1) {
@@ -47,6 +48,9 @@ function parseArgs(argv) {
     } else if (key === "--screenshot") {
       args.screenshot = value;
       index += 1;
+    } else if (key === "--out-csv") {
+      args.outCsv = value;
+      index += 1;
     } else if (key === "--edge") {
       args.edge = value;
       index += 1;
@@ -66,6 +70,7 @@ function printHelp() {
 Options:
   --image PATH        Repo-root browser image URL path.
   --screenshot PATH   Optional PNG screenshot output path.
+  --out-csv PATH      Optional CSV output for browser-side detections.
   --port NUMBER       Local static server port. Default: 8787.
   --debug-port NUMBER Edge DevTools port. Default: 9223.
   --timeout-ms NUMBER Autorun wait timeout. Default: 120000.
@@ -208,6 +213,48 @@ async function captureScreenshot(send, outputPath) {
   fs.writeFileSync(absolute, Buffer.from(result.result.data, "base64"));
 }
 
+function csvCell(value) {
+  const text = String(value ?? "");
+  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+function writeDetectionCsv(outputPath, detections) {
+  if (!outputPath) return;
+  const absolute = path.resolve(ROOT, outputPath);
+  fs.mkdirSync(path.dirname(absolute), { recursive: true });
+  const fieldnames = [
+    "index",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "detector_class",
+    "detector_conf",
+    "fragment_class",
+    "fragment_conf",
+    "final_class",
+    "final_score",
+  ];
+  const lines = [fieldnames.join(",")];
+  detections.forEach((detection, index) => {
+    const row = {
+      index,
+      x1: detection.x1,
+      y1: detection.y1,
+      x2: detection.x2,
+      y2: detection.y2,
+      detector_class: detection.detectorName,
+      detector_conf: detection.detectorScore,
+      fragment_class: detection.fragmentName,
+      fragment_conf: detection.fragmentScore,
+      final_class: detection.name,
+      final_score: detection.score,
+    };
+    lines.push(fieldnames.map((field) => csvCell(row[field])).join(","));
+  });
+  fs.writeFileSync(absolute, `${lines.join("\n")}\n`);
+}
+
 async function main() {
   const args = parseArgs(process.argv);
   if (!fs.existsSync(args.edge)) {
@@ -243,6 +290,7 @@ async function main() {
     const send = createCdpClient(ws);
     const value = await readBrowserState(send, args.timeoutMs);
     await captureScreenshot(send, args.screenshot);
+    writeDetectionCsv(args.outCsv, value.detections || []);
     ws.close();
     console.log(JSON.stringify(summarize(value), null, 2));
   } finally {
