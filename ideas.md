@@ -70,6 +70,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Browser ONNX stack is deployable-size but not quality-solved: Edge smoke has 6/6 region coverage and only 3/6 same-class on the shop-overlap draft; override-threshold sweep peaks at 4/6 with a USD false class, so do not chase threshold-only fixes.
 - Ultralytics ONNX Runtime on the same detector artifact reaches 6/6 detector same-class at `416/conf=0.05`, while the browser smoke has 11 proposals -> 6 final detections and worse classes; next browser work should inspect preprocessing/postprocess parity, not re-export blindly.
 - `scripts/debug_onnx_detector_preprocess.py` shows detector ONNX preprocessing sensitivity on the shop-overlap image: `cv2` resize gives 13 proposals, while PIL-style resize gives 8 and introduces `USD_100`; browser canvas resizing likely needs parity work for thin slices.
+- Browser `createImageBitmap(... resizeQuality: "high")` resize was tried and reverted because it worsened the shop-overlap smoke to `KHR 51,000` plus `USD_100`; do not retry that as the parity fix.
 - Follow-up web/Hugging Face/Roboflow searches after the audit did not find a better KHR partial/fan dataset; stop broad hunting for now and spend effort on curation or rights-clear phone captures.
 
 ## Data Gaps
