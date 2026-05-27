@@ -61,8 +61,11 @@ The generated `review.csv` has blank `review_include`, `review_class`, and `revi
 For faster curation, serve the repo and open the static review UI:
 
 ```powershell
+lr python scripts/build_benchmark_review_index.py
 lr python -m http.server 8787
 ```
+
+Open `http://localhost:8787/data/real_fan_benchmark/review_index.html` for benchmark candidate links, then use `http://localhost:8787/demo/labeler/` to edit visible-region draft boxes.
 
 Open `http://localhost:8787/demo/review/`, load a review CSV such as `/data/review/real_partial_proposal_review_v1/review_pack/review.csv`, mark usable crops, and export the edited CSV.
 
