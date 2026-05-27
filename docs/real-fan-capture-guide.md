@@ -11,6 +11,7 @@ Capture each scene with normal phone distance and lighting:
 - 5 hand-held fan photos: 6-15 notes, at least some visible slices must show denomination-specific text, numerals, portrait, color, or landmarks.
 - 3 hand-occlusion photos: fingers partly cover notes but do not hide all denomination evidence.
 - 3 partial off-frame photos: notes clipped by the image border.
+- 3 thin/edge partial `KHR_5000` slices and 3 thin/edge partial `KHR_20000` slices, with a front/back mix if possible. These directly target the current old/common classifier's high-confidence partial-slice confusions.
 - Optional mixed scenes: KHR plus USD only after the KHR-only set is captured.
 
 ## Capture Rules
@@ -26,6 +27,8 @@ lr python scripts/init_capture_inbox.py --dry-run
 lr python scripts/init_capture_inbox.py
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type hand_fan --denominations "KHR_5000;KHR_10000" --dry-run
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type hand_fan --denominations "KHR_5000;KHR_10000"
+lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type thin_slice_khr_5000 --denominations "KHR_5000" --dry-run
+lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type thin_slice_khr_20000 --denominations "KHR_20000" --dry-run
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --recursive --scene-type-from-parent --dry-run
 lr python scripts/check_capture_requirements.py
 ```
