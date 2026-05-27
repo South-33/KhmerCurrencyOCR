@@ -15,10 +15,11 @@
 - `data/processed/roboflow_cuurecy_detection_is/manifest.csv`: ignored generated object manifest from `scripts/build_cuurecy_detection_manifest.py`; it preserves split, image path, raw class, canonical denomination, front/back side, edge-touch, tiny-mask, bbox, and polygon-area metadata without copying images.
 - `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/`: ignored focused crop review pack for edge-touching, smaller-area `20000-riel-b/f` and `50000-riel-b/f` segmentation crops. It has 185 crops and contact sheets; `review_class` is canonicalized to `KHR_20000`/`KHR_50000` while `side` preserves front/back.
 - `data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/`: ignored companion crop review pack for edge-touching, smaller-area `5000-riel-b/f` and `10000-riel-b/f` crops. It has 189 crops with canonical `review_class` plus front/back side metadata for old/common fragment-classifier curation.
+- `data/review/roboflow_cuurecy_detection_is_oldcommon_highconf_failure_review_v1/`: ignored review manifest/contact sheets generated from old/common classifier prediction CSVs; it has 31 high-confidence misses across `KHR_5000 -> KHR_10000`, `KHR_20000 -> KHR_10000`, and `KHR_20000 -> KHR_5000`.
 - `data/fragment_classifier_roboflow_partial_khr_diag_v1/`: ignored diagnostic ImageFolder built from the two unreviewed Roboflow crop packs; a 4-epoch CPU MobileNetV3 smoke exported ONNX but only reached `0.325` best val accuracy, so use it as pipeline evidence only.
 - `data/fragment_classifier_roboflow_partial_khr_oldcommon_eval_v1/`: ignored overlap-only ImageFolder for evaluating the current focused old/common classifier on Roboflow partial crops; it exposes `KHR_20000`/`KHR_5000` -> `KHR_10000` collapse.
 - `docs/roboflow-cuurecy-detection-audit.md`: compact audit summary for the downloaded Roboflow segmentation lead, including duplicate/geometry/visual QA results, review-pack paths, split caveats, and release cautions.
-- `demo/review/` accepts `?manifest=/path/to/manifest.csv`; use it to curate the Roboflow crop packs and export edited CSVs before building trusted fragment-classifier data.
+- `demo/review/` accepts `?manifest=/path/to/manifest.csv`; use it to curate the Roboflow crop/failure packs and export edited CSVs before building trusted fragment-classifier data.
 
 ## Manual Or Blocked Sources
 
@@ -77,3 +78,4 @@ A third focused Roboflow search on 2026-05-27 found a stronger lead: [cuurecy-de
 - `scripts/build_yolo_crop_review_pack.py` supports YOLO segmentation labels, optional edge/area filters, and Roboflow currency canonicalization; use it for partial-crop review packs before converting crops into fragment-classifier training data.
 - `scripts/build_fragment_classifier_from_review_pack.py` accepts multiple manifest files; pass `--include-unreviewed` only for diagnostics, not for a trusted training set.
 - `scripts/evaluate_fragment_classifier.py` allows empty ImageFolder classes and can export per-crop predictions, so overlap diagnostics can match a checkpoint class list and produce failure queues for review.
+- `scripts/build_prediction_failure_review_pack.py` turns those per-crop prediction CSVs into review manifests/contact sheets grouped by confusion pair.

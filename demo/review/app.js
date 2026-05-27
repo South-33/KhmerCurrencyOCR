@@ -89,8 +89,10 @@ function predictedClass(row) {
 function rowMeta(row) {
   const title = row.crop_id || row.proposal_index || row.source_image || "";
   const detail = [
+    row.failure_pair || "",
     row.class_name || row.fragment_class || row.detector_class || "",
     row.side || "",
+    row.confidence ? `conf ${row.confidence}` : "",
     row.box_area_frac ? `area ${row.box_area_frac}` : "",
     row.fragment_conf || row.detector_conf || "",
   ].filter(Boolean).join(" · ");
