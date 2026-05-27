@@ -18,12 +18,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--timeout-ms", default="120000")
     parser.add_argument("--edge", default="", help="Optional Edge executable path forwarded to the node smoke script.")
+    parser.add_argument("--summary-json", type=Path, help="Optional aggregate JSON summary output path.")
     parser.add_argument("--no-artifacts", action="store_true", help="Do not write per-case screenshots or detection CSVs.")
     return parser.parse_args()
 
 
 def resolve(path: Path) -> Path:
     return path if path.is_absolute() else ROOT / path
+
+
+def repo_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def read_cases(path: Path) -> list[dict[str, str]]:
@@ -85,6 +93,7 @@ def main() -> None:
         resolve(args.out_dir).mkdir(parents=True, exist_ok=True)
 
     failures: list[str] = []
+    summaries: list[dict] = []
     for case in cases:
         case_id = case["case_id"]
         command = command_for_case(case, args)
@@ -95,6 +104,9 @@ def main() -> None:
             failures.append(f"{case_id}: exit {result.returncode}")
             continue
         summary = parse_summary(result.stdout)
+        summary["caseId"] = case_id
+        summary["notes"] = case.get("notes", "")
+        summaries.append(summary)
         evaluation = summary.get("evaluation") or {}
         print(
             f"{case_id}: count={summary.get('totalCount')} "
@@ -103,6 +115,14 @@ def main() -> None:
             f"any={evaluation.get('matchedAnyClass')}/{evaluation.get('gtCount')} "
             f"khr_error={evaluation.get('khrValueError')} usd_error={evaluation.get('usdValueError')}"
         )
+    summary_json = args.summary_json
+    if summary_json is None and not args.no_artifacts:
+        summary_json = resolve(args.out_dir) / "summary.json"
+    if summary_json is not None:
+        summary_path = resolve(summary_json)
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_path.write_text(json.dumps(summaries, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote {repo_path(summary_path)}")
     if failures:
         raise SystemExit("; ".join(failures))
 

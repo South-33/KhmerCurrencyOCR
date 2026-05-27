@@ -32,6 +32,8 @@ To run every labeled browser smoke case in `manifests/browser_smoke_cases.csv`:
 lr python scripts/run_with_headroom.py --interval 2 --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 -- python scripts/run_browser_smoke_cases.py
 ```
 
+This writes per-case screenshots, detection CSVs, and `summary.json` under `.agent/browser_smoke_cases/`.
+
 The demo reads `configs/cashsnap_two_stage_oldcommon_browser_stack.json`, then loads:
 
 - Detector: `runs/cashsnap/yolo26n_legacy_clean_plus_realcutout_low_skin_ft_e6_i416_b8/weights/best.onnx`
