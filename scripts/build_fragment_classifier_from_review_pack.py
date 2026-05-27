@@ -12,7 +12,7 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build an ImageFolder classifier dataset from a reviewed crop pack.")
-    parser.add_argument("--manifest", required=True, help="Review-pack manifest.csv.")
+    parser.add_argument("--manifest", nargs="+", required=True, help="One or more review-pack manifest.csv files.")
     parser.add_argument("--out", required=True, help="Output ImageFolder dataset under data/.")
     parser.add_argument(
         "--include-values",
@@ -59,14 +59,18 @@ def row_class_name(row: dict[str, str]) -> str:
 
 def main() -> None:
     args = parse_args()
-    manifest = resolve(args.manifest)
     out_dir = resolve(args.out)
     if args.clean:
         safe_clean(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     include_values = {value.strip().lower() for value in args.include_values.split(",") if value.strip()}
 
-    rows = list(csv.DictReader(manifest.open("r", newline="", encoding="utf-8")))
+    rows: list[dict[str, str]] = []
+    for manifest_text in args.manifest:
+        manifest = resolve(manifest_text)
+        for row in csv.DictReader(manifest.open("r", newline="", encoding="utf-8")):
+            row["source_manifest"] = str(manifest.relative_to(ROOT))
+            rows.append(row)
     written_rows: list[dict[str, str]] = []
     counters: dict[tuple[str, str], int] = {}
     for row in rows:
@@ -88,6 +92,7 @@ def main() -> None:
         written = {
             "split": split,
             "class_name": class_name,
+            "source_manifest": row.get("source_manifest", ""),
             "source_crop": str(source.relative_to(ROOT)),
             "image_path": str(target.relative_to(ROOT)),
             "review_notes": row.get("review_notes", ""),

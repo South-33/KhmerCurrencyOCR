@@ -8,6 +8,8 @@ from pathlib import Path
 
 from local_runtime import configure_project_cache
 
+ROOT = Path(__file__).resolve().parents[1]
+
 configure_project_cache()
 
 import torch

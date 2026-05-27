@@ -15,6 +15,7 @@
 - `data/processed/roboflow_cuurecy_detection_is/manifest.csv`: ignored generated object manifest from `scripts/build_cuurecy_detection_manifest.py`; it preserves split, image path, raw class, canonical denomination, front/back side, edge-touch, tiny-mask, bbox, and polygon-area metadata without copying images.
 - `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/`: ignored focused crop review pack for edge-touching, smaller-area `20000-riel-b/f` and `50000-riel-b/f` segmentation crops. It has 185 crops and contact sheets; `review_class` is canonicalized to `KHR_20000`/`KHR_50000` while `side` preserves front/back.
 - `data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/`: ignored companion crop review pack for edge-touching, smaller-area `5000-riel-b/f` and `10000-riel-b/f` crops. It has 189 crops with canonical `review_class` plus front/back side metadata for old/common fragment-classifier curation.
+- `data/fragment_classifier_roboflow_partial_khr_diag_v1/`: ignored diagnostic ImageFolder built from the two unreviewed Roboflow crop packs; a 4-epoch CPU MobileNetV3 smoke exported ONNX but only reached `0.325` best val accuracy, so use it as pipeline evidence only.
 - `docs/roboflow-cuurecy-detection-audit.md`: compact audit summary for the downloaded Roboflow segmentation lead, including duplicate/geometry/visual QA results, review-pack paths, split caveats, and release cautions.
 
 ## Manual Or Blocked Sources
@@ -70,3 +71,4 @@ A third focused Roboflow search on 2026-05-27 found a stronger lead: [cuurecy-de
 - `data/audit/` contact sheets are generated for visual QA and intentionally ignored by git.
 - `scripts/build_cuurecy_detection_manifest.py` maps the Roboflow front/back segmentation classes to CashSnap-style denominations while keeping non-core `KHR_100` rows tagged; current run reports 5,067 core objects, 622 non-core objects, 3,438 edge-touch objects, and 294 tiny-box objects.
 - `scripts/build_yolo_crop_review_pack.py` supports YOLO segmentation labels, optional edge/area filters, and Roboflow currency canonicalization; use it for partial-crop review packs before converting crops into fragment-classifier training data.
+- `scripts/build_fragment_classifier_from_review_pack.py` accepts multiple manifest files; pass `--include-unreviewed` only for diagnostics, not for a trusted training set.

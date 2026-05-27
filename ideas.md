@@ -65,6 +65,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Roboflow `cuurecy-detection-is` downloaded successfully to `data/raw_datasets/roboflow_cuurecy_detection_is/`: 2,329 images and 5,689 YOLOv8 segmentation labels across KHR/USD front/back classes. Exact duplicate/split-leakage found 0 groups, dHash found 3,003 cross-split lookalikes but 0 same-original stems, geometry audit found no malformed mask rows, and the manifest has 5,067 core CashSnap objects plus front/back/partial metadata.
 - Focused Roboflow partial review pack `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/` has 185 edge-touching/small-area 20k/50k front/back crops with canonical `review_class` and side metadata. Contact sheets show useful real partial/back fragments, but repeated layouts mean review/curation is needed before classifier training.
 - Companion Roboflow partial review pack `data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/` has 189 edge-touching/small-area 5k/10k front/back crops for the old/common KHR confusion path.
+- Unreviewed Roboflow partial-crop classifier smoke exported ONNX but reached only 0.325 best val accuracy, confirming the tooling path works while the data still needs human curation and a cleaner validation split.
 
 ## Data Gaps
 
