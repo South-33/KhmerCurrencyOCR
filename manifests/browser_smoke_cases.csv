@@ -1,2 +1,2 @@
-case_id,image,labels,min_same_class,min_any_class,max_khr_error,max_usd_error,notes
-shop_overlap_5k_10k_20k,/data/real_fan_benchmark/images/candidates/real_overlap_0003_commons_shop_5k_10k_20k.png,data/real_fan_benchmark/drafts/real_overlap_0003_commons_shop_5k_10k_20k.txt,4,6,6000,0,"Current deployable Edge smoke: 6/6 any-class, 4/6 same-class, +6000 KHR value error."
+case_id,image,labels,min_same_class,min_any_class,max_count_error,max_khr_error,max_usd_error,notes
+shop_overlap_5k_10k_20k,/data/real_fan_benchmark/images/candidates/real_overlap_0003_commons_shop_5k_10k_20k.png,data/real_fan_benchmark/drafts/real_overlap_0003_commons_shop_5k_10k_20k.txt,4,6,0,6000,0,"Current deployable Edge smoke: 6/6 any-class, 4/6 same-class, 0 count error, +6000 KHR value error."

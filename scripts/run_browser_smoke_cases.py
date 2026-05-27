@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CASES = ROOT / "manifests" / "browser_smoke_cases.csv"
 DEFAULT_OUT_DIR = ROOT / ".agent" / "browser_smoke_cases"
-NUMERIC_FIELDS = ["min_same_class", "min_any_class", "max_khr_error", "max_usd_error"]
+NUMERIC_FIELDS = ["min_same_class", "min_any_class", "max_count_error", "max_khr_error", "max_usd_error"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -101,6 +101,7 @@ def command_for_case(case: dict[str, str], args: argparse.Namespace, index: int)
     ]
     add_optional_number(command, "--min-same-class", case.get("min_same_class", ""))
     add_optional_number(command, "--min-any-class", case.get("min_any_class", ""))
+    add_optional_number(command, "--max-count-error", case.get("max_count_error", ""))
     add_optional_number(command, "--max-khr-error", case.get("max_khr_error", ""))
     add_optional_number(command, "--max-usd-error", case.get("max_usd_error", ""))
     if args.edge:
@@ -153,6 +154,7 @@ def main() -> None:
             f"khr={summary.get('khrValue')} usd={summary.get('usdValue')} "
             f"same={evaluation.get('matchedSameClass')}/{evaluation.get('gtCount')} "
             f"any={evaluation.get('matchedAnyClass')}/{evaluation.get('gtCount')} "
+            f"count_error={evaluation.get('countError')} "
             f"khr_error={evaluation.get('khrValueError')} usd_error={evaluation.get('usdValueError')}"
         )
     summary_json = args.summary_json

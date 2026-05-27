@@ -23,7 +23,7 @@ http://localhost:8787/demo/browser/?image=/data/real_fan_benchmark/images/candid
 Or run the headless Edge smoke from the repo root:
 
 ```powershell
-lr python scripts/run_with_headroom.py --interval 2 --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 -- node scripts/smoke_browser_demo_cdp.cjs --labels data/real_fan_benchmark/drafts/real_overlap_0003_commons_shop_5k_10k_20k.txt --min-same-class 4 --min-any-class 6 --screenshot .agent/cashsnap-browser-smoke-cdp.png --out-csv .agent/cashsnap-browser-smoke-cdp.csv
+lr python scripts/run_with_headroom.py --interval 2 --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 -- node scripts/smoke_browser_demo_cdp.cjs --labels data/real_fan_benchmark/drafts/real_overlap_0003_commons_shop_5k_10k_20k.txt --min-same-class 4 --min-any-class 6 --max-count-error 0 --screenshot .agent/cashsnap-browser-smoke-cdp.png --out-csv .agent/cashsnap-browser-smoke-cdp.csv
 ```
 
 To run every labeled browser smoke case in `manifests/browser_smoke_cases.csv`:

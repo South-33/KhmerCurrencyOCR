@@ -47,6 +47,7 @@ function parseArgs(argv) {
     matchIou: 0.5,
     minSameClass: null,
     minAnyClass: null,
+    maxCountError: null,
     maxKhrError: null,
     maxUsdError: null,
     edge: process.env.EDGE_PATH || DEFAULT_EDGE,
@@ -84,6 +85,9 @@ function parseArgs(argv) {
     } else if (key === "--min-any-class") {
       args.minAnyClass = Number(value);
       index += 1;
+    } else if (key === "--max-count-error") {
+      args.maxCountError = Number(value);
+      index += 1;
     } else if (key === "--max-khr-error") {
       args.maxKhrError = Number(value);
       index += 1;
@@ -112,6 +116,7 @@ Options:
   --match-iou NUMBER  IoU threshold for --labels evaluation. Default: 0.5.
   --min-same-class N  Fail if labeled final same-class matches are below N.
   --min-any-class N   Fail if labeled final any-class matches are below N.
+  --max-count-error N Fail if absolute final count error is above N. Requires --labels.
   --max-khr-error N   Fail if absolute KHR value error is above N. Requires --labels.
   --max-usd-error N   Fail if absolute USD value error is above N. Requires --labels.
   --screenshot PATH   Optional PNG screenshot output path.
@@ -369,13 +374,14 @@ function enforceEvaluation(summary, args) {
   if (
     args.minSameClass === null &&
     args.minAnyClass === null &&
+    args.maxCountError === null &&
     args.maxKhrError === null &&
     args.maxUsdError === null
   ) {
     return;
   }
   if (!summary.evaluation) {
-    throw new Error("--min-same-class/--min-any-class/--max-khr-error/--max-usd-error require --labels");
+    throw new Error("--min-same-class/--min-any-class/--max-count-error/--max-khr-error/--max-usd-error require --labels");
   }
   const failures = [];
   if (args.minSameClass !== null && summary.evaluation.matchedSameClass < args.minSameClass) {
@@ -383,6 +389,9 @@ function enforceEvaluation(summary, args) {
   }
   if (args.minAnyClass !== null && summary.evaluation.matchedAnyClass < args.minAnyClass) {
     failures.push(`any-class ${summary.evaluation.matchedAnyClass} < ${args.minAnyClass}`);
+  }
+  if (args.maxCountError !== null && Math.abs(summary.evaluation.countError) > args.maxCountError) {
+    failures.push(`count error ${summary.evaluation.countError} exceeds +/-${args.maxCountError}`);
   }
   if (args.maxKhrError !== null && Math.abs(summary.evaluation.khrValueError) > args.maxKhrError) {
     failures.push(`KHR value error ${summary.evaluation.khrValueError} exceeds +/-${args.maxKhrError}`);
