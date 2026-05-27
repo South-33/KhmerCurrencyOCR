@@ -62,7 +62,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Focused old/common KHR real-box classification is the best two-stage signal so far: detector proposals + `mobilenet_v3_old_common_khr_realbox_pretrained_balanced_e12` + detector-threshold fusion around `0.17` + detector-conf NMS reached 6 predictions for 6 draft notes, 6/6 any-class coverage, and 5/6 same-class on the shop overlap candidate.
 - Modest legacy reference-fragment augmentation of that focused classifier did not improve the fused shop-overlap score beyond 5/6, so prioritize real reviewed partial/back crops and calibration over more reference-fragment scaling.
 - Existing Khmer OCR is not a shortcut on the real shop-overlap draft: `mer` returns scattered text and wrong/partial digits from note crops, so keep OCR as an optional cue after detection rather than replacing the visual classifier path.
-- Roboflow `cuurecy-detection-is` downloaded successfully to `data/raw_datasets/roboflow_cuurecy_detection_is/`: 2,329 images and 5,689 YOLOv8 segmentation labels across KHR/USD front/back classes. Preliminary contact sheets show usable real phone/partial examples; exact duplicate/split-leakage found 0 groups, and geometry audit found no malformed mask rows under the headroom harness.
+- Roboflow `cuurecy-detection-is` downloaded successfully to `data/raw_datasets/roboflow_cuurecy_detection_is/`: 2,329 images and 5,689 YOLOv8 segmentation labels across KHR/USD front/back classes. Exact duplicate/split-leakage found 0 groups, geometry audit found no malformed mask rows, and filtered tiny/edge sheets show useful real partial/off-frame cases with hand/repetition curation still needed.
 
 ## Data Gaps
 
