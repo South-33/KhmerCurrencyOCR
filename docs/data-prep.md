@@ -12,6 +12,7 @@
 - `data/asset_candidates/cashsnap_khr_picwish_shape_*`: stricter PicWish cutout QA outputs using convex-hull, rotated-rectangle, span, component, and optional skin-color filters. Treat these as triage/contact-sheet aids, not verified final assets.
 - `data/cashsnap_v1/`: merged local YOLO dataset from the multi-source preparation pipeline. This directory is intentionally ignored by git because it is large/generated.
 - `data/raw_datasets/roboflow_cuurecy_detection_is/`: Roboflow YOLOv8 segmentation export downloaded on 2026-05-27. It has 2,329 images and 5,689 labels across 22 KHR/USD front/back classes; preliminary contact sheets show real phone, partial, hand-held, and overlap views. Exact duplicate/split-leakage and label-geometry audits passed under the headroom harness; it still needs license/reproduction, near-duplicate, note-version, and tiny-mask visual QA before training.
+- `data/processed/roboflow_cuurecy_detection_is/manifest.csv`: ignored generated object manifest from `scripts/build_cuurecy_detection_manifest.py`; it preserves split, image path, raw class, canonical denomination, front/back side, edge-touch, tiny-mask, bbox, and polygon-area metadata without copying images.
 
 ## Manual Or Blocked Sources
 
@@ -64,3 +65,4 @@ A third focused Roboflow search on 2026-05-27 found a stronger lead: [cuurecy-de
 - The merged dataset has 14,036 train images, 2,103 validation images, and 1,562 test images.
 - Weakest v1 classes by box count are `KHR_20000` and `KHR_50000`; keep them in v1, but collect or synthesize more examples before trusting production-like results.
 - `data/audit/` contact sheets are generated for visual QA and intentionally ignored by git.
+- `scripts/build_cuurecy_detection_manifest.py` maps the Roboflow front/back segmentation classes to CashSnap-style denominations while keeping non-core `KHR_100` rows tagged; current run reports 5,067 core objects, 622 non-core objects, 3,438 edge-touch objects, and 294 tiny-box objects.
