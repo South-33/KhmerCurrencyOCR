@@ -64,8 +64,8 @@ def row_html(source: dict[str, str], task: dict[str, str], draft_dir: Path) -> s
         </a>
         <div class="body">
           <h2>{html.escape(image_id)}</h2>
-          <p><strong>Status:</strong> {html.escape(status)} · <strong>Draft boxes:</strong> {draft_count}</p>
-          <p><strong>Priority:</strong> {html.escape(task.get("priority", ""))} · <strong>Benchmark:</strong> {html.escape(source.get("benchmark_status", ""))}</p>
+          <p><strong>Status:</strong> {html.escape(status)} / <strong>Draft boxes:</strong> {draft_count}</p>
+          <p><strong>Priority:</strong> {html.escape(task.get("priority", ""))} / <strong>Benchmark:</strong> {html.escape(source.get("benchmark_status", ""))}</p>
           <p>{html.escape(task.get("notes", source.get("notes", "")))}</p>
           <a class="button" href="{html.escape(link)}">Open labeler</a>
         </div>
