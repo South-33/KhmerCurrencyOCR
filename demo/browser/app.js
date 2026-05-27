@@ -269,9 +269,10 @@ async function classifyFragments(detections) {
   if (!detections.length) {
     return detections;
   }
+  const fragmentClassNames = state.config?.fragment_classifier?.classes ?? ["KHR_1000", "KHR_10000", "KHR_20000", "KHR_5000"];
   const eligible = detections
     .map((detection, index) => ({ detection, index }))
-    .filter((item) => item.detection.detectorName.startsWith("KHR_"));
+    .filter((item) => fragmentClassNames.includes(item.detection.detectorName));
   if (!eligible.length) {
     return detections;
   }
@@ -282,7 +283,6 @@ async function classifyFragments(detections) {
   const feeds = { [state.classifierSession.inputNames[0]]: tensor };
   const outputs = await state.classifierSession.run(feeds);
   const logits = outputs[state.classifierSession.outputNames[0]];
-  const fragmentClassNames = state.config?.fragment_classifier?.classes ?? ["KHR_1000", "KHR_10000", "KHR_20000", "KHR_5000"];
   const classCount = fragmentClassNames.length;
   const classified = [...detections];
   eligible.forEach(({ detection, index }, batchIndex) => {
