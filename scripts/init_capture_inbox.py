@@ -35,6 +35,13 @@ def is_required(row: dict[str, str]) -> bool:
     return row.get("required", "yes").strip().lower() not in {"0", "false", "no", "optional"}
 
 
+def priority_value(row: dict[str, str]) -> int:
+    try:
+        return int(row.get("priority", "5") or "5")
+    except ValueError:
+        return 5
+
+
 def scene_requirements(requirements: Path, include_optional: bool) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -48,7 +55,7 @@ def scene_requirements(requirements: Path, include_optional: bool) -> list[dict[
             if folder and folder not in seen:
                 rows.append(row)
                 seen.add(folder)
-    return rows
+    return sorted(rows, key=lambda row: (priority_value(row), row.get("required", "yes").strip().lower() not in {"yes", "1", "true"}, row["match_value"]))
 
 
 def denomination_hint(scene_type: str) -> str:
@@ -74,6 +81,7 @@ def guide_text(row: dict[str, str], folder_path: Path) -> str:
             f"CashSnap capture inbox: {scene_type}",
             f"Requirement: {row['description']}",
             f"Minimum usable images: {row['min_images']}",
+            f"Priority: P{priority_value(row)}",
             f"Notes: {row.get('notes', '').strip()}",
             "",
             "Drop rights-clear phone photos for this scene in this folder.",
@@ -87,7 +95,7 @@ def guide_text(row: dict[str, str], folder_path: Path) -> str:
 
 
 def root_guide_text(rows: list[dict[str, str]], out_dir: Path) -> str:
-    folder_lines = [f"- {row['match_value']}: {row['description']} ({row['min_images']} usable)" for row in rows]
+    folder_lines = [f"- P{priority_value(row)} {row['match_value']}: {row['description']} ({row['min_images']} usable)" for row in rows]
     return "\n".join(
         [
             "CashSnap real partial-photo inbox",

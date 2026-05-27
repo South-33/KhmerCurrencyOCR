@@ -55,6 +55,13 @@ def hint_for_requirement(req: dict[str, str]) -> str:
     return ""
 
 
+def priority_value(req: dict[str, str]) -> int:
+    try:
+        return int(req.get("priority", "5") or "5")
+    except ValueError:
+        return 5
+
+
 def image_ok(row: dict[str, str]) -> tuple[bool, str]:
     local_path = row.get("local_path", "").strip()
     if not local_path:
@@ -100,15 +107,26 @@ def main() -> None:
 
     unmet = False
     print(f"inventory_rows={len(rows)} usable_rows={len(usable_rows)} unregistered_inbox_images={len(unregistered_inbox)}")
+    gaps: list[tuple[int, int, dict[str, str], int]] = []
     for req in requirements:
         count = sum(1 for row in usable_rows if row_matches(row, req["match_column"], req["match_value"]))
         minimum = int(req["min_images"])
         required = req.get("required", "yes").strip().lower() not in {"0", "false", "no", "optional"}
         status = "ok" if count >= minimum else ("missing" if required else "optional_missing")
         unmet = unmet or (required and count < minimum)
+        if count < minimum:
+            gaps.append((priority_value(req), minimum - count, req, count))
         hint = hint_for_requirement(req)
         suffix = f" ({hint})" if hint and count < minimum else ""
-        print(f"{status}: {req['requirement_id']} {count}/{minimum} - {req['description']}{suffix}")
+        priority = req.get("priority", "").strip()
+        priority_text = f" priority={priority}" if priority else ""
+        print(f"{status}: {req['requirement_id']} {count}/{minimum}{priority_text} - {req['description']}{suffix}")
+    if gaps:
+        print("Next capture priorities:")
+        for priority, missing, req, count in sorted(gaps, key=lambda item: (item[0], item[2]["required"] != "yes", -item[1], item[2]["requirement_id"]))[:6]:
+            hint = hint_for_requirement(req)
+            suffix = f" ({hint})" if hint else ""
+            print(f"- P{priority} {req['requirement_id']}: need {missing} more, have {count}{suffix}")
     if errors:
         print("Inventory issues:")
         for error in errors:
