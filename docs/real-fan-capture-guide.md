@@ -37,6 +37,7 @@ lr python scripts/check_capture_requirements.py
 - Skip ambiguous backs or tiny slices and note the ambiguity instead of guessing.
 - Keep labels under `data/real_fan_benchmark/labels/val/` and run `scripts/check_real_fan_benchmark.py`.
 - Never train on these benchmark images.
+- For quick draft labels, serve the repo and open `http://localhost:8787/demo/labeler/`; draw visible-note boxes, export YOLO TXT, then render/check the labels before promoting them.
 
 ## Proposal Review Loop
 

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CashSnap Labeler</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p>CashSnap labeler</p>
+          <h1>Visible-note boxes</h1>
+        </div>
+        <div class="actions">
+          <button id="undoButton" type="button" disabled>Undo</button>
+          <button id="exportButton" type="button" disabled>Export TXT</button>
+        </div>
+      </header>
+
+      <section class="toolbar">
+        <label class="path-field">
+          <span>Image</span>
+          <input
+            id="imagePath"
+            type="text"
+            value="/data/real_fan_benchmark/images/candidates/real_overlap_0003_commons_shop_5k_10k_20k.png"
+          />
+        </label>
+        <button id="loadButton" type="button">Load</button>
+        <label>
+          <span>Class</span>
+          <select id="classSelect"></select>
+        </label>
+        <button id="importButton" type="button">Import Labels</button>
+        <button id="clearButton" type="button" disabled>Clear</button>
+      </section>
+
+      <section class="workbench">
+        <section class="canvas-panel">
+          <div class="stage" id="stage">
+            <img id="image" alt="" />
+            <svg id="overlay" aria-label="Label overlay"></svg>
+            <div class="empty" id="emptyState">Load an image, then drag visible bill regions.</div>
+          </div>
+        </section>
+        <aside class="side-panel">
+          <div class="status" id="status">No image loaded</div>
+          <textarea id="labelText" spellcheck="false" placeholder="Paste YOLO labels here to edit them"></textarea>
+          <div class="box-list" id="boxList"></div>
+        </aside>
+      </section>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>
