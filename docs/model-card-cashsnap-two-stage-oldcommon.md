@@ -19,11 +19,11 @@ Fragment classifier classes are only `KHR_1000`, `KHR_5000`, `KHR_10000`, and `K
 
 ## Fusion
 
-Current diagnostic fusion:
+Current diagnostic fusion, refreshed on 2026-05-27:
 
 - Detector proposal confidence: `0.05`
-- Detector override confidence: `0.17`
-- Class-agnostic NMS IoU: `0.85`
+- Detector override confidence: `0.17` (`0.175` ties on the current draft)
+- Class-agnostic NMS IoU: `0.85` (`0.75-0.90` ties on the current draft)
 - NMS ranking score: detector confidence
 
 ## Current Evidence
@@ -35,6 +35,8 @@ On draft labels for `real_overlap_0003_commons_shop_5k_10k_20k`, the focused old
 - `6` predictions for `6` draft visible notes
 
 Broad 14-class fragment classifiers and a 3-class KHR/USD/background gate did not transfer to this real shop-overlap probe; both remained too confused for browser/mobile deployment.
+
+Raw detector-only thresholding is not enough. In the same refresh, the detector can reach full same-class recall only at `416/conf=0.03` with `23` predictions for `6` notes, while `416/conf=0.05` gives `5/6` same-class and `14` predictions. Existing Khmer OCR (`mer`) also failed as a shortcut on the same crops, returning scattered text and wrong/partial denomination digits, so OCR remains optional auxiliary evidence rather than the core path.
 
 ## Known Limits
 
