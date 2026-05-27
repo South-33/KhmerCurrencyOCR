@@ -19,7 +19,7 @@
 - `data/fragment_classifier_roboflow_partial_khr_diag_v1/`: ignored diagnostic ImageFolder built from the two unreviewed Roboflow crop packs; a 4-epoch CPU MobileNetV3 smoke exported ONNX but only reached `0.325` best val accuracy, so use it as pipeline evidence only.
 - `data/fragment_classifier_roboflow_partial_khr_oldcommon_eval_v1/`: ignored overlap-only ImageFolder for evaluating the current focused old/common classifier on Roboflow partial crops; it exposes `KHR_20000`/`KHR_5000` -> `KHR_10000` collapse.
 - `docs/roboflow-cuurecy-detection-audit.md`: compact audit summary for the downloaded Roboflow segmentation lead, including duplicate/geometry/visual QA results, review-pack paths, split caveats, and release cautions.
-- `demo/review/` accepts `?manifest=/path/to/manifest.csv`; use it to curate the Roboflow crop/failure packs and export edited CSVs before building trusted fragment-classifier data.
+- `demo/review/` accepts `?manifest=/path/to/manifest.csv`; use it to curate the Roboflow crop/failure packs and export edited CSVs before building trusted fragment-classifier data. For the current high-confidence miss queue, serve the repo and open `http://localhost:8787/demo/review/?manifest=/data/review/roboflow_cuurecy_detection_is_oldcommon_highconf_failure_review_v1/manifest.csv`.
 
 ## Manual Or Blocked Sources
 
