@@ -66,6 +66,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Focused Roboflow partial review pack `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/` has 185 edge-touching/small-area 20k/50k front/back crops with canonical `review_class` and side metadata. Contact sheets show useful real partial/back fragments, but repeated layouts mean review/curation is needed before classifier training.
 - Companion Roboflow partial review pack `data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/` has 189 edge-touching/small-area 5k/10k front/back crops for the old/common KHR confusion path.
 - Unreviewed Roboflow partial-crop classifier smoke exported ONNX but reached only 0.325 best val accuracy, confirming the tooling path works while the data still needs human curation and a cleaner validation split.
+- Follow-up web/Hugging Face/Roboflow searches after the audit did not find a better KHR partial/fan dataset; stop broad hunting for now and spend effort on curation or rights-clear phone captures.
 
 ## Data Gaps
 
