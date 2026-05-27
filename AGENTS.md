@@ -29,6 +29,7 @@ This is the project's AGENTS.md
 - Rare KHR research PDFs live under `docs/research/`; use them for version/source checks instead of leaving reference docs in the repo root.
 - Mobile export smoke notes live in `docs/mobile-export.md`; ONNX/NCNN export works from the balanced checkpoint, while TFLite needs a separate Python 3.11/3.12 TensorFlow environment because this repo is currently on Python 3.14.
 - For long YOLO probes, prefer `scripts/bench_train_with_headroom.py`; it probes CPU/RAM/GPU, disables plots, adaptively relaunches smaller on RAM/VRAM pressure, then parks in pause/resume mode at the floor.
+- Do not run heavy CPU/RAM/GPU jobs directly, including training, broad duplicate scans, large downloads/extracts, or full-dataset audits; use or build a headroom harness that monitors live usage and adjusts/pauses/stops so CPU, RAM, and GPU stay under 90% and the PC does not lag.
 - Old-common KHR synthetic focus improves overlap region coverage but increases class confusion; do not keep scaling that recipe without human-verified cutouts/class balance and calibration pressure.
 - For new real partial-note phone photos, use `scripts/run_capture_review_pipeline.py` to produce proposal review packs under `data/review/`; it keeps runtime caches repo-local on D via `.cache_runtime/`.
 - Shape-filtered PicWish banks (`cashsnap_khr_picwish_shape_*`) are visual-QA aids, not final assets; `shape_skin30_current` training regressed validation and added USD false positives on KHR-only overlap.

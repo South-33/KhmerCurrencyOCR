@@ -42,6 +42,7 @@ DATASET_DIRS = {
     "usd_total":                 DATA / "raw_datasets" / "roboflow_usd_total",
     "billsbank":                 DATA / "raw_datasets" / "roboflow_billsbank",
     "asian_currency_detection":  DATA / "raw_datasets" / "roboflow_asian_currency_detection",
+    "cuurecy_detection_is":      DATA / "raw_datasets" / "roboflow_cuurecy_detection_is",
 }
 
 
