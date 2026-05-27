@@ -22,6 +22,8 @@ Capture each scene with normal phone distance and lighting:
 - Track new photos in `manifests/real_partial_capture_inventory.csv` and run `scripts/check_capture_requirements.py` to see which scene/denomination gaps remain.
 
 ```powershell
+lr python scripts/init_capture_inbox.py --dry-run
+lr python scripts/init_capture_inbox.py
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type hand_fan --denominations "KHR_5000;KHR_10000" --dry-run
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --scene-type hand_fan --denominations "KHR_5000;KHR_10000"
 lr python scripts/register_capture_photos.py --images-dir data/inbox/real_partial_photos --recursive --scene-type-from-parent --dry-run
