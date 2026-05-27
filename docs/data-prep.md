@@ -15,6 +15,7 @@
 - `data/processed/roboflow_cuurecy_detection_is/manifest.csv`: ignored generated object manifest from `scripts/build_cuurecy_detection_manifest.py`; it preserves split, image path, raw class, canonical denomination, front/back side, edge-touch, tiny-mask, bbox, and polygon-area metadata without copying images.
 - `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/`: ignored focused crop review pack for edge-touching, smaller-area `20000-riel-b/f` and `50000-riel-b/f` segmentation crops. It has 185 crops and contact sheets; `review_class` is canonicalized to `KHR_20000`/`KHR_50000` while `side` preserves front/back.
 - `data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/`: ignored companion crop review pack for edge-touching, smaller-area `5000-riel-b/f` and `10000-riel-b/f` crops. It has 189 crops with canonical `review_class` plus front/back side metadata for old/common fragment-classifier curation.
+- `docs/roboflow-cuurecy-detection-audit.md`: compact audit summary for the downloaded Roboflow segmentation lead, including duplicate/geometry/visual QA results, review-pack paths, split caveats, and release cautions.
 
 ## Manual Or Blocked Sources
 
