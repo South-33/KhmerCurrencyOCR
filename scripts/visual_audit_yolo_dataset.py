@@ -20,8 +20,12 @@ def parse_args() -> argparse.Namespace:
 
 def load_config(path: Path) -> tuple[Path, dict[int, str]]:
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
-    root = (path.parent / config["path"]).resolve()
-    names = {int(key): value for key, value in config["names"].items()}
+    root = (path.parent / config["path"]).resolve() if "path" in config else path.parent.resolve()
+    raw_names = config["names"]
+    if isinstance(raw_names, dict):
+        names = {int(key): value for key, value in raw_names.items()}
+    else:
+        names = {index: value for index, value in enumerate(raw_names)}
     return root, names
 
 
@@ -33,23 +37,49 @@ def find_image(image_dir: Path, stem: str) -> Path | None:
     return None
 
 
+def split_dirs(root: Path, split: str) -> tuple[Path, Path] | None:
+    candidates = [
+        (root / "labels" / split, root / "images" / split),
+        (root / split / "labels", root / split / "images"),
+    ]
+    for label_dir, image_dir in candidates:
+        if label_dir.exists() and image_dir.exists():
+            return label_dir, image_dir
+    return None
+
+
+def parse_yolo_shape(parts: list[str]) -> list[float] | None:
+    if len(parts) == 5:
+        return [float(value) for value in parts[1:]]
+    if len(parts) >= 7 and len(parts[1:]) % 2 == 0:
+        coords = [float(value) for value in parts[1:]]
+        xs = coords[0::2]
+        ys = coords[1::2]
+        x1, x2 = min(xs), max(xs)
+        y1, y2 = min(ys), max(ys)
+        return [(x1 + x2) / 2, (y1 + y2) / 2, x2 - x1, y2 - y1]
+    return None
+
+
 def collect_samples(root: Path, names: dict[int, str]) -> dict[int, list[tuple[Path, list[float]]]]:
     samples: dict[int, list[tuple[Path, list[float]]]] = defaultdict(list)
-    for split in ["train", "val", "test"]:
-        label_dir = root / "labels" / split
-        image_dir = root / "images" / split
+    for split in ["train", "valid", "val", "test"]:
+        dirs = split_dirs(root, split)
+        if dirs is None:
+            continue
+        label_dir, image_dir = dirs
         for label_path in label_dir.glob("*.txt"):
             image_path = find_image(image_dir, label_path.stem)
             if image_path is None:
                 continue
             for line in label_path.read_text(encoding="utf-8").splitlines():
                 parts = line.split()
-                if len(parts) != 5:
-                    continue
                 class_id = int(parts[0])
                 if class_id not in names:
                     continue
-                samples[class_id].append((image_path, [float(value) for value in parts[1:]]))
+                box = parse_yolo_shape(parts)
+                if box is not None:
+                    samples[class_id].append((image_path, box))
     return samples
 
 

@@ -5,7 +5,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 ## Strong Ideas To Try
 
 - Collect the minimum real partial-note phone pack from `manifests/real_partial_capture_requirements.csv`, run `scripts/run_capture_review_pipeline.py`, review crops in `demo/review/`, then retrain/calibrate only from accepted rows. This is now higher leverage than more synthetic scaling or broad public-dataset search.
-- Manually export/audit Roboflow `cuurecy-detection-is` if an account/API key is available: it is a new CC BY 4.0 instance-segmentation lead with KHR/USD front/back classes and may provide masks for the compositor, but must be checked for note versions, duplicates, and real partial/fan coverage before training.
+- Audit the downloaded Roboflow `cuurecy-detection-is` segmentation export: it has KHR/USD front/back masks and promising real phone partial/overlap examples, but must be checked for license/reproduction constraints, duplicates, note versions, split leakage, and mask quality before training.
 - Build the mask-based synthetic compositor described in `docs/synthetic-compositor-plan.md`: verified real-camera cutouts, z-order compositing, and visible-pixel label regeneration for detect/OBB/segmentation.
 - Build a curated transparent banknote asset library from the best public/Roboflow examples: tight crop, remove background, QA visually, tag denomination/front/back/version.
 - Use `scripts/package_cashsnap_picwish_inputs.py` to expand cutout candidates beyond rare KHR; `data/picwish_upload_batches_cashsnap_khr_v1/` currently has 720 all-KHR upload images ready for background removal.
@@ -62,6 +62,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Focused old/common KHR real-box classification is the best two-stage signal so far: detector proposals + `mobilenet_v3_old_common_khr_realbox_pretrained_balanced_e12` + detector-threshold fusion around `0.17` + detector-conf NMS reached 6 predictions for 6 draft notes, 6/6 any-class coverage, and 5/6 same-class on the shop overlap candidate.
 - Modest legacy reference-fragment augmentation of that focused classifier did not improve the fused shop-overlap score beyond 5/6, so prioritize real reviewed partial/back crops and calibration over more reference-fragment scaling.
 - Existing Khmer OCR is not a shortcut on the real shop-overlap draft: `mer` returns scattered text and wrong/partial digits from note crops, so keep OCR as an optional cue after detection rather than replacing the visual classifier path.
+- Roboflow `cuurecy-detection-is` downloaded successfully to `data/raw_datasets/roboflow_cuurecy_detection_is/`: 2,329 images and 5,689 YOLOv8 segmentation labels across KHR/USD front/back classes. Preliminary contact sheets show usable real phone/partial examples, making this the best external data lead so far, pending audit.
 
 ## Data Gaps
 
