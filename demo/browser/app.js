@@ -161,7 +161,7 @@ function parseOutput(output, meta) {
       detectorScore: score,
       fragmentName: "",
       fragmentScore: 0,
-      name: CLASS_NAMES[classId] || `class_${classId}`,
+      name: classNames[classId] || `class_${classId}`,
       score,
       x1: clamp(x1, 0, state.image.width),
       y1: clamp(y1, 0, state.image.height),
