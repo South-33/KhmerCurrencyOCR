@@ -16,6 +16,7 @@ Small phone/browser-oriented diagnostic stack for partial and overlapped KHR ban
 Detector classes follow the 13-class CashSnap v1 denomination list: USD 1/5/10/20/50/100 and KHR 500/1000/2000/5000/10000/20000/50000.
 
 Fragment classifier classes are only `KHR_1000`, `KHR_5000`, `KHR_10000`, and `KHR_20000`.
+The browser fusion path skips this KHR-only fragment classifier for USD detector proposals; `manifests/browser_smoke_cases.csv` includes a USD_1 front/back sanity case to guard dollar totals.
 
 ## Fusion
 
