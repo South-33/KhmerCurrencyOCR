@@ -13,6 +13,7 @@
 - `data/cashsnap_v1/`: merged local YOLO dataset from the multi-source preparation pipeline. This directory is intentionally ignored by git because it is large/generated.
 - `data/raw_datasets/roboflow_cuurecy_detection_is/`: Roboflow YOLOv8 segmentation export downloaded on 2026-05-27. It has 2,329 images and 5,689 labels across 22 KHR/USD front/back classes; preliminary contact sheets show real phone, partial, hand-held, and overlap views. Exact duplicate/split-leakage and label-geometry audits passed under the headroom harness. Near dHash audit found 6,432 lookalike pairs and 3,003 cross-split pairs at threshold 4, but 0 same-original Roboflow stems; curate splits before validation claims.
 - `data/processed/roboflow_cuurecy_detection_is/manifest.csv`: ignored generated object manifest from `scripts/build_cuurecy_detection_manifest.py`; it preserves split, image path, raw class, canonical denomination, front/back side, edge-touch, tiny-mask, bbox, and polygon-area metadata without copying images.
+- `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/`: ignored focused crop review pack for edge-touching, smaller-area `20000-riel-b/f` and `50000-riel-b/f` segmentation crops. It has 185 crops and contact sheets that are useful for weak-class partial/back curation, but repeated layouts remain visible.
 
 ## Manual Or Blocked Sources
 
@@ -66,3 +67,4 @@ A third focused Roboflow search on 2026-05-27 found a stronger lead: [cuurecy-de
 - Weakest v1 classes by box count are `KHR_20000` and `KHR_50000`; keep them in v1, but collect or synthesize more examples before trusting production-like results.
 - `data/audit/` contact sheets are generated for visual QA and intentionally ignored by git.
 - `scripts/build_cuurecy_detection_manifest.py` maps the Roboflow front/back segmentation classes to CashSnap-style denominations while keeping non-core `KHR_100` rows tagged; current run reports 5,067 core objects, 622 non-core objects, 3,438 edge-touch objects, and 294 tiny-box objects.
+- `scripts/build_yolo_crop_review_pack.py` supports YOLO segmentation labels and optional edge/area filters; use it for Roboflow partial-crop review packs before converting crops into fragment-classifier training data.

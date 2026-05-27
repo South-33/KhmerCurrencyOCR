@@ -63,6 +63,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Modest legacy reference-fragment augmentation of that focused classifier did not improve the fused shop-overlap score beyond 5/6, so prioritize real reviewed partial/back crops and calibration over more reference-fragment scaling.
 - Existing Khmer OCR is not a shortcut on the real shop-overlap draft: `mer` returns scattered text and wrong/partial digits from note crops, so keep OCR as an optional cue after detection rather than replacing the visual classifier path.
 - Roboflow `cuurecy-detection-is` downloaded successfully to `data/raw_datasets/roboflow_cuurecy_detection_is/`: 2,329 images and 5,689 YOLOv8 segmentation labels across KHR/USD front/back classes. Exact duplicate/split-leakage found 0 groups, dHash found 3,003 cross-split lookalikes but 0 same-original stems, geometry audit found no malformed mask rows, and the manifest has 5,067 core CashSnap objects plus front/back/partial metadata.
+- Focused Roboflow partial review pack `data/review/roboflow_cuurecy_detection_is_khr_20k_50k_partial_review_v1/` has 185 edge-touching/small-area 20k/50k front/back crops. Contact sheets show useful real partial/back fragments, but repeated layouts mean review/curation is needed before classifier training.
 
 ## Data Gaps
 

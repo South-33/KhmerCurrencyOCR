@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pad", type=float, default=0.04)
     parser.add_argument("--thumb", type=int, default=180)
     parser.add_argument("--seed", type=int, default=20260527)
+    parser.add_argument("--edge-only", action="store_true", help="Only include boxes touching the image edge.")
+    parser.add_argument("--edge-margin", type=float, default=0.01)
+    parser.add_argument("--min-box-area", type=float, default=None, help="Minimum normalized bbox area.")
+    parser.add_argument("--max-box-area", type=float, default=None, help="Maximum normalized bbox area.")
+    parser.add_argument("--select", choices=["random", "smallest", "largest"], default="random")
     parser.add_argument("--clean", action="store_true")
     return parser.parse_args()
 
@@ -57,7 +62,7 @@ def resolve(path: Path, base: Path) -> Path:
 
 def load_config(path: Path) -> tuple[Path, dict[int, str], dict[str, object]]:
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
-    dataset_root = resolve(Path(config["path"]), path.parent).resolve()
+    dataset_root = resolve(Path(config["path"]), path.parent).resolve() if "path" in config else path.parent.resolve()
     raw_names = config["names"]
     if isinstance(raw_names, dict):
         names = {int(key): str(value) for key, value in raw_names.items()}
@@ -72,6 +77,14 @@ def split_images(dataset_root: Path, split_value: object) -> list[Path]:
     for raw_value in values:
         value = str(raw_value)
         path = resolve(Path(value), dataset_root)
+        if not path.exists():
+            parts = {part.lower() for part in Path(value).parts}
+            fallback_split = next((split for split in ["train", "valid", "val", "test"] if split in parts), "")
+            if fallback_split:
+                normalized = "valid" if fallback_split == "val" else fallback_split
+                fallback = dataset_root / normalized / "images"
+                if fallback.exists():
+                    path = fallback
         if path.suffix.lower() == ".txt":
             for raw_line in path.read_text(encoding="utf-8").splitlines():
                 line = raw_line.strip()
@@ -94,7 +107,54 @@ def label_path_for_image(image_path: Path) -> Path:
     return Path(*parts).with_suffix(".txt")
 
 
-def read_items(split: str, image_path: Path, names: dict[int, str], wanted: set[str], min_side: int) -> list[CropItem]:
+def parse_yolo_box(parts: list[str]) -> tuple[float, float, float, float] | None:
+    if len(parts) == 5:
+        return tuple(float(value) for value in parts[1:])  # type: ignore[return-value]
+    if len(parts) >= 7 and len(parts[1:]) % 2 == 0:
+        coords = [float(value) for value in parts[1:]]
+        xs = coords[0::2]
+        ys = coords[1::2]
+        x1, x2 = min(xs), max(xs)
+        y1, y2 = min(ys), max(ys)
+        return (x1 + x2) / 2, (y1 + y2) / 2, x2 - x1, y2 - y1
+    return None
+
+
+def normalized_box_matches(box: tuple[float, float, float, float], args: argparse.Namespace) -> bool:
+    cx, cy, box_w, box_h = box
+    box_area = box_w * box_h
+    if args.min_box_area is not None and box_area < args.min_box_area:
+        return False
+    if args.max_box_area is not None and box_area > args.max_box_area:
+        return False
+    if args.edge_only:
+        x1 = cx - box_w / 2
+        y1 = cy - box_h / 2
+        x2 = cx + box_w / 2
+        y2 = cy + box_h / 2
+        return (
+            x1 <= args.edge_margin
+            or y1 <= args.edge_margin
+            or x2 >= 1.0 - args.edge_margin
+            or y2 >= 1.0 - args.edge_margin
+        )
+    return True
+
+
+def item_area_frac(item: CropItem) -> float:
+    x1, y1, x2, y2 = item.xyxy
+    image_w, image_h = item.image_size
+    return ((x2 - x1) * (y2 - y1)) / max(1, image_w * image_h)
+
+
+def read_items(
+    split: str,
+    image_path: Path,
+    names: dict[int, str],
+    wanted: set[str],
+    min_side: int,
+    args: argparse.Namespace,
+) -> list[CropItem]:
     label_path = label_path_for_image(image_path)
     if not label_path.exists():
         return []
@@ -103,13 +163,16 @@ def read_items(split: str, image_path: Path, names: dict[int, str], wanted: set[
     items: list[CropItem] = []
     for label_index, raw_line in enumerate(label_path.read_text(encoding="utf-8").splitlines()):
         parts = raw_line.split()
-        if len(parts) != 5:
-            continue
         class_id = int(float(parts[0]))
         class_name = names.get(class_id, "")
         if class_name not in wanted:
             continue
-        cx, cy, box_w, box_h = [float(value) for value in parts[1:]]
+        box = parse_yolo_box(parts)
+        if box is None:
+            continue
+        if not normalized_box_matches(box, args):
+            continue
+        cx, cy, box_w, box_h = box
         x1 = max(0, int((cx - box_w / 2) * width))
         y1 = max(0, int((cy - box_h / 2) * height))
         x2 = min(width, int((cx + box_w / 2) * width))
@@ -169,14 +232,23 @@ def main() -> None:
     for split in splits:
         if split not in config:
             continue
-        items = [item for image in split_images(dataset_root, config[split]) for item in read_items(split, image, names, wanted, args.min_side)]
+        items = [
+            item
+            for image in split_images(dataset_root, config[split])
+            for item in read_items(split, image, names, wanted, args.min_side, args)
+        ]
         by_class: dict[str, list[CropItem]] = defaultdict(list)
         for item in items:
             by_class[item.class_name].append(item)
         for class_name in sorted(wanted):
             selected = by_class[class_name][:]
-            rng.shuffle(selected)
-            selected = selected[: args.max_per_class_split]
+            if args.select == "smallest":
+                selected = sorted(selected, key=item_area_frac)[: args.max_per_class_split]
+            elif args.select == "largest":
+                selected = sorted(selected, key=item_area_frac, reverse=True)[: args.max_per_class_split]
+            else:
+                rng.shuffle(selected)
+                selected = selected[: args.max_per_class_split]
             for index, item in enumerate(selected):
                 box = padded_box(item, args.pad)
                 crop_id = f"{item.split}_{class_name}_{index:04d}_{item.image_path.stem}_{item.label_index}"
