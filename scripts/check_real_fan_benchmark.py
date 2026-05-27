@@ -12,6 +12,7 @@ CLASS_COUNT = 13
 DEFAULT_SOURCES = ROOT / "manifests" / "real_fan_benchmark_sources.csv"
 DEFAULT_TASKS = ROOT / "manifests" / "real_fan_benchmark_label_tasks.csv"
 DEFAULT_LABEL_DIR = ROOT / "data" / "real_fan_benchmark" / "labels" / "val"
+DEFAULT_DRAFT_LABEL_DIR = ROOT / "data" / "real_fan_benchmark" / "drafts"
 
 
 def parse_args() -> argparse.Namespace:
@@ -19,6 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES)
     parser.add_argument("--tasks", type=Path, default=DEFAULT_TASKS)
     parser.add_argument("--label-dir", type=Path, default=DEFAULT_LABEL_DIR)
+    parser.add_argument("--draft-label-dir", type=Path, default=DEFAULT_DRAFT_LABEL_DIR)
     return parser.parse_args()
 
 
@@ -66,6 +68,7 @@ def main() -> None:
     sources_path = (ROOT / args.sources).resolve() if not args.sources.is_absolute() else args.sources.resolve()
     tasks_path = (ROOT / args.tasks).resolve() if not args.tasks.is_absolute() else args.tasks.resolve()
     label_dir = (ROOT / args.label_dir).resolve() if not args.label_dir.is_absolute() else args.label_dir.resolve()
+    draft_label_dir = (ROOT / args.draft_label_dir).resolve() if not args.draft_label_dir.is_absolute() else args.draft_label_dir.resolve()
 
     sources = read_csv(sources_path)
     tasks = read_csv(tasks_path)
@@ -73,6 +76,8 @@ def main() -> None:
     errors: list[str] = []
     labeled = 0
     boxes = 0
+    draft_labeled = 0
+    draft_boxes = 0
 
     for row in sources:
         image_id = row["image_id"]
@@ -90,6 +95,8 @@ def main() -> None:
         status = row.get("label_status", "")
         task_status = task_by_id.get(image_id, {}).get("label_status", "")
         label_path = label_dir / f"{image_id}.txt"
+        draft_label_path = draft_label_dir / f"{image_id}.txt"
+        draft_status = ""
         if status == "labeled" or task_status == "labeled":
             labeled += 1
             if not label_path.exists():
@@ -100,11 +107,19 @@ def main() -> None:
                 errors.extend(label_errors)
         elif label_path.exists() and label_path.stat().st_size > 0:
             errors.append(f"{image_id}: label file exists but manifest status is not labeled")
-        print(f"{image_id}: {width}x{height}, source={row.get('benchmark_status', '')}, labels={status or task_status}")
+        if draft_label_path.exists() and draft_label_path.stat().st_size > 0:
+            count, label_errors = check_label_file(draft_label_path)
+            draft_labeled += 1
+            draft_boxes += count
+            draft_status = f", draft_boxes={count}"
+            errors.extend(label_errors)
+        print(f"{image_id}: {width}x{height}, source={row.get('benchmark_status', '')}, labels={status or task_status}{draft_status}")
 
     print(f"sources: {len(sources)}")
     print(f"labeled_images: {labeled}")
     print(f"labeled_boxes: {boxes}")
+    print(f"draft_labeled_images: {draft_labeled}")
+    print(f"draft_boxes: {draft_boxes}")
     if errors:
         print("Errors:")
         for error in errors:
