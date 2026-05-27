@@ -74,7 +74,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Browser `createImageBitmap(... resizeQuality: "high")` resize was tried and reverted because it worsened the shop-overlap smoke to `KHR 51,000` plus `USD_100`; do not retry that as the parity fix.
 - A custom browser classifier crop resizer was tried and reverted because it worsened the shop-overlap smoke to `KHR 91,000`; keep the detector resizer, but leave classifier crops on canvas until a better parity target exists.
 - For the next real data pass, run `lr python scripts/check_capture_requirements.py`; it now prints exact `data/inbox/real_partial_photos/` drop folders, including `thin_slice_khr_5000` and `thin_slice_khr_20000`.
-- Follow-up web/Hugging Face/Roboflow searches after the audit did not find a better KHR partial/fan dataset; stop broad hunting for now and spend effort on curation or rights-clear phone captures.
+- Follow-up web/Hugging Face/Roboflow searches after the audit did not find a better KHR partial/fan dataset; a resumed targeted search again only surfaced adjacent non-KHR banknote datasets/research, so stop broad hunting for now and spend effort on curation or rights-clear phone captures.
 
 ## Data Gaps
 
