@@ -5,6 +5,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 ## Strong Ideas To Try
 
 - Collect the minimum real partial-note phone pack from `manifests/real_partial_capture_requirements.csv`, run `scripts/run_capture_review_pipeline.py`, review crops in `demo/review/`, then retrain/calibrate only from accepted rows. This is now higher leverage than more synthetic scaling or broad public-dataset search.
+- Manually export/audit Roboflow `cuurecy-detection-is` if an account/API key is available: it is a new CC BY 4.0 instance-segmentation lead with KHR/USD front/back classes and may provide masks for the compositor, but must be checked for note versions, duplicates, and real partial/fan coverage before training.
 - Build the mask-based synthetic compositor described in `docs/synthetic-compositor-plan.md`: verified real-camera cutouts, z-order compositing, and visible-pixel label regeneration for detect/OBB/segmentation.
 - Build a curated transparent banknote asset library from the best public/Roboflow examples: tight crop, remove background, QA visually, tag denomination/front/back/version.
 - Use `scripts/package_cashsnap_picwish_inputs.py` to expand cutout candidates beyond rare KHR; `data/picwish_upload_batches_cashsnap_khr_v1/` currently has 720 all-KHR upload images ready for background removal.
