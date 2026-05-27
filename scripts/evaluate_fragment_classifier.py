@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch", type=int, default=64)
     parser.add_argument("--workers", type=int, default=0)
     parser.add_argument("--out", default=None)
+    parser.add_argument("--predictions-out", default=None)
     parser.add_argument("--device", default="auto")
     return parser.parse_args()
 
@@ -70,13 +71,30 @@ def main() -> None:
     model.eval()
     loader = DataLoader(dataset, batch_size=args.batch, shuffle=False, num_workers=args.workers, pin_memory=device.type == "cuda")
     confusion = torch.zeros((len(class_names), len(class_names)), dtype=torch.int64)
+    prediction_fieldnames = ["split", "image_path", "target", "prediction", "confidence", "correct"]
+    prediction_rows: list[dict[str, str]] = []
+    sample_offset = 0
     with torch.no_grad():
         for images, targets in loader:
             images = images.to(device, non_blocking=True)
             logits = model(images).cpu()
+            probs = torch.softmax(logits, dim=1)
             preds = logits.argmax(dim=1)
-            for target, pred in zip(targets, preds, strict=False):
+            for batch_index, (target, pred) in enumerate(zip(targets, preds, strict=False)):
                 confusion[int(target), int(pred)] += 1
+                sample_path, _ = dataset.samples[sample_offset + batch_index]
+                confidence = float(probs[batch_index, int(pred)].item())
+                prediction_rows.append(
+                    {
+                        "split": args.split,
+                        "image_path": str(Path(sample_path).relative_to(ROOT)),
+                        "target": class_names[int(target)],
+                        "prediction": class_names[int(pred)],
+                        "confidence": f"{confidence:.6f}",
+                        "correct": str(int(target) == int(pred)).lower(),
+                    }
+                )
+            sample_offset += len(targets)
 
     total = int(confusion.sum().item())
     correct = int(confusion.diag().sum().item())
@@ -115,6 +133,13 @@ def main() -> None:
             writer.writeheader()
             writer.writerows(rows)
         (out.with_suffix(".confusion.json")).write_text(json.dumps(confusion.tolist()), encoding="utf-8")
+    if args.predictions_out:
+        predictions_out = resolve(args.predictions_out)
+        predictions_out.parent.mkdir(parents=True, exist_ok=True)
+        with predictions_out.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=prediction_fieldnames)
+            writer.writeheader()
+            writer.writerows(prediction_rows)
 
 
 if __name__ == "__main__":
