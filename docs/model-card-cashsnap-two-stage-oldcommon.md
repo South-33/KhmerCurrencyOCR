@@ -16,7 +16,7 @@ Small phone/browser-oriented diagnostic stack for partial and overlapped KHR ban
 Detector classes follow the 13-class CashSnap v1 denomination list: USD 1/5/10/20/50/100 and KHR 500/1000/2000/5000/10000/20000/50000.
 
 Fragment classifier classes are only `KHR_1000`, `KHR_5000`, `KHR_10000`, and `KHR_20000`.
-The browser fusion path skips this KHR-only fragment classifier for detector proposals outside those four classes; `manifests/browser_smoke_cases.csv` includes a USD_1 front/back sanity case to guard dollar totals.
+The browser fusion path skips this KHR-only fragment classifier for detector proposals outside those four classes; `manifests/browser_smoke_cases.csv` includes USD_1 plus detector-only `KHR_500`, `KHR_2000`, and `KHR_50000` sanity cases to guard totals outside the classifier class list.
 
 ## Fusion
 
@@ -52,6 +52,7 @@ Raw detector-only thresholding is not enough. In the same refresh, the detector 
 - Does not cover all KHR denominations, rare current notes, USD fragment re-reading, or reliable old/new issue disambiguation.
 - Real fan, hand occlusion, off-frame, worn-note, and mixed KHR/USD performance is not solved.
 - Production claims require a rights-clear reviewed phone-photo benchmark and non-benchmark reviewed training crops.
+- All main crop-review packs currently have blank `review_include` fields. Run `scripts/summarize_review_manifests.py`, curate with the `demo/review/` presets, and merge exports with `scripts/apply_review_export.py` before building trusted fragment-classifier data.
 
 ## Required Next Data
 
@@ -61,4 +62,4 @@ Track new captures in `manifests/real_partial_capture_inventory.csv` and run:
 lr python scripts/check_capture_requirements.py
 ```
 
-The highest-value missing data is rights-clear phone photos with human-identifiable partial KHR slices, especially `KHR_20000` and `KHR_50000`, across simple overlap, hand fan, hand occlusion, and off-frame scenes.
+The highest-value missing data is rights-clear phone photos with human-identifiable partial KHR slices, especially hand fan plus thin/edge `KHR_5000` and `KHR_20000` front/back views that target the current old/common confusion pairs. Synthetic microthin `KHR_5000,KHR_20000` smoke data can be generated with `--thin-strip-min-frac 0.04 --thin-strip-max-frac 0.12`, but it is still artificial and should not replace reviewed real captures.
