@@ -53,3 +53,4 @@ This is the project's AGENTS.md
 - Background patch mining from labeled banknote datasets is not automatic-clean; use detector rejection plus contact-sheet QA, and do not pass `--background-dir` to training data until the sheet has no note fragments.
 - First scan-2.5D probe artifact is `data/synthetic/cashsnap_scan_2p5d_fan_v1/` (2,000 procedural-background scenes) plus `configs/cashsnap_v1_scan_2p5d_probe.yaml`; use it as a geometry probe, not final photoreal data.
 - Scan-2.5D e4 probe improves permissive real-overlap region coverage but not denomination identity (`640/conf=0.05`: 6/6 any-class, 2/6 same-class, 17 preds); the old/common-focus variant loses coverage and adds `KHR_500`/`KHR_1000` false positives, so do not scale either exact recipe blindly.
+- Use `docs/README.md` as the project navigation map; the next active bottleneck is the reviewed P1 fragment loop in `docs/p1-fragment-curation-runbook.md`, not broader unreviewed training.

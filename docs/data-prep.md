@@ -1,5 +1,7 @@
 # CashSnap Data Prep
 
+Start with `docs/README.md` for the current project map and `docs/p1-fragment-curation-runbook.md` for the next high-value data loop. This file is the source inventory and rulebook, not the shortest path through the repo.
+
 ## Downloaded Buckets
 
 - `data/raw_datasets/hf_usd_side_coco_annotations/`: Hugging Face USD Side Detection Dataset. This is the main downloadable USD detection seed and still needs label remapping from front/back/authentic/counterfeit variants into denomination-only classes.
