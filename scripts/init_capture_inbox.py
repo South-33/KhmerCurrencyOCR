@@ -72,7 +72,7 @@ def denomination_hint(scene_type: str) -> str:
 def guide_text(row: dict[str, str], folder_path: Path) -> str:
     scene_type = row["match_value"].strip()
     register_hint = (
-        "lr python scripts/register_capture_photos.py "
+        "rl python scripts/register_capture_photos.py "
         f"--images-dir {repo_path(folder_path)} --scene-type {scene_type}"
         f"{denomination_hint(scene_type)} --dry-run"
     )
@@ -107,12 +107,12 @@ def root_guide_text(rows: list[dict[str, str]], out_dir: Path) -> str:
             *folder_lines,
             "",
             "After adding photos, register them with:",
-            f"lr python scripts/register_capture_photos.py --images-dir {repo_path(out_dir)} --recursive --scene-type-from-parent --dry-run",
-            f"lr python scripts/register_capture_photos.py --images-dir {repo_path(out_dir)} --recursive --scene-type-from-parent",
+            f"rl python scripts/register_capture_photos.py --images-dir {repo_path(out_dir)} --recursive --scene-type-from-parent --dry-run",
+            f"rl python scripts/register_capture_photos.py --images-dir {repo_path(out_dir)} --recursive --scene-type-from-parent",
             "Thin-slice folder names auto-fill their KHR denomination during registration.",
             "",
             "Then check remaining gaps with:",
-            "lr python scripts/check_capture_requirements.py",
+            "rl python scripts/check_capture_requirements.py",
             "",
         ]
     )
