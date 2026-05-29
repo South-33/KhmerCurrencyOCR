@@ -22,7 +22,7 @@
 - `data/fragment_classifier_roboflow_partial_khr_oldcommon_eval_v1/`: ignored overlap-only ImageFolder for evaluating the current focused old/common classifier on Roboflow partial crops; it exposes `KHR_20000`/`KHR_5000` -> `KHR_10000` collapse.
 - `data/fragment_classifier_p1_oldcommon_focus_unreviewed_diag_v2/`: ignored ImageFolder smoke from the rebuilt P1 review queue; it verifies 103/103 crops convert with zero skips, but is unreviewed and should not be treated as trusted training data.
 - `docs/roboflow-cuurecy-detection-audit.md`: compact audit summary for the downloaded Roboflow segmentation lead, including duplicate/geometry/visual QA results, review-pack paths, split caveats, and release cautions.
-- `demo/review/` has presets for the main proposal and Roboflow crop/failure packs, and still accepts `?manifest=/path/to/manifest.csv`; use it to curate and export edited CSVs before building trusted fragment-classifier data. Run `scripts/summarize_review_manifests.py` first, then merge browser exports with `scripts/apply_review_export.py`.
+- `demo/review/` has presets for the main proposal, Roboflow crop/failure packs, the P1 old/common focus queue, and the compact P1 failure queue; it still accepts `?manifest=/path/to/manifest.csv`. Use it to curate and export edited CSVs before building trusted fragment-classifier data. Run `scripts/summarize_review_manifests.py` first, then merge browser exports with `scripts/apply_review_export.py`.
 
 ## Manual Or Blocked Sources
 
