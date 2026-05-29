@@ -160,7 +160,7 @@ def write_contact_sheet(rows: list[dict[str, str]], out_path: Path, thumb: int, 
     if not selected:
         return
     cols = 6
-    label_h = 48
+    label_h = 64
     sheet = Image.new("RGB", (cols * thumb, ((len(selected) + cols - 1) // cols) * (thumb + label_h)), "white")
     draw = ImageDraw.Draw(sheet)
     for index, row in enumerate(selected):
@@ -172,8 +172,9 @@ def write_contact_sheet(rows: list[dict[str, str]], out_path: Path, thumb: int, 
         x = (index % cols) * thumb
         y = (index // cols) * (thumb + label_h)
         sheet.paste(tile, (x, y))
-        draw.text((x + 4, y + thumb + 4), row["failure_pair"][:28], fill="black")
-        draw.text((x + 4, y + thumb + 22), f"{row['split']} conf {row['confidence']}", fill="black")
+        draw.text((x + 4, y + thumb + 4), row.get("crop_id", "")[:28], fill="black")
+        draw.text((x + 4, y + thumb + 22), row["failure_pair"][:28], fill="black")
+        draw.text((x + 4, y + thumb + 40), f"{row['split']} conf {row['confidence']}", fill="black")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out_path, quality=92)
 
