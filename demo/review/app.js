@@ -61,6 +61,7 @@ const clearDraftButton = document.getElementById("clearDraftButton");
 const pairFilter = document.getElementById("pairFilter");
 const sideFilter = document.getElementById("sideFilter");
 const includedOnly = document.getElementById("includedOnly");
+const needsOnly = document.getElementById("needsOnly");
 const draftStatus = document.getElementById("draftStatus");
 const summary = document.getElementById("summary");
 const grid = document.getElementById("grid");
@@ -130,6 +131,14 @@ function repoUrl(path) {
 
 function predictedClass(row) {
   return row.review_class || row.fragment_class || row.detector_class || "";
+}
+
+function classChanged(row) {
+  return (row.review_class || "") !== (row._original_review_class || "");
+}
+
+function isReviewed(row) {
+  return Boolean(row.review_include || row.review_notes || classChanged(row));
 }
 
 function rowKey(row) {
@@ -228,8 +237,10 @@ function saveDraft() {
       review_include: row.review_include || "",
       review_class: row.review_class || "",
       review_notes: row.review_notes || "",
+      review_class_changed: classChanged(row),
     }))
-    .filter((row) => row.key && (row.review_include || row.review_class || row.review_notes));
+    .filter((row) => row.key && (row.review_include || row.review_class_changed || row.review_notes))
+    .map(({ review_class_changed, ...row }) => row);
   if (!rows.length) {
     localStorage.removeItem(draftKey());
     draftStatus.textContent = "No draft";
@@ -246,6 +257,9 @@ function visibleRows() {
     if (includedOnly.checked && !row.review_include) {
       return false;
     }
+    if (needsOnly.checked && isReviewed(row)) {
+      return false;
+    }
     if (pairFilter.value && row.failure_pair !== pairFilter.value) {
       return false;
     }
@@ -256,17 +270,26 @@ function visibleRows() {
   });
 }
 
+function markRow(row, className) {
+  row.review_include = "1";
+  row.review_class = className || predictedClass(row);
+  saveDraft();
+  render();
+}
+
 function render() {
   const rows = visibleRows();
   const included = state.rows.filter((row) => row.review_include).length;
-  summary.textContent = `${rows.length}/${state.rows.length} rows visible, ${included} included`;
+  const reviewed = state.rows.filter((row) => isReviewed(row)).length;
+  summary.textContent = `${rows.length}/${state.rows.length} rows visible, ${included} included, ${reviewed} touched`;
   grid.innerHTML = "";
   for (const row of rows) {
     const card = document.createElement("article");
-    card.className = "card";
+    card.className = row.review_include ? "card included" : "card";
     const classOptions = CLASSES.map((name) => `<option value="${name}" ${name === predictedClass(row) ? "selected" : ""}>${name || "skip"}</option>`).join("");
     const meta = rowMeta(row);
     const links = rowLinks(row);
+    const visibleLabel = predictedClass(row);
     card.innerHTML = `
       <img src="${repoUrl(row.crop_path)}" alt="" />
       <div class="body">
@@ -280,6 +303,11 @@ function render() {
           <span>Include</span>
         </label>
         <select class="class-select">${classOptions}</select>
+        <div class="quick-actions">
+          <button class="quick-action" type="button" data-class="${htmlEscape(visibleLabel)}" ${visibleLabel ? "" : "disabled"}>Use label</button>
+          <button class="quick-action" type="button" data-class="banknote_unknown">Unknown</button>
+          <button class="quick-action" type="button" data-class="background">Background</button>
+        </div>
         <textarea class="notes" placeholder="notes">${row.review_notes || ""}</textarea>
       </div>
     `;
@@ -291,10 +319,14 @@ function render() {
     card.querySelector(".class-select").addEventListener("change", (event) => {
       row.review_class = event.target.value;
       saveDraft();
+      render();
     });
     card.querySelector(".notes").addEventListener("input", (event) => {
       row.review_notes = event.target.value;
       saveDraft();
+    });
+    card.querySelectorAll(".quick-action").forEach((button) => {
+      button.addEventListener("click", () => markRow(row, button.dataset.class || ""));
     });
     grid.append(card);
   }
@@ -314,7 +346,10 @@ async function loadManifest() {
         state.headers.push(required);
       }
     }
-    state.rows = parsed.rows;
+    state.rows = parsed.rows.map((row) => ({
+      ...row,
+      _original_review_class: row.review_class || "",
+    }));
     exportButton.disabled = false;
     applyDraft();
     refreshFilters();
@@ -345,6 +380,7 @@ loadButton.addEventListener("click", loadManifest);
 exportButton.addEventListener("click", exportCsv);
 clearDraftButton.addEventListener("click", clearDraft);
 includedOnly.addEventListener("change", render);
+needsOnly.addEventListener("change", render);
 pairFilter.addEventListener("change", render);
 sideFilter.addEventListener("change", render);
 manifestPath.addEventListener("input", refreshPresetSelection);

@@ -137,12 +137,14 @@ async function waitForRows(send, timeoutMs) {
       `(() => JSON.stringify({
         rows: typeof state !== 'undefined' ? state.rows.length : 0,
         cards: document.querySelectorAll('.card').length,
+        quickActions: document.querySelectorAll('.quick-action').length,
+        needsOnly: document.getElementById('needsOnly') !== null,
         summary: document.getElementById('summary')?.textContent || '',
         draft: document.getElementById('draftStatus')?.textContent || ''
       }))()`,
     );
     const parsed = JSON.parse(value);
-    if (parsed.rows > 0 && parsed.cards > 0) return parsed;
+    if (parsed.rows > 0 && parsed.cards > 0 && parsed.quickActions > 0 && parsed.needsOnly) return parsed;
     await sleep(250);
   }
   throw new Error("Timed out waiting for review rows");
@@ -205,7 +207,7 @@ async function main() {
         }))()`,
       ),
     );
-    if (!saved.stored || !saved.draft.includes("Draft saved")) {
+    if (!saved.stored || !saved.draft.includes("Draft saved for 1 rows")) {
       throw new Error(`Draft was not saved: ${JSON.stringify(saved)}`);
     }
     await send("Page.reload", { ignoreCache: true });
@@ -221,7 +223,7 @@ async function main() {
         }))()`,
       ),
     );
-    if (!restoredValues.draft.includes("Restored") || !restoredValues.checked || restoredValues.klass !== "KHR_5000" || restoredValues.notes !== "smoke draft") {
+    if (!restoredValues.draft.includes("Restored 1 draft rows") || !restoredValues.checked || restoredValues.klass !== "KHR_5000" || restoredValues.notes !== "smoke draft") {
       throw new Error(`Draft was not restored: ${JSON.stringify(restoredValues)}`);
     }
     ws.close();

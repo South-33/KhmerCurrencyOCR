@@ -8,7 +8,7 @@ Build a small phone/browser-deployable CashSnap model that counts mixed USD and 
 
 ## Current Decision
 
-The active path is base-model strength first, then partial/fan specialization.
+The active path is base-model strength first, then reviewed partial/fan specialization.
 
 Use the 2.5D synthetic harness to make the base detector better before scaling hard overlap scenes. The next synthetic work should focus on clean and near-clean 2.5D scenes with realistic camera/domain knobs:
 
@@ -19,7 +19,9 @@ Use the 2.5D synthetic harness to make the base detector better before scaling h
 - class balancing for weak KHR classes, especially `KHR_20000` and `KHR_50000`
 - clean separation between current KHR, current rare KHR, old/common circulated KHR, and USD
 
-After the base model is strong and stable, scale into:
+The first Numista 2.5D calibration probes improved real-overlap region coverage but still overcounted and confused old/common KHR backs. Do not scale the same synthetic recipe blindly. The immediate bottleneck is reviewed real fragment evidence for thin/edge `KHR_5000` and `KHR_20000` crops, especially the compact P1 failure queue in `docs/p1-fragment-curation-runbook.md`.
+
+After reviewed fragments improve denomination identity without clean-validation regression, scale into:
 
 - simple overlap
 - shop-counter spreads
@@ -58,9 +60,9 @@ Generate a modest clean/near-clean 2.5D dataset with phone-style scene augmentat
 
 Train from fresh YOLO26n-family weights under the headroom harness. Evaluate clean validation, weak KHR classes, and deployable ONNX/browser smoke before any hard-case fine-tune.
 
-### M4: Partial/Fan Curriculum
+### M4: Reviewed Fragment Loop
 
-Only after M3 is stable, add simple overlap, then thin slices, then hand-held fans. Keep clean and near-clean data in the mix so the model does not forget full-note recognition.
+Review the compact P1 old/common failure queue first, build a trusted fragment-classifier refresh only from accepted rows, and verify against both the P1 diagnostic set and the real shop-overlap draft. Keep clean and near-clean detector data in the mix so the model does not forget full-note recognition.
 
 ### M5: 3D Decision
 

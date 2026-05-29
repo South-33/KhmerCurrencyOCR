@@ -32,6 +32,8 @@ Open `http://localhost:8787/demo/review/` and choose the `P1 old/common failure 
 - `review_class` as the visible denomination, not the model prediction.
 - `review_notes` for ambiguity, backside uncertainty, occluding fingers, motion blur, or old/new design clues.
 
+Use the per-card quick actions to accept the visible label, mark `banknote_unknown`, or mark `background`; use the `Needs review` filter to keep the queue focused on untouched rows.
+
 Leave ambiguous slices blank instead of forcing a class. Ambiguous crops are useful later as verifier hard negatives, but they should not enter trusted denomination training.
 
 Use `banknote_unknown` when the crop clearly contains a banknote fragment but lacks human-identifiable denomination evidence. Use `background` only for non-banknote false positives. Do not include texture-only edge strips in denomination-class training just because the source dataset label names a note.
