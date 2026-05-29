@@ -83,6 +83,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - The current 2D-vs-3D decision is in `docs/synthetic-strategy-evaluation.md`: continue the 2.5D evidence harness plus real reviewed fragments, and promote WebGL/3D only after a small Windows-stable ID-pass proof beats matched 2.5D data on real labels.
 - Rebuilt P1 old/common partial-focus review queue now has 103 existing crops with zero missing paths after recovering stale high-confidence failure rows from `source_crop`; it covers `KHR_5000`/`KHR_10000`/`KHR_20000` front/back curation targets.
 - Current old/common classifier fails that P1 focus queue badly (val 0.088, test 0.067), with thin `KHR_5000`/`KHR_20000` collapsing into `KHR_10000`; this is the clearest signal to collect/review real thin/edge 5k/20k crops before model tricks.
+- `data/review/p1_focus_v2_oldcommon_failure_review_v1/` compresses that collapse into 43 high-confidence failure crops with front/back balance; curate this first if using existing public-data-derived crops for a diagnostic classifier refresh.
 - Browser calibration hooks now exist (`--proposal-conf`, `--detector-override`, `--nms-iou`, `--crop-padding`). `--detector-override 0.20` reduces the shop-overlap value error from `+6000` to `-4000` KHR while keeping 4/6 same-class and passing guard cases, but do not change defaults from one draft-labeled image.
 
 ## Data Gaps
