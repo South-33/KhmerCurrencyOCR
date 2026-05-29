@@ -146,6 +146,8 @@ Pretrained MobileNetV3 on `data/fragment_classifier_cashsnap_realfrag_v1/` reach
 
 The repaired P1 old/common partial-focus queue confirms the same data bottleneck. Evaluating `mobilenet_v3_old_common_khr_realbox_pretrained_balanced_e12` on `data/fragment_classifier_p1_oldcommon_focus_unreviewed_diag_v2` gives val accuracy `0.088` and test accuracy `0.067`; `KHR_5000` and `KHR_20000` mostly collapse into `KHR_10000`. This is not a trusted benchmark because the queue is unreviewed, but it is a useful failure-localization diagnostic.
 
+Short diagnostic refresh `runs/fragment_classifier/mobilenet_v3_oldcommon_realbox_plus_p1_unreviewed_diag_e6/` used the existing old/common real-box train split plus unreviewed P1 train crops. It improves the P1 diagnostic split (`0.588` val, `0.667` test) and keeps old/common real-box test accuracy high (`0.991`), but hurts the real shop-overlap fusion (`3/6` same-class at detector override `0.17`, `2/6` at `0.20`). Conclusion: unreviewed P1 augmentation overfits the crop diagnostic and should not replace the current browser classifier.
+
 ## Rare KHR Coverage Probe
 
 The original merged train split has only `17` `KHR_20000` boxes and `18` `KHR_50000` boxes. Based on the rare-KHR research PDFs, the minimum visual families to cover are:
