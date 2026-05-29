@@ -29,6 +29,10 @@ const PRESET_MANIFESTS = [
     path: "/data/review/cashsnap_p1_oldcommon_partial_focus_review_v1/manifest.csv",
   },
   {
+    label: "P1 old/common failure queue",
+    path: "/data/review/p1_focus_v2_oldcommon_failure_review_v1/manifest.csv",
+  },
+  {
     label: "Roboflow 5k/10k partials",
     path: "/data/review/roboflow_cuurecy_detection_is_khr_5k_10k_partial_review_v1/manifest.csv",
   },

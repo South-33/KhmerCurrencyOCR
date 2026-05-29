@@ -67,3 +67,6 @@ data/deprecated/
 data/numista_raw/
 debug.log
 presentation.html
+
+# RunLong CLI files
+RUNLONG.md
