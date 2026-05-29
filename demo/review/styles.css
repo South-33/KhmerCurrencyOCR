@@ -27,7 +27,8 @@ textarea {
 
 .topbar,
 .controls,
-.summary {
+.summary,
+.draft {
   width: min(1480px, 100%);
   margin: 0 auto 12px;
 }
@@ -55,7 +56,7 @@ textarea {
 
 .controls {
   display: grid;
-  grid-template-columns: minmax(180px, 260px) minmax(240px, 1fr) auto minmax(140px, auto) minmax(120px, auto) auto;
+  grid-template-columns: minmax(180px, 260px) minmax(240px, 1fr) auto minmax(140px, auto) minmax(120px, auto) auto auto;
   gap: 10px;
   align-items: center;
 }
@@ -84,9 +85,14 @@ button:disabled {
   opacity: 0.45;
 }
 
-.summary {
+.summary,
+.draft {
   color: #46525f;
   font-size: 14px;
+}
+
+.draft {
+  min-height: 20px;
 }
 
 .grid {

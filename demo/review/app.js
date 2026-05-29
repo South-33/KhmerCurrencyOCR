@@ -55,9 +55,11 @@ const presetManifest = document.getElementById("presetManifest");
 const manifestPath = document.getElementById("manifestPath");
 const loadButton = document.getElementById("loadButton");
 const exportButton = document.getElementById("exportButton");
+const clearDraftButton = document.getElementById("clearDraftButton");
 const pairFilter = document.getElementById("pairFilter");
 const sideFilter = document.getElementById("sideFilter");
 const includedOnly = document.getElementById("includedOnly");
+const draftStatus = document.getElementById("draftStatus");
 const summary = document.getElementById("summary");
 const grid = document.getElementById("grid");
 
@@ -128,6 +130,10 @@ function predictedClass(row) {
   return row.review_class || row.fragment_class || row.detector_class || "";
 }
 
+function rowKey(row) {
+  return row.crop_id || row.crop_path || row.source_crop || row.source_image || "";
+}
+
 function rowMeta(row) {
   const title = row.crop_id || row.proposal_index || row.source_image || "";
   const detail = [
@@ -174,6 +180,65 @@ function refreshPresetSelection() {
   presetManifest.value = match ? match.path : "";
 }
 
+function draftKey() {
+  return `cashsnap-review:${manifestPath.value}`;
+}
+
+function loadDraftRows() {
+  const raw = localStorage.getItem(draftKey());
+  if (!raw) {
+    return new Map();
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return new Map(parsed.rows.map((row) => [row.key, row]));
+  } catch {
+    return new Map();
+  }
+}
+
+function applyDraft() {
+  const draftRows = loadDraftRows();
+  if (!draftRows.size) {
+    draftStatus.textContent = "No draft";
+    clearDraftButton.disabled = true;
+    return;
+  }
+  let restored = 0;
+  for (const row of state.rows) {
+    const saved = draftRows.get(rowKey(row));
+    if (!saved) {
+      continue;
+    }
+    row.review_include = saved.review_include || "";
+    row.review_class = saved.review_class || "";
+    row.review_notes = saved.review_notes || "";
+    restored += 1;
+  }
+  draftStatus.textContent = `Restored ${restored} draft rows`;
+  clearDraftButton.disabled = false;
+}
+
+function saveDraft() {
+  const rows = state.rows
+    .map((row) => ({
+      key: rowKey(row),
+      review_include: row.review_include || "",
+      review_class: row.review_class || "",
+      review_notes: row.review_notes || "",
+    }))
+    .filter((row) => row.key && (row.review_include || row.review_class || row.review_notes));
+  if (!rows.length) {
+    localStorage.removeItem(draftKey());
+    draftStatus.textContent = "No draft";
+    clearDraftButton.disabled = true;
+    return;
+  }
+  localStorage.setItem(draftKey(), JSON.stringify({ saved_at: new Date().toISOString(), rows }));
+  draftStatus.textContent = `Draft saved for ${rows.length} rows`;
+  clearDraftButton.disabled = false;
+}
+
 function visibleRows() {
   return state.rows.filter((row) => {
     if (includedOnly.checked && !row.review_include) {
@@ -218,13 +283,16 @@ function render() {
     `;
     card.querySelector(".include").addEventListener("change", (event) => {
       row.review_include = event.target.checked ? "1" : "";
+      saveDraft();
       render();
     });
     card.querySelector(".class-select").addEventListener("change", (event) => {
       row.review_class = event.target.value;
+      saveDraft();
     });
     card.querySelector(".notes").addEventListener("input", (event) => {
       row.review_notes = event.target.value;
+      saveDraft();
     });
     grid.append(card);
   }
@@ -246,6 +314,7 @@ async function loadManifest() {
     }
     state.rows = parsed.rows;
     exportButton.disabled = false;
+    applyDraft();
     refreshFilters();
     render();
   } catch (error) {
@@ -264,8 +333,15 @@ function exportCsv() {
   URL.revokeObjectURL(link.href);
 }
 
+function clearDraft() {
+  localStorage.removeItem(draftKey());
+  draftStatus.textContent = "No draft";
+  clearDraftButton.disabled = true;
+}
+
 loadButton.addEventListener("click", loadManifest);
 exportButton.addEventListener("click", exportCsv);
+clearDraftButton.addEventListener("click", clearDraft);
 includedOnly.addEventListener("change", render);
 pairFilter.addEventListener("change", render);
 sideFilter.addEventListener("change", render);

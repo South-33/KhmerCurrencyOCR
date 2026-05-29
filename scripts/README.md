@@ -17,6 +17,7 @@ This directory is intentionally script-heavy because CashSnap is still in data a
 
 - `init_capture_inbox.py`, `register_capture_photos.py`, `check_capture_requirements.py`: local phone-photo capture bookkeeping.
 - `run_capture_review_pipeline.py`: detector -> classifier -> fusion -> review-pack pipeline for non-benchmark captures.
+- `smoke_review_ui_cdp.cjs`: headless Edge smoke for the static crop-review UI and local draft restore.
 - `build_proposal_review_pack.py`: create crop review packs from proposal CSVs.
 - `build_prediction_failure_review_pack.py`: turn classifier prediction failures into focused review queues.
 - `build_partial_focus_review_queue.py`: rebuild the current P1 old/common focus queue.
