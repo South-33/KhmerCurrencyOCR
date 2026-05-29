@@ -1,5 +1,7 @@
 const CLASSES = [
   "",
+  "banknote_unknown",
+  "background",
   "USD_1",
   "USD_5",
   "USD_10",

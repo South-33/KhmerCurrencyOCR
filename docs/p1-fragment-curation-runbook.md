@@ -34,6 +34,8 @@ Open `http://localhost:8787/demo/review/` and choose the `P1 old/common failure 
 
 Leave ambiguous slices blank instead of forcing a class. Ambiguous crops are useful later as verifier hard negatives, but they should not enter trusted denomination training.
 
+Use `banknote_unknown` when the crop clearly contains a banknote fragment but lacks human-identifiable denomination evidence. Use `background` only for non-banknote false positives. Do not include texture-only edge strips in denomination-class training just because the source dataset label names a note.
+
 ## 3. Merge The Export
 
 Save the browser export under an ignored path such as `data/review_exports/p1_failure_review_export.csv`, then dry-run the merge:
@@ -67,7 +69,7 @@ rl python scripts/build_fragment_classifier_from_review_pack.py `
   --clean
 ```
 
-If there are too few reviewed crops, stop and collect/review more. Do not stretch a tiny set with heavy training claims.
+This command intentionally excludes `banknote_unknown` and `background` for the current focused denomination classifier. Keep those rows in the reviewed CSV for a later verifier/unknown probe. If there are too few reviewed denomination crops, stop and collect/review more. Do not stretch a tiny set with heavy training claims.
 
 ## 5. Mix Without Contaminating Validation
 
