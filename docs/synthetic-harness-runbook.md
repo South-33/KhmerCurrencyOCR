@@ -15,7 +15,7 @@ Review:
 - `data/asset_candidates/numista_current_cutout_bank_v1/audit/suspect_contact.jpg`
 - `data/asset_candidates/numista_current_cutout_bank_v1/audit/suspects.csv`
 
-Do not treat a red/pink note as a specimen automatically. KHR 500 designs naturally contain large red areas; visual audit is the authority.
+Do not treat a red/pink note as a specimen automatically. KHR 500 designs naturally contain large red areas; visual audit is the authority. `build_numista_cutout_bank.py` defaults to rectangular scan alpha so white note regions stay opaque; use `--alpha-mode content` only for non-tight source images.
 
 ## 2. Mine Real Background Patches
 

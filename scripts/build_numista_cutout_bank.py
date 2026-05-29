@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--include-out-of-circulation", action="store_true")
     parser.add_argument("--classes", default="", help="Optional comma-separated canonical CashSnap classes to include.")
     parser.add_argument("--min-year", type=int, help="Skip notes whose parsed max year is below this year.")
+    parser.add_argument(
+        "--alpha-mode",
+        choices=["scan-rectangle", "content"],
+        default="scan-rectangle",
+        help="Use full rectangular alpha for tight scans, or content-derived alpha for non-tight source images.",
+    )
     parser.add_argument("--clean", action="store_true", help="Delete the existing output directory first.")
     return parser.parse_args()
 
@@ -130,6 +136,12 @@ def normalize_source_path(metadata_path: Path, relative_path: str) -> Path:
     return metadata_path.parent / Path(relative_path.replace("\\", "/"))
 
 
+def scan_rectangle_alpha(image: Image.Image) -> Image.Image:
+    cutout = image.convert("RGBA")
+    cutout.putalpha(Image.new("L", cutout.size, 255))
+    return cutout
+
+
 def main() -> None:
     args = parse_args()
     metadata_path = args.metadata if args.metadata.is_absolute() else ROOT / args.metadata
@@ -174,7 +186,10 @@ def main() -> None:
             if not source.exists():
                 continue
             with Image.open(source) as raw:
-                cutout = note_alpha(raw)
+                if args.alpha_mode == "content":
+                    cutout = note_alpha(raw)
+                else:
+                    cutout = scan_rectangle_alpha(raw)
             metrics = alpha_metrics(cutout)
             if metrics["alpha_area"] == "0":
                 continue
