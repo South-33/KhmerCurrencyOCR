@@ -30,6 +30,7 @@ Use this file as the first stop when the repo feels noisy. The project has many 
 - `docs/khr-circulation-scope.md`: KHR design/version scope.
 - `docs/roboflow-cuurecy-detection-audit.md`: public Roboflow segmentation lead audit.
 - `docs/data-source-leads.md`: external data leads and blocked/manual sources.
+- `docs/research/README.md`: index for research handoff PDFs.
 - `docs/real-fan-benchmark.md`: fixed benchmark rules.
 - `docs/real-fan-capture-guide.md`: capture and proposal-review workflow.
 - `docs/mobile-export.md`: ONNX/NCNN/TFLite export notes.
