@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 from pathlib import Path
 
 from PIL import Image
@@ -19,6 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--inventory", type=Path, default=DEFAULT_INVENTORY)
     parser.add_argument("--requirements", type=Path, default=DEFAULT_REQUIREMENTS)
     parser.add_argument("--inbox", type=Path, default=DEFAULT_INBOX, help="Inbox folder to scan for unregistered images.")
+    parser.add_argument("--json-out", type=Path, help="Optional machine-readable gap report path.")
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when requirements are not met.")
     return parser.parse_args()
 
@@ -108,6 +110,7 @@ def main() -> None:
     unmet = False
     print(f"inventory_rows={len(rows)} usable_rows={len(usable_rows)} unregistered_inbox_images={len(unregistered_inbox)}")
     gaps: list[tuple[int, int, dict[str, str], int]] = []
+    requirement_reports: list[dict[str, object]] = []
     for req in requirements:
         count = sum(1 for row in usable_rows if row_matches(row, req["match_column"], req["match_value"]))
         minimum = int(req["min_images"])
@@ -121,6 +124,21 @@ def main() -> None:
         priority = req.get("priority", "").strip()
         priority_text = f" priority={priority}" if priority else ""
         print(f"{status}: {req['requirement_id']} {count}/{minimum}{priority_text} - {req['description']}{suffix}")
+        requirement_reports.append(
+            {
+                "requirement_id": req["requirement_id"],
+                "description": req["description"],
+                "match_column": req["match_column"],
+                "match_value": req["match_value"],
+                "required": required,
+                "priority": priority_value(req),
+                "minimum": minimum,
+                "count": count,
+                "missing": max(0, minimum - count),
+                "status": status,
+                "hint": hint,
+            }
+        )
     if gaps:
         print("Next capture priorities:")
         for priority, missing, req, count in sorted(gaps, key=lambda item: (item[0], item[2]["required"] != "yes", -item[1], item[2]["requirement_id"]))[:6]:
@@ -141,6 +159,29 @@ def main() -> None:
         print("Register dropped photos before trusting requirement counts:")
         print(f"lr python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent --dry-run")
         print(f"lr python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent")
+    if args.json_out:
+        report = {
+            "inventory_rows": len(rows),
+            "usable_rows": len(usable_rows),
+            "unregistered_inbox_images": unregistered_inbox,
+            "requirements": requirement_reports,
+            "next_capture_priorities": [
+                {
+                    "priority": priority,
+                    "requirement_id": req["requirement_id"],
+                    "description": req["description"],
+                    "missing": missing,
+                    "count": count,
+                    "hint": hint_for_requirement(req),
+                }
+                for priority, missing, req, count in sorted(gaps, key=lambda item: (item[0], item[2]["required"] != "yes", -item[1], item[2]["requirement_id"]))[:6]
+            ],
+            "inventory_issues": errors,
+        }
+        out_path = resolve(args.json_out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote_json={repo_path(out_path)}")
     if args.strict and (unmet or errors or unregistered_inbox):
         raise SystemExit(1)
 
