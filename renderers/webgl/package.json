@@ -1,0 +1,13 @@
+{
+  "name": "cashsnap-webgl-renderer",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "node src/render-smoke.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.31.0",
+    "three": "^0.184.0"
+  }
+}

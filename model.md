@@ -70,6 +70,12 @@ Render P0 proof scenes:
 rl python scripts\render_3d_pipeline_probe.py --config configs\3d_pipeline\proof_p0_renderer_smoke.json --clean
 ```
 
+Render the minimal WebGL proof:
+
+```powershell
+rl python scripts\run_with_headroom.py --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 --min-free-ram-gb 3 --preflight-timeout 120 -- node renderers\webgl\src\render-smoke.mjs
+```
+
 Protect the real benchmark boundary:
 
 ```powershell
@@ -154,7 +160,8 @@ Everything else belongs under `configs/archive/` unless it is promoted back to a
 Use these first:
 
 - Harness and safety: `log_research_result.py`, `run_with_headroom.py`, `bench_train_with_headroom.py`, `local_runtime.py`.
-- 3D/synthetic proof: `validate_3d_pipeline_config.py`, `build_numista_cutout_bank.py`, `generate_synthetic_fan_dataset.py`, `summarize_synthetic_metadata.py`, `check_yolo_dataset.py`.
+- 3D/synthetic proof: `render_3d_pipeline_probe.py`, `validate_3d_pipeline_config.py`, `build_numista_cutout_bank.py`, `generate_synthetic_fan_dataset.py`, `summarize_synthetic_metadata.py`, `check_yolo_dataset.py`.
+- WebGL proof: `renderers/webgl/src/render-smoke.mjs` uses Three.js + `puppeteer-core` against local Microsoft Edge.
 - Evaluation and deploy guards: `check_real_fan_benchmark.py`, `run_browser_smoke_cases.py`, `check_browser_stack_artifacts.py`, `val_yolo.py`, `export_yolo.py`.
 - Real capture/review: `check_capture_requirements.py`, `run_capture_review_pipeline.py`, `apply_review_export.py`, `summarize_review_manifests.py`, `render_yolo_label_preview.py`, `evaluate_real_draft_labels.py`.
 - Fragment diagnostics: `build_fragment_classifier_from_review_pack.py`, `train_fragment_classifier.py`, `evaluate_fragment_classifier.py`, `classify_yolo_proposals.py`, `fuse_two_stage_csv.py`, `sweep_two_stage_fusion.py`, `inspect_two_stage_matches.py`.
@@ -225,8 +232,21 @@ Current P1 render smoke:
 - Output path: `data/synthetic/cashsnap_3d_p1_transfer_proof/`.
 - 240 scenes rendered; `check_yolo_dataset.py --data data\synthetic\cashsnap_3d_p1_transfer_proof\data.yaml` passed with 192 train images / 682 boxes and 48 val images / 164 boxes.
 - `qa/label_stats.json` reports 1,006 instances and 846 exported labels across `KHR_5000`, `KHR_10000`, and `KHR_20000`.
-- The current Python/OpenCV renderer is useful for label-contract proof, but it is CPU-native and visually simple. The next realism/speed step should be a small WebGL/GPU proof, not more training from this scaffold as if it were final data.
-- Local JS tooling exists (`node v24.11.1`, `pnpm 10.28.1`), but the repo has no active JS/WebGL package yet. Add one only when it directly advances the renderer proof.
+- The current Python/OpenCV renderer is useful for label-contract proof, but it is CPU-native and visually simple. Do not train from this scaffold as if it were final data.
+
+## WebGL Renderer Smoke
+
+Goal: prove Windows/headless Edge + Three.js can render realistic-looking RGB, exact ID colors, and visible boxes before building the full synthetic factory.
+
+Current proof:
+
+- Package: `renderers/webgl/` with `three` and `puppeteer-core`; it uses local Microsoft Edge rather than downloading Chromium.
+- Command: `rl python scripts\run_with_headroom.py --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 --min-free-ram-gb 3 --preflight-timeout 120 -- node renderers\webgl\src\render-smoke.mjs`.
+- Output path: `data/synthetic/cashsnap_webgl_smoke/`.
+- Last smoke rendered `visual.png`, `id.png`, `visible_boxes.json`, `labels_visible.txt`, `metadata.json`, and the temporary `smoke.html`.
+- ID pass is exact after disabling WebGL antialiasing: black background plus one RGB ID color per visible note, no blended edge colors.
+- Note visibility uses explicit layer order (`renderOrder` with depth test/write disabled for banknote planes) so tilted sheets do not phase through each other and poison visible masks. This is an intentional topological stacking shortcut until a real contact/physics solver exists.
+- The first headroom-wrapped run paused on RAM/CPU pressure and then completed after the file-backed page fix. This stack is viable on the local Windows laptop, but keep the proof small until batching/texture memory is designed.
 
 ## Known Results
 
