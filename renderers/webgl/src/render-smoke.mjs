@@ -84,8 +84,8 @@ if (!Number.isInteger(MIN_VISIBLE_PIXELS) || MIN_VISIBLE_PIXELS < 1) {
   throw new Error("--min-visible-pixels must be a positive integer");
 }
 
-if (!["auto", "stack", "fan"].includes(SCENE_MODE)) {
-  throw new Error("--scene-mode must be one of: auto, stack, fan");
+if (!["auto", "stack", "fan", "qa3"].includes(SCENE_MODE)) {
+  throw new Error("--scene-mode must be one of: auto, stack, fan, qa3");
 }
 
 const effectiveSceneMode = SCENE_MODE === "auto" ? (VARIANT >= 100 ? "fan" : "stack") : SCENE_MODE;
@@ -254,6 +254,7 @@ const baseOccluders = [
 ];
 
 function variantAssets(variant) {
+  if (effectiveSceneMode === "qa3") return qa3Assets(variant);
   if (effectiveSceneMode === "fan") return fanAssets(variant);
   if (variant === 0) return baseAssets;
   const rng = mulberry32(26053003 + variant * 101);
@@ -299,6 +300,7 @@ function variantAssets(variant) {
 }
 
 function variantOccluders(variant) {
+  if (effectiveSceneMode === "qa3") return [];
   if (effectiveSceneMode === "fan") return fanOccluders(variant);
   if (variant === 0) return baseOccluders;
   const rng = mulberry32(26054003 + variant * 131);
@@ -315,6 +317,44 @@ function variantOccluders(variant) {
       occluder.rotation[2] + randomBetween(rng, -0.38, 0.38),
     ],
   }));
+}
+
+function qa3Assets(variant) {
+  const classes = ["KHR_2000", "KHR_500", "KHR_1000"];
+  const placements = [
+    {
+      position: [-0.08, -0.26, 0.03],
+      rotation: [0.02, -0.04, -0.74],
+      curl: 0.045,
+      layer: 0,
+    },
+    {
+      position: [-0.10, 0.02, 0.08],
+      rotation: [0.02, 0.02, 0.00],
+      curl: 0.035,
+      layer: 1,
+    },
+    {
+      position: [0.02, 0.06, 0.13],
+      rotation: [0.02, -0.05, 1.56],
+      curl: 0.040,
+      layer: 2,
+    },
+  ];
+  return classes.map((className, index) => {
+    const classIndex = CLASS_NAMES.indexOf(className);
+    return {
+      ...baseAssets[index % baseAssets.length],
+      classIndex,
+      className,
+      idColor: INSTANCE_ID_COLORS[index],
+      path: assetPathPools[className][variant % assetPathPools[className].length],
+      physicalWidthMm: PHYSICAL_WIDTH_MM[className],
+      roughness: 0.80,
+      ripple: 0.0,
+      ...placements[index],
+    };
+  });
 }
 
 function fanAssets(variant) {

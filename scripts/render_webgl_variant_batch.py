@@ -42,7 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", type=Path, default=Path("data/synthetic/cashsnap_webgl_variant_batch_smoke"))
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
-    parser.add_argument("--scene-mode", choices=["auto", "stack", "fan"], default="auto")
+    parser.add_argument("--scene-mode", choices=["auto", "stack", "fan", "qa3"], default="auto")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
     parser.add_argument("--skip-render", action="store_true", help="Only recheck/contact-sheet existing outputs.")
     parser.add_argument("--skip-yolo-check", action="store_true", help="Do not run check_yolo_dataset.py on the packaged dataset.")
@@ -85,8 +85,11 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
     run(cmd)
 
 
-def check_variant(out_dir: Path) -> None:
-    run([sys.executable, "scripts/check_webgl_smoke_output.py", "--out-dir", str(out_dir)])
+def check_variant(out_dir: Path, allow_no_occluder: bool = False) -> None:
+    cmd = [sys.executable, "scripts/check_webgl_smoke_output.py", "--out-dir", str(out_dir)]
+    if allow_no_occluder:
+        cmd.append("--allow-no-occluder")
+    run(cmd)
 
 
 def write_contact_sheet(variant_dirs: list[tuple[int, Path]], out_path: Path) -> None:
@@ -437,7 +440,7 @@ def main() -> int:
         out_dir = out_root / f"variant_{variant:04d}"
         if not args.skip_render:
             render_variant(variant, out_dir, args.scene_mode, args.background_dir)
-        check_variant(out_dir)
+        check_variant(out_dir, allow_no_occluder=args.scene_mode == "qa3")
         variant_dirs.append((variant, out_dir))
 
     contact_sheet = out_root / "contact_sheet.png"
