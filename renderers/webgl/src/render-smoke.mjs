@@ -6,8 +6,25 @@ import puppeteer from "puppeteer-core";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-const OUT_DIR = path.join(ROOT, "data", "synthetic", "cashsnap_webgl_smoke");
 const THREE_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "build", "three.module.js")).href;
+
+function argValue(name, defaultValue) {
+  const index = process.argv.indexOf(name);
+  if (index === -1) return defaultValue;
+  const value = process.argv[index + 1];
+  if (value === undefined || value.startsWith("--")) {
+    throw new Error(`Missing value for ${name}`);
+  }
+  return value;
+}
+
+const OUT_DIR = path.resolve(ROOT, argValue("--out-dir", path.join("data", "synthetic", "cashsnap_webgl_smoke")));
+const SCENE_COUNT = Number.parseInt(argValue("--scene-count", "1"), 10);
+const SEED = Number.parseInt(argValue("--seed", "26053003"), 10);
+
+if (!Number.isInteger(SCENE_COUNT) || SCENE_COUNT < 1) {
+  throw new Error("--scene-count must be a positive integer");
+}
 
 const assets = [
   {
@@ -397,12 +414,12 @@ async function main() {
     const page = await browser.newPage();
     page.on("console", (message) => console.log(`[browser:${message.type()}] ${message.text()}`));
     page.on("pageerror", (error) => console.error(`[browser:pageerror] ${error.message}`));
-    page.setDefaultTimeout(60000);
-    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(180000);
+    page.setDefaultNavigationTimeout(180000);
     await page.setViewport({ width: 960, height: 720, deviceScaleFactor: 1 });
     const htmlPath = path.join(OUT_DIR, "smoke.html");
     fs.writeFileSync(htmlPath, html(textureAssets));
-    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "domcontentloaded", timeout: 180000 });
     await page.waitForFunction("window.__cashsnapReady === true");
     await page.evaluate(() => window.renderPass("visual"));
     await page.screenshot({ path: path.join(OUT_DIR, "visual.png") });

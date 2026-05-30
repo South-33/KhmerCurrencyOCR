@@ -37,6 +37,8 @@ Do not start another training run until the P0 renderer smoke proof can produce:
 
 Heavy CPU/RAM/GPU work must go through a headroom wrapper. Never train directly when a safe wrapper exists.
 
+Harnesses are configurable working tools, not permanent doctrine. If a harness, config, or workflow creates friction, hides a bad assumption, or slows the path to a better model, inspect it and improve it instead of working around it forever.
+
 ## Local Machine Profile
 
 - Machine: Lenovo 82Y9 laptop.
@@ -46,7 +48,7 @@ Heavy CPU/RAM/GPU work must go through a headroom wrapper. Never train directly 
 - Re-scan command: `rl python scripts\profile_system.py --out .cache_runtime\system_profile.json`.
 - Current operating rule: laptop usability matters. Heavy jobs should prefer 90% max CPU/RAM/GPU/VRAM caps, resume around 82%, and never set caps above 95%.
 - If this hardware is unexpectedly slow, suspect RAM pressure first, then laptop GPU power/thermal limits, then data-loader worker count.
-- `scripts/run_with_headroom.py` now refuses caps above 95%, watches free RAM as well as RAM percent/VRAM/GPU/CPU, lowers child priority, and waits for initial headroom before launching a heavy child.
+- `scripts/run_with_headroom.py` now refuses caps above 95%, lowers child priority, and waits for initial headroom before launching a heavy child. The free-RAM floor is a preflight gate and runtime warning; after launch, hard pauses/exits follow the explicit RAM/VRAM max caps so pause-sensitive browser jobs do not trip wall-clock timeouts.
 - `scripts/bench_train_with_headroom.py` dry-run currently selects `batch=2`, `workers=0` on this laptop and passes `--min-free-ram-gb 4.0` to the live wrapper.
 - Balance speed and headroom. Prefer GPU for training/inference when it is the faster engine and has room, but do not force GPU for CPU-native prep/rendering if the headroom wrapper keeps the laptop responsive.
 
@@ -255,7 +257,7 @@ Current proof:
 - Primitive finger occluders are top-layer capsule meshes. They render as skin-colored geometry in RGB and black in the ID pass, so covered bill pixels are removed from visible labels.
 - Note visibility uses explicit layer order (`renderOrder` with depth test/write disabled for banknote planes) so tilted sheets or fingers do not phase through upper layers and poison visible masks. The current smoke audited 88,156 overlapping pixels and 15,732 occluder pixels with zero layer-order violations. This is an intentional topological stacking shortcut until a real contact/physics solver exists.
 - Texture loading should stay file-backed (`file://`) instead of base64-inlining full scan PNGs into the HTML. Base64 inlining caused headroom pauses; file-backed textures completed the smoke quickly under the same wrapper caps.
-- Even after trimming shadow-map size, the local laptop can still pause WebGL smoke runs when baseline RAM is high. Batch rendering should reuse one browser/page and design texture downscaling/cache behavior before scaling scene counts.
+- Batch rendering should still reuse one browser/page and design texture downscaling/cache behavior before scaling scene counts, but the headroom wrapper no longer suspends browser jobs merely because free RAM dips below the soft floor.
 
 ## Research Checkpoint
 
@@ -268,6 +270,13 @@ Current proof:
 - Recent synthetic-generation surveys frame 3D generators around either photorealistic rendering or domain randomization, but both still need target-domain validation. Source: [Artificial Intelligence Review 2025 synthetic generation survey](https://link.springer.com/article/10.1007/s10462-025-11431-3).
 
 Decision from this pass: do not chase full PBR or a full hand mesh yet. Build a small WebGL batch proof with controlled banknote layer geometry, real-ish table/background variation, primitive fingers, exact visible masks, and measured comparison against the Python/2.5D baselines plus real partial/fan gates.
+
+2026-05-30 camera/lens decision:
+
+- Three.js still holds for the active renderer proof because it can render fast RGB scenes and exact ID passes locally, and its render-target/readback APIs are enough for future mask extraction. Source: [Three.js render targets](https://threejs.org/manual/en/rendertargets.html), [WebGLRenderer readback](https://threejs.org/docs/pages/WebGLRenderer.html).
+- The renderer needs explicit phone-camera profiles, not generic perspective defaults. Seed profiles from common phone FOV/focal-length specs, but prefer EXIF from CashSnap capture images and calibration shots when available.
+- Use an OpenCV-style pinhole camera plus radial/tangential distortion model for postprocess: camera matrix plus distortion coefficients `k1`, `k2`, `p1`, `p2`, `k3`. Source: [OpenCV camera calibration](https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html).
+- Postprocess should be profile-driven: radial distortion, perspective/crop/resize, motion or focus blur, sensor noise/grain, JPEG/WebP compression, white balance, exposure/flash glare, and mild sharpening. Do not randomize these blindly; sample ranges from real captures once enough EXIF/images exist.
 
 ## Known Results
 

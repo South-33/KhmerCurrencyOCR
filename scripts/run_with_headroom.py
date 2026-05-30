@@ -50,7 +50,10 @@ def parse_args() -> argparse.Namespace:
         "--min-free-ram-gb",
         type=float,
         default=2.0,
-        help="Treat RAM as pressured below this available-GB floor. Use 0 to disable.",
+        help=(
+            "Wait before launch below this available-GB floor and warn during the run. "
+            "Use 0 to disable. Runtime pausing still follows --max-ram-percent."
+        ),
     )
     parser.add_argument(
         "--memory-action",
@@ -200,6 +203,16 @@ def memory_over_limit(sample: LoadSample, max_ram: float, max_gpu_mem: float, mi
     return sample.gpu_mem_percent is not None and sample.gpu_mem_percent >= max_gpu_mem
 
 
+def hard_memory_over_limit(sample: LoadSample, max_ram: float, max_gpu_mem: float) -> bool:
+    if sample.ram_percent >= max_ram:
+        return True
+    return sample.gpu_mem_percent is not None and sample.gpu_mem_percent >= max_gpu_mem
+
+
+def soft_memory_pressure(sample: LoadSample, min_free_ram_gb: float) -> bool:
+    return min_free_ram_gb > 0 and sample.ram_available_gb <= min_free_ram_gb
+
+
 def wait_for_initial_headroom(args: argparse.Namespace) -> int | None:
     if args.preflight_timeout <= 0:
         return None
@@ -242,17 +255,18 @@ def main() -> int:
 
     suspended = False
     memory_suspended = False
+    last_soft_memory_warning = 0.0
     try:
         while child.poll() is None:
             time.sleep(args.interval)
             sample = sample_load()
             load = throttle_load(sample)
-            memory_high = memory_over_limit(
+            memory_high = hard_memory_over_limit(
                 sample,
                 args.max_ram_percent,
                 args.max_gpu_mem_percent,
-                args.min_free_ram_gb,
             )
+            soft_memory_high = soft_memory_pressure(sample, args.min_free_ram_gb)
 
             if memory_high and args.memory_action == "exit":
                 print(
@@ -269,6 +283,16 @@ def main() -> int:
                 suspended = True
                 memory_suspended = True
                 continue
+
+            if soft_memory_high and not memory_high:
+                now = time.time()
+                if now - last_soft_memory_warning >= 20:
+                    print(
+                        f"[headroom] Low free RAM warning at {format_sample(sample)}; "
+                        "not pausing because soft free-RAM pressure does not release memory.",
+                        flush=True,
+                    )
+                    last_soft_memory_warning = now
 
             if memory_suspended and not memory_high and load <= args.resume_percent:
                 print(f"[headroom] Resuming child after memory pressure at {format_sample(sample)}", flush=True)
