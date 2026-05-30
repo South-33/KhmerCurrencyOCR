@@ -14,6 +14,8 @@ Active bet: make synthetic data generation good enough to be the scaling unit.
 
 Current phase: 3D synthetic-pipeline reset before the next training push.
 
+Current model direction after split-label QA: keep the lightweight detector path for clean/mostly-visible notes, add a fragment/evidence detector or classifier path for partial OCR/denomination cues, then fuse fragments into physical-note counts. Do not treat OBB as the primary hard-fan solution; use OBB only for compact visible instances where the rotated box is honest.
+
 Do not start another training run until the P0 renderer smoke proof can produce:
 
 - plausible phone-like visual renders
