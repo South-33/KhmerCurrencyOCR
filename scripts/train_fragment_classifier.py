@@ -69,6 +69,13 @@ def build_transforms(image_size: int) -> tuple[transforms.Compose, transforms.Co
     return train_tf, val_tf
 
 
+def image_folder(path: Path, transform: transforms.Compose) -> datasets.ImageFolder:
+    try:
+        return datasets.ImageFolder(path, transform=transform, allow_empty=True)
+    except TypeError:
+        return datasets.ImageFolder(path, transform=transform)
+
+
 def build_model(class_count: int, pretrained: bool) -> nn.Module:
     weights = models.MobileNet_V3_Small_Weights.DEFAULT if pretrained else None
     model = models.mobilenet_v3_small(weights=weights)
@@ -176,8 +183,8 @@ def main() -> None:
     run_dir = resolve(args.project) / args.name
     run_dir.mkdir(parents=True, exist_ok=True)
     train_tf, val_tf = build_transforms(args.image_size)
-    train_ds = datasets.ImageFolder(data_dir / "train", transform=train_tf)
-    val_ds = datasets.ImageFolder(data_dir / "val", transform=val_tf)
+    train_ds = image_folder(data_dir / "train", train_tf)
+    val_ds = image_folder(data_dir / "val", val_tf)
     class_names = train_ds.classes
     if class_names != val_ds.classes:
         raise SystemExit(f"train/val classes differ: {class_names} != {val_ds.classes}")

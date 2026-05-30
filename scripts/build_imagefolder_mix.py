@@ -64,8 +64,12 @@ def copy_split(source_root: Path, out_dir: Path, split: str, prefix: str, rows: 
     return copied
 
 
-def ensure_base_classes(base: Path, out_dir: Path) -> None:
-    classes = sorted({path.name for split in ["train", "val", "test"] for path in class_dirs(base, split)})
+def dataset_classes(roots: list[Path]) -> list[str]:
+    return sorted({path.name for root in roots for split in ["train", "val", "test"] for path in class_dirs(root, split)})
+
+
+def ensure_classes(roots: list[Path], out_dir: Path) -> None:
+    classes = dataset_classes(roots)
     for split in ["train", "val", "test"]:
         for class_name in classes:
             (out_dir / split / class_name).mkdir(parents=True, exist_ok=True)
@@ -84,7 +88,7 @@ def main() -> None:
     if args.clean:
         safe_clean(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    ensure_base_classes(base, out_dir)
+    ensure_classes([base, *extras], out_dir)
 
     rows: list[dict[str, str]] = []
     counts: dict[str, int] = {}
