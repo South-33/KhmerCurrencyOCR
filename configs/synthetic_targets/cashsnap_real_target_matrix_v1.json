@@ -58,7 +58,7 @@
       "priority": "p1",
       "real_benchmark": "future reviewed hand-occluded phone captures",
       "synthetic_recipe_needed": "hand_occlusion_fragments",
-      "status": "label_policy_proven_by_qa3",
+      "status": "renderer_smoke_only",
       "success_gate": "fragment evidence improves identification while fusion preserves physical counts"
     },
     {
@@ -67,7 +67,7 @@
       "priority": "p1",
       "real_benchmark": "reviewed thin/edge captures, especially KHR_5000 and KHR_20000",
       "synthetic_recipe_needed": "thin_edge_partial",
-      "status": "not_solved",
+      "status": "renderer_smoke_only",
       "success_gate": "denomination ID improves on human-identifiable slivers without broad false positives"
     },
     {

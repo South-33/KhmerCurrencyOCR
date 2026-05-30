@@ -84,8 +84,8 @@ if (!Number.isInteger(MIN_VISIBLE_PIXELS) || MIN_VISIBLE_PIXELS < 1) {
   throw new Error("--min-visible-pixels must be a positive integer");
 }
 
-if (!["auto", "clean", "negative", "stack", "fan", "thin_edge", "qa3"].includes(SCENE_MODE)) {
-  throw new Error("--scene-mode must be one of: auto, clean, negative, stack, fan, thin_edge, qa3");
+if (!["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"].includes(SCENE_MODE)) {
+  throw new Error("--scene-mode must be one of: auto, clean, negative, stack, fan, thin_edge, hand_occlusion, qa3");
 }
 
 const effectiveSceneMode = SCENE_MODE === "auto" ? (VARIANT >= 100 ? "fan" : "stack") : SCENE_MODE;
@@ -132,7 +132,7 @@ function listImageFiles(directory) {
 }
 
 function sceneConfig(variant, mode, backgroundPath) {
-  const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : 0;
+  const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : mode === "hand_occlusion" ? 6007 : 0;
   const rng = mulberry32(26058003 + variant * 191 + modeOffset);
   const surfaces = [
     { name: "warm_wood", base: "#9b784a", light: "#fff2d6", dark: "#231810", scene: "#9b927d", repeat: [2.5, 2.0] },
@@ -259,6 +259,7 @@ function variantAssets(variant) {
   if (effectiveSceneMode === "qa3") return qa3Assets(variant);
   if (effectiveSceneMode === "fan") return fanAssets(variant);
   if (effectiveSceneMode === "thin_edge") return thinEdgeAssets(variant);
+  if (effectiveSceneMode === "hand_occlusion") return handOcclusionAssets(variant);
   if (effectiveSceneMode === "clean") return cleanAssets(variant);
   if (variant === 0) return baseAssets;
   const rng = mulberry32(26053003 + variant * 101);
@@ -309,6 +310,7 @@ function variantOccluders(variant) {
   if (effectiveSceneMode === "clean") return [];
   if (effectiveSceneMode === "fan") return fanOccluders(variant);
   if (effectiveSceneMode === "thin_edge") return thinEdgeOccluders(variant);
+  if (effectiveSceneMode === "hand_occlusion") return handOcclusionOccluders(variant);
   if (variant === 0) return baseOccluders;
   const rng = mulberry32(26054003 + variant * 131);
   return baseOccluders.map((occluder) => ({
@@ -497,6 +499,79 @@ function thinEdgeOccluders(variant) {
       height: item.coverSize[1],
     };
   });
+}
+
+function handOcclusionAssets(variant) {
+  const rng = mulberry32(26059003 + variant * 211);
+  const classes = ["KHR_500", "KHR_1000", "KHR_5000", "KHR_20000", "USD_1"];
+  const placements = [
+    [-0.34, -0.18, -0.42],
+    [0.12, -0.08, 0.10],
+    [-0.06, 0.20, 0.62],
+    [0.36, 0.18, -0.20],
+    [-0.44, 0.26, 0.94],
+  ];
+  const noteCount = 4 + (variant % 2);
+  return Array.from({ length: noteCount }, (_, index) => {
+    const className = classes[(variant + index) % classes.length];
+    const classIndex = CLASS_NAMES.indexOf(className);
+    const base = baseAssets[index % baseAssets.length];
+    const placement = placements[index];
+    return {
+      ...base,
+      classIndex,
+      className,
+      idColor: INSTANCE_ID_COLORS[index],
+      path: assetPathPools[className][(variant + index) % assetPathPools[className].length],
+      physicalWidthMm: PHYSICAL_WIDTH_MM[className],
+      position: [
+        placement[0] + randomBetween(rng, -0.055, 0.055),
+        placement[1] + randomBetween(rng, -0.045, 0.045),
+        0.03 + index * 0.035,
+      ],
+      rotation: [
+        randomBetween(rng, -0.06, 0.08),
+        randomBetween(rng, -0.08, 0.08),
+        placement[2] + randomBetween(rng, -0.16, 0.16),
+      ],
+      curl: 0.055 + randomBetween(rng, -0.012, 0.018),
+      ripple: 0.0,
+      roughness: randomBetween(rng, 0.74, 0.90),
+      layer: index,
+      handOcclusion: true,
+    };
+  });
+}
+
+function handOcclusionOccluders(variant) {
+  const rng = mulberry32(26060003 + variant * 223);
+  const baseX = -0.08 + randomBetween(rng, -0.05, 0.05);
+  const baseY = -0.02 + randomBetween(rng, -0.04, 0.04);
+  const skinColors = [0xc58663, 0xb87958, 0xd19a73, 0x9f6649, 0xe0ae87];
+  const fingers = [
+    { offset: [-0.28, 0.05], angle: 1.34, radius: 0.045, length: 0.62 },
+    { offset: [-0.08, 0.06], angle: 1.12, radius: 0.050, length: 0.66 },
+    { offset: [0.12, 0.03], angle: 0.92, radius: 0.047, length: 0.60 },
+    { offset: [0.28, -0.02], angle: 0.74, radius: 0.041, length: 0.52 },
+    { offset: [-0.18, -0.16], angle: 1.70, radius: 0.043, length: 0.48 },
+  ];
+  return fingers.map((finger, index) => ({
+    kind: "finger_capsule",
+    layer: 35 + index,
+    color: skinColors[(variant + index) % skinColors.length],
+    position: [
+      baseX + finger.offset[0] + randomBetween(rng, -0.035, 0.035),
+      baseY + finger.offset[1] + randomBetween(rng, -0.030, 0.030),
+      0.32 + index * 0.012,
+    ],
+    rotation: [
+      randomBetween(rng, 0.06, 0.20),
+      randomBetween(rng, -0.16, 0.16),
+      finger.angle + randomBetween(rng, -0.18, 0.18),
+    ],
+    radius: finger.radius + randomBetween(rng, -0.006, 0.006),
+    length: finger.length + randomBetween(rng, -0.040, 0.055),
+  }));
 }
 
 function fanAssets(variant) {

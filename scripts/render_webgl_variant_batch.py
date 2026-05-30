@@ -43,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", type=Path, default=Path("data/synthetic/cashsnap_webgl_variant_batch_smoke"))
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
-    parser.add_argument("--scene-mode", choices=["auto", "clean", "negative", "stack", "fan", "thin_edge", "qa3"], default="auto")
+    parser.add_argument("--scene-mode", choices=["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"], default="auto")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
     parser.add_argument("--recipe-name", default="", help="Human-readable recipe name to write into recipe.json.")
     parser.add_argument(

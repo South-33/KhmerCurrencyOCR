@@ -34,11 +34,11 @@
     {
       "id": "webgl_hand_occlusion_fragments_v1",
       "target_condition_ids": ["finger_or_hand_split_occlusion"],
-      "artifact_status": "label_policy_ready",
-      "scene_modes": ["qa3", "stack", "fan"],
+      "artifact_status": "smoke_ready",
+      "scene_modes": ["hand_occlusion", "qa3", "stack", "fan"],
       "intended_use": "Train or diagnose visible fragment evidence under hand/finger split occlusion.",
       "promotion_gate": "fragment evidence improves partial ID and fusion preserves physical counts",
-      "current_blocker": "Primitive finger capsules need broader pose/skin/shape variation and real hand-occlusion validation."
+      "current_blocker": "Hand-occlusion smoke exists with broader primitive finger variation; still needs real hand-occlusion validation."
     },
     {
       "id": "webgl_thin_edge_partial_v1",
