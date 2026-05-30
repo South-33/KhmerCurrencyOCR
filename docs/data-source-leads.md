@@ -50,15 +50,16 @@ Purpose: keep dataset research actionable. Do not download large datasets just b
 ### Wikimedia Commons Cambodia Banknotes
 
 - Link: https://commons.wikimedia.org/wiki/Category:Banknotes_of_Cambodia
-- Use: local benchmark seeds and visual design checks.
+- 2026-05-30 re-check: category lists 29 media files plus a few subcategories, including reference-style banknote scans and collection photos rather than mobile overlap/fan scenes.
+- Use: visual design checks and possible reference seeds after rights review.
 - Caveat: Cambodian banknote reproduction/copyright concerns exist; use only with explicit rights review before public release or model packaging claims.
 
 ### Roboflow Cambodia Currency Project
 
 - Link: https://universe.roboflow.com/khmer-riel-classification-computer-vision/cambodia-currency-project
-- Published search summary: object-detection project with seven KHR classes (`100_Riel`, `500_Riel`, `1000_Riel`, `5000_Riel`, `10000_Riel`, `20000_Riel`, `50000_Riel`) and CC BY 4.0 metadata on the project page.
-- Use: possible small KHR sanity check or historical/low-denomination reference.
-- Caveat: class coverage does not match CashSnap's current USD + KHR target, and it does not replace rights-clear partial/fan phone captures.
+- 2026-05-30 re-check: object-detection project page reports 552 images, seven KHR classes (`100_Riel`, `500_Riel`, `1000_Riel`, `5000_Riel`, `10000_Riel`, `20000_Riel`, `50000_Riel`), and CC BY 4.0 metadata.
+- Use: possible small KHR sanity check or historical/low-denomination reference if its dataset export is audited.
+- Caveat: page preview does not establish the targeted `KHR_5000` portrait/number overlap coverage needed now, and it does not replace rights-clear partial/fan phone captures.
 
 ### Generic Roboflow Banknote Detection
 
@@ -69,7 +70,7 @@ Purpose: keep dataset research actionable. Do not download large datasets just b
 
 ## Current Recommendation
 
-Current web re-check on 2026-05-30 did not surface a better public KHR partial/fan source. Roboflow search still centers on Cambodia Currency Project / Khmer-US-currency style projects and generic banknote datasets, while recent adjacent papers such as the Kazakh banknote image dataset are useful for transfer thinking only. Keep the next cycle focused on reviewed KHR phone captures and curated Roboflow partial crops.
+Current web re-check on 2026-05-30 did not surface a better public KHR partial/fan source. Hugging Face search did not reveal a KHR banknote dataset, Roboflow search still centers on Cambodia Currency Project / Khmer-US-currency style projects and generic banknote datasets, and Wikimedia Commons remains reference/collector imagery. Keep the next cycle focused on rights-clear KHR phone captures, especially the `khr_5000_face_number_overlap` gap, plus carefully reviewed local Roboflow partial crops.
 
 Do not spend the next cycle downloading broad public banknote datasets. The best path is:
 
