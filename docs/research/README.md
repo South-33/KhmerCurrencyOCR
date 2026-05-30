@@ -1,6 +1,6 @@
 # CashSnap Research PDFs
 
-This folder holds compact research handoffs and source-check PDFs that are useful for project direction but should not replace the living runbooks.
+This folder holds compact research handoffs and source-check PDFs that are useful for project direction but should not replace `model.md`.
 
 ## Current Takeaways
 
@@ -11,4 +11,4 @@ This folder holds compact research handoffs and source-check PDFs that are usefu
 
 ## How To Use
 
-Use these PDFs as evidence and source context. Put active decisions in the top-level docs, especially `docs/README.md`, `docs/model-card-cashsnap-two-stage-oldcommon.md`, `docs/p1-fragment-curation-runbook.md`, and `docs/synthetic-strategy-evaluation.md`.
+Use these PDFs as evidence and source context. Put active model decisions in root `model.md`.

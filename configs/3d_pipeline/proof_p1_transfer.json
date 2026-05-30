@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_3d_p1_transfer_proof",
+  "seed": 26053002,
+  "scene_count": 240,
+  "output_root": "data/synthetic/cashsnap_3d_p1_transfer_proof/",
+  "renderer": {
+    "mode": "undecided",
+    "preferred_first_pass": "smallest_renderer_that_can_pass_p0",
+    "visual_pass": true,
+    "id_pass": true,
+    "deterministic": true
+  },
+  "assets": {
+    "banknote_manifest": "data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv",
+    "banknote_root": "data/asset_candidates/numista_current_cutout_bank_v1/",
+    "status": ["in_circulation"],
+    "classes": ["KHR_5000", "KHR_10000", "KHR_20000"],
+    "sides": ["front", "back"],
+    "require_both_sides": true
+  },
+  "curriculum": [
+    {
+      "name": "khr_5000_portrait_number_overlap",
+      "weight": 0.35,
+      "classes": ["KHR_5000", "KHR_10000"],
+      "layouts": ["simple_overlap", "shop_stack", "edge_partial"],
+      "purpose": "stress the current high-confidence KHR_5000 to KHR_10000 confusion"
+    },
+    {
+      "name": "khr_10000_back_confusers",
+      "weight": 0.25,
+      "classes": ["KHR_10000", "KHR_5000"],
+      "layouts": ["simple_overlap", "shop_stack"],
+      "purpose": "force back/front and old-common-like visual separation"
+    },
+    {
+      "name": "khr_20000_thin_edge",
+      "weight": 0.20,
+      "classes": ["KHR_20000", "KHR_10000"],
+      "layouts": ["edge_partial", "radial_fan"],
+      "purpose": "thin and edge-visible weak-class evidence"
+    },
+    {
+      "name": "clean_replay",
+      "weight": 0.20,
+      "classes": ["KHR_5000", "KHR_10000", "KHR_20000"],
+      "layouts": ["single_table"],
+      "purpose": "prevent clean validation regression during the proof"
+    }
+  ],
+  "layouts": [
+    {
+      "name": "single_table",
+      "weight": 0.20,
+      "notes_per_scene": [1, 3],
+      "visibility_target": [0.70, 1.00]
+    },
+    {
+      "name": "simple_overlap",
+      "weight": 0.30,
+      "notes_per_scene": [2, 5],
+      "visibility_target": [0.20, 0.95]
+    },
+    {
+      "name": "shop_stack",
+      "weight": 0.25,
+      "notes_per_scene": [4, 8],
+      "visibility_target": [0.10, 0.90]
+    },
+    {
+      "name": "radial_fan",
+      "weight": 0.15,
+      "notes_per_scene": [4, 9],
+      "fan_angle_degrees": [28, 95],
+      "visibility_target": [0.06, 0.70]
+    },
+    {
+      "name": "edge_partial",
+      "weight": 0.10,
+      "notes_per_scene": [1, 4],
+      "visibility_target": [0.04, 0.45]
+    }
+  ],
+  "geometry": {
+    "mesh_subdivisions": [48, 20],
+    "curl_x_mm": [-7.0, 14.0],
+    "curl_y_mm": [-3.0, 7.0],
+    "crease_count": [0, 4],
+    "ripple_amp_mm": [0.0, 2.2],
+    "z_gap_mm": [0.12, 0.75],
+    "corner_lift_mm": [0.0, 9.0]
+  },
+  "camera_profiles": [
+    {
+      "name": "iphone_8_like",
+      "weight": 0.25,
+      "resolution": [960, 720],
+      "fov_degrees": [48, 64],
+      "pitch_degrees": [34, 78],
+      "roll_degrees": [-10, 10],
+      "radial_distortion_k1": [-0.05, 0.02]
+    },
+    {
+      "name": "iphone_12_wide_like",
+      "weight": 0.35,
+      "resolution": [960, 720],
+      "fov_degrees": [58, 74],
+      "pitch_degrees": [30, 76],
+      "roll_degrees": [-12, 12],
+      "radial_distortion_k1": [-0.09, 0.03]
+    },
+    {
+      "name": "budget_android_wide_like",
+      "weight": 0.25,
+      "resolution": [960, 720],
+      "fov_degrees": [62, 80],
+      "pitch_degrees": [28, 74],
+      "roll_degrees": [-14, 14],
+      "radial_distortion_k1": [-0.13, 0.06]
+    },
+    {
+      "name": "browser_upload_resized",
+      "weight": 0.15,
+      "resolution": [640, 640],
+      "fov_degrees": [50, 70],
+      "pitch_degrees": [38, 80],
+      "roll_degrees": [-8, 8],
+      "radial_distortion_k1": [-0.07, 0.03]
+    }
+  ],
+  "material_presets": [
+    {
+      "name": "pristine_scan_like",
+      "weight": 0.20,
+      "roughness": [0.55, 0.78],
+      "color_jitter": [0.92, 1.08],
+      "dirt_alpha": [0.00, 0.03],
+      "edge_wear_alpha": [0.00, 0.04]
+    },
+    {
+      "name": "normal_circulated",
+      "weight": 0.45,
+      "roughness": [0.68, 0.92],
+      "color_jitter": [0.84, 1.12],
+      "dirt_alpha": [0.01, 0.12],
+      "edge_wear_alpha": [0.02, 0.14]
+    },
+    {
+      "name": "worn_shop_note",
+      "weight": 0.25,
+      "roughness": [0.76, 0.98],
+      "color_jitter": [0.72, 1.18],
+      "dirt_alpha": [0.04, 0.22],
+      "edge_wear_alpha": [0.08, 0.26]
+    },
+    {
+      "name": "washed_out_flash",
+      "weight": 0.10,
+      "roughness": [0.40, 0.80],
+      "color_jitter": [0.78, 1.28],
+      "dirt_alpha": [0.00, 0.08],
+      "edge_wear_alpha": [0.00, 0.10]
+    }
+  ],
+  "lighting": {
+    "modes": ["diffuse_indoor", "warm_shop_bulb", "daylight_window", "phone_flash"],
+    "require_contact_shadows": true,
+    "mixed_color_temperature": true
+  },
+  "occlusion": {
+    "finger_occluders": true,
+    "finger_mode": "primitive_patches_first",
+    "finger_scene_probability": 0.18,
+    "off_frame_clipping": true
+  },
+  "postprocess": {
+    "jpeg_quality": [58, 94],
+    "motion_blur_px": [0, 3],
+    "sensor_noise_sigma": [0.0, 7.0],
+    "white_balance_shift": [0.86, 1.14],
+    "sharpening": [0.0, 0.6]
+  },
+  "label_policy": {
+    "visible_masks": true,
+    "min_visible_pixels": 180,
+    "min_visibility_ratio_for_denoms": 0.06,
+    "ambiguous_fragments": "ignore",
+    "exports": ["detect", "obb", "segmentation_masks", "fragment_crops"]
+  },
+  "qa": {
+    "write_contact_sheet": true,
+    "write_mask_overlay_contact_sheet": true,
+    "write_label_stats": true,
+    "write_visibility_histogram": true,
+    "fail_on_blank_render": true,
+    "fail_on_missing_id_pass": true,
+    "manual_review_sample": 48,
+    "compare_against_matched_2p5d": true
+  }
+}

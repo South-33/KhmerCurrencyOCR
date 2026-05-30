@@ -28,6 +28,9 @@ data/inbox/
 
 # Training runs and experiment outputs
 runs/
+results.tsv
+experiments.tsv
+run.log
 
 # Scratch / temp
 tmp/

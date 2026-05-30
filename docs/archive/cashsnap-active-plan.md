@@ -10,6 +10,8 @@ Build a small phone/browser-deployable CashSnap model that counts mixed USD and 
 
 The active path is now a 3D synthetic-pipeline reset before the next training push.
 
+Use `program.md` as the long-running research harness entry point. It keeps the useful `autoresearch` discipline: narrow in-scope files, fixed-budget experiments, stable evaluation contracts, redirected logs, an untracked `results.tsv` ledger, and keep/discard/crash decisions.
+
 The strategic goal is to build a scalable 3D data factory that can generate trusted, phone-like, perfectly labeled banknote scenes from Numista scans. Do not start another model-training run until the renderer proof can produce plausible visual images, exact visible masks, scoreable labels, and QA artifacts.
 
 Use Numista `in_circulation` raw folders as the clean KHR metadata backbone for issue/year/side scans. Non-Numista public data, including Roboflow and Wikimedia/Commons photos, is domain stress or review material until note design and circulation scope are checked. Do not let old, collector, or out-of-scope note designs silently define success.

@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_3d_p0_renderer_smoke",
+  "seed": 26053001,
+  "scene_count": 20,
+  "output_root": "data/synthetic/cashsnap_3d_p0_renderer_smoke/",
+  "renderer": {
+    "mode": "undecided",
+    "preferred_first_pass": "python_or_node_raster_with_id_pass",
+    "visual_pass": true,
+    "id_pass": true,
+    "deterministic": true
+  },
+  "assets": {
+    "banknote_manifest": "data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv",
+    "banknote_root": "data/asset_candidates/numista_current_cutout_bank_v1/",
+    "status": ["in_circulation"],
+    "classes": ["KHR_5000", "KHR_10000"],
+    "sides": ["front", "back"],
+    "require_both_sides": true
+  },
+  "layouts": [
+    {
+      "name": "single_table",
+      "weight": 0.25,
+      "notes_per_scene": [1, 2],
+      "visibility_target": [0.70, 1.00]
+    },
+    {
+      "name": "simple_overlap",
+      "weight": 0.45,
+      "notes_per_scene": [2, 4],
+      "visibility_target": [0.25, 0.95]
+    },
+    {
+      "name": "shop_stack",
+      "weight": 0.30,
+      "notes_per_scene": [3, 6],
+      "visibility_target": [0.15, 0.90]
+    }
+  ],
+  "geometry": {
+    "mesh_subdivisions": [32, 14],
+    "curl_x_mm": [-4.0, 8.0],
+    "curl_y_mm": [-2.0, 4.0],
+    "crease_count": [0, 2],
+    "ripple_amp_mm": [0.0, 1.2],
+    "z_gap_mm": [0.15, 0.60]
+  },
+  "camera_profiles": [
+    {
+      "name": "iphone_12_wide_like",
+      "weight": 0.45,
+      "resolution": [960, 720],
+      "fov_degrees": [58, 72],
+      "pitch_degrees": [35, 76],
+      "roll_degrees": [-8, 8],
+      "radial_distortion_k1": [-0.08, 0.03]
+    },
+    {
+      "name": "budget_android_wide_like",
+      "weight": 0.35,
+      "resolution": [960, 720],
+      "fov_degrees": [62, 78],
+      "pitch_degrees": [30, 72],
+      "roll_degrees": [-12, 12],
+      "radial_distortion_k1": [-0.12, 0.05]
+    },
+    {
+      "name": "browser_upload_resized",
+      "weight": 0.20,
+      "resolution": [640, 640],
+      "fov_degrees": [50, 68],
+      "pitch_degrees": [40, 78],
+      "roll_degrees": [-6, 6],
+      "radial_distortion_k1": [-0.06, 0.02]
+    }
+  ],
+  "material_presets": [
+    {
+      "name": "pristine_scan_like",
+      "weight": 0.45,
+      "roughness": [0.55, 0.78],
+      "color_jitter": [0.92, 1.08],
+      "dirt_alpha": [0.00, 0.03],
+      "edge_wear_alpha": [0.00, 0.04]
+    },
+    {
+      "name": "normal_circulated",
+      "weight": 0.55,
+      "roughness": [0.68, 0.92],
+      "color_jitter": [0.84, 1.12],
+      "dirt_alpha": [0.01, 0.10],
+      "edge_wear_alpha": [0.02, 0.12]
+    }
+  ],
+  "lighting": {
+    "modes": ["diffuse_indoor", "warm_shop_bulb", "daylight_window"],
+    "require_contact_shadows": true
+  },
+  "occlusion": {
+    "finger_occluders": false,
+    "off_frame_clipping": true
+  },
+  "label_policy": {
+    "visible_masks": true,
+    "min_visible_pixels": 220,
+    "min_visibility_ratio_for_denoms": 0.08,
+    "ambiguous_fragments": "ignore",
+    "exports": ["detect", "obb", "segmentation_masks", "fragment_crops"]
+  },
+  "qa": {
+    "write_contact_sheet": true,
+    "write_mask_overlay_contact_sheet": true,
+    "write_label_stats": true,
+    "fail_on_blank_render": true,
+    "fail_on_missing_id_pass": true,
+    "manual_review_sample": 20
+  }
+}
