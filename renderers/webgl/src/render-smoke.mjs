@@ -86,7 +86,7 @@ camera.lookAt(0, 0, 0);
 const renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
 renderer.setSize(960, 720);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const hemi = new THREE.HemisphereLight(0xf5f1e7, 0x6a5d50, 1.6);
@@ -94,7 +94,7 @@ scene.add(hemi);
 const key = new THREE.DirectionalLight(0xffe0aa, 2.0);
 key.position.set(-1.5, -1.0, 3.0);
 key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
+key.shadow.mapSize.set(1024, 1024);
 scene.add(key);
 
 const table = new THREE.Mesh(
@@ -126,7 +126,7 @@ async function addNotes() {
   for (const asset of [...assets].sort((a, b) => a.layer - b.layer)) {
     const texture = await loader.loadAsync(asset.textureUrl);
     texture.colorSpace = THREE.SRGBColorSpace;
-    texture.anisotropy = 4;
+    texture.anisotropy = 2;
     const geometry = new THREE.PlaneGeometry(1.28, 0.56, 36, 16);
     bendGeometry(geometry, 0.075, 0.012);
     const backingMaterial = new THREE.MeshStandardMaterial({

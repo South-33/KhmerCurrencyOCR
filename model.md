@@ -255,6 +255,7 @@ Current proof:
 - Primitive finger occluders are top-layer capsule meshes. They render as skin-colored geometry in RGB and black in the ID pass, so covered bill pixels are removed from visible labels.
 - Note visibility uses explicit layer order (`renderOrder` with depth test/write disabled for banknote planes) so tilted sheets or fingers do not phase through upper layers and poison visible masks. The current smoke audited 88,156 overlapping pixels and 15,732 occluder pixels with zero layer-order violations. This is an intentional topological stacking shortcut until a real contact/physics solver exists.
 - Texture loading should stay file-backed (`file://`) instead of base64-inlining full scan PNGs into the HTML. Base64 inlining caused headroom pauses; file-backed textures completed the smoke quickly under the same wrapper caps.
+- Even after trimming shadow-map size, the local laptop can still pause WebGL smoke runs when baseline RAM is high. Batch rendering should reuse one browser/page and design texture downscaling/cache behavior before scaling scene counts.
 
 ## Known Results
 
