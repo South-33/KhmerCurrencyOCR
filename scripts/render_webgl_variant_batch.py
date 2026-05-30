@@ -34,6 +34,7 @@ CLASS_NAMES = [
 ]
 OBB_MIN_LARGEST_COMPONENT_FRAC = 0.85
 OBB_MIN_RECT_FILL_FRAC = 0.35
+FRAGMENT_MIN_PIXELS = 500
 
 
 def parse_args() -> argparse.Namespace:
@@ -182,6 +183,55 @@ def build_obb_label(id_path: Path, boxes_path: Path) -> tuple[list[str], list[di
     return rows, metadata_rows
 
 
+def build_fragment_labels(id_path: Path, boxes_path: Path) -> tuple[list[str], list[dict[str, object]]]:
+    id_image = np.array(Image.open(id_path).convert("RGB"))
+    height, width = id_image.shape[:2]
+    boxes_doc = json.loads(boxes_path.read_text(encoding="utf-8"))
+    rows: list[str] = []
+    metadata_rows: list[dict[str, object]] = []
+
+    for parent_index, box in enumerate(boxes_doc.get("boxes", [])):
+        color = np.array(box["color"], dtype=np.uint8)
+        mask = np.all(id_image == color, axis=2)
+        component_count, _component_ids, stats, _centroids = cv2.connectedComponentsWithStats(
+            mask.astype(np.uint8),
+            connectivity=8,
+        )
+        kept_component_index = 0
+        for component_id in range(1, component_count):
+            pixels = int(stats[component_id, cv2.CC_STAT_AREA])
+            if pixels < FRAGMENT_MIN_PIXELS:
+                continue
+            x = int(stats[component_id, cv2.CC_STAT_LEFT])
+            y = int(stats[component_id, cv2.CC_STAT_TOP])
+            component_width = int(stats[component_id, cv2.CC_STAT_WIDTH])
+            component_height = int(stats[component_id, cv2.CC_STAT_HEIGHT])
+            cx = (x + component_width / 2) / width
+            cy = (y + component_height / 2) / height
+            normalized_width = component_width / width
+            normalized_height = component_height / height
+            rows.append(
+                f"{int(box['classIndex'])} "
+                f"{cx:.6f} {cy:.6f} {normalized_width:.6f} {normalized_height:.6f}"
+            )
+            metadata_rows.append(
+                {
+                    "classIndex": int(box["classIndex"]),
+                    "className": box.get("className"),
+                    "parentVisibleIndex": parent_index,
+                    "parentColor": box["color"],
+                    "componentIndex": kept_component_index,
+                    "componentId": component_id,
+                    "visible_pixels": pixels,
+                    "bbox_xywh_px": [x, y, component_width, component_height],
+                    "component_fraction_of_parent": round(float(pixels / max(1, int(mask.sum()))), 4),
+                }
+            )
+            kept_component_index += 1
+
+    return rows, metadata_rows
+
+
 def write_lines(path: Path, rows: list[str]) -> None:
     path.write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")
 
@@ -200,7 +250,7 @@ def prepare_empty_dir(directory: Path, out_root: Path) -> None:
     directory.mkdir(parents=True, exist_ok=True)
 
 
-def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> tuple[Path, Path]:
+def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> tuple[Path, Path, Path]:
     images_dir = out_root / "images" / "train"
     labels_dir = out_root / "labels" / "train"
     ids_dir = out_root / "ids" / "train"
@@ -210,6 +260,9 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
     obb_metadata_dir = out_root / "obb" / "metadata" / "train"
     obb_rejected_labels_dir = out_root / "obb" / "rejected_labels" / "train"
     obb_rejected_metadata_dir = out_root / "obb" / "rejected_metadata" / "train"
+    fragment_images_dir = out_root / "fragments" / "images" / "train"
+    fragment_labels_dir = out_root / "fragments" / "labels" / "train"
+    fragment_metadata_dir = out_root / "fragments" / "metadata" / "train"
     for directory in (
         images_dir,
         labels_dir,
@@ -220,12 +273,16 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         obb_metadata_dir,
         obb_rejected_labels_dir,
         obb_rejected_metadata_dir,
+        fragment_images_dir,
+        fragment_labels_dir,
+        fragment_metadata_dir,
     ):
         prepare_empty_dir(directory, out_root)
 
     manifest = []
     obb_image_status_counts: Counter[str] = Counter()
     obb_instance_status_counts: Counter[str] = Counter()
+    fragment_counts: Counter[str] = Counter()
     for variant, out_dir in variant_dirs:
         stem = f"variant_{variant:04d}"
         image_path = images_dir / f"{stem}.png"
@@ -239,12 +296,21 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         obb_metadata_path = obb_metadata_dir / f"{stem}.json"
         obb_rejected_label_path = obb_rejected_labels_dir / f"{stem}.txt"
         obb_rejected_metadata_path = obb_rejected_metadata_dir / f"{stem}.json"
+        fragment_image_path = fragment_images_dir / f"{stem}.png"
+        fragment_label_path = fragment_labels_dir / f"{stem}.txt"
+        fragment_metadata_path = fragment_metadata_dir / f"{stem}.json"
         shutil.copyfile(out_dir / "visual.png", image_path)
         shutil.copyfile(out_dir / "labels_visible.txt", label_path)
         shutil.copyfile(out_dir / "id.png", id_path)
         shutil.copyfile(out_dir / "visible_boxes.json", boxes_path)
         shutil.copyfile(out_dir / "layer_audit.json", audit_path)
         shutil.copyfile(out_dir / "metadata.json", source_metadata_path)
+        fragment_rows, fragment_metadata = build_fragment_labels(id_path, boxes_path)
+        shutil.copyfile(out_dir / "visual.png", fragment_image_path)
+        write_lines(fragment_label_path, fragment_rows)
+        write_json(fragment_metadata_path, fragment_metadata)
+        fragment_counts["images"] += 1
+        fragment_counts["fragments"] += len(fragment_rows)
         obb_rows, obb_metadata = build_obb_label(id_path, boxes_path)
         obb_reject_reasons = sorted({str(row["status"]) for row in obb_metadata if row["status"] != "exported"})
         obb_instance_status_counts.update(str(row["status"]) for row in obb_metadata)
@@ -255,6 +321,9 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
             "id": str(id_path.relative_to(out_root)),
             "visible_boxes": str(boxes_path.relative_to(out_root)),
             "layer_audit": str(audit_path.relative_to(out_root)),
+            "fragment_image": str(fragment_image_path.relative_to(out_root)),
+            "fragment_label": str(fragment_label_path.relative_to(out_root)),
+            "fragment_metadata": str(fragment_metadata_path.relative_to(out_root)),
             "obb_status": "accepted" if not obb_reject_reasons else "rejected",
             "obb_reject_reasons": obb_reject_reasons,
         }
@@ -298,6 +367,18 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
             },
         },
     )
+    write_json(
+        out_root / "fragments" / "summary.json",
+        {
+            "images": fragment_counts["images"],
+            "fragments": fragment_counts["fragments"],
+            "min_fragment_pixels": FRAGMENT_MIN_PIXELS,
+            "policy": {
+                "label_meaning": "visible connected evidence components, not physical bill counts",
+                "counting": "use parent metadata or downstream fusion to merge components from one physical bill",
+            },
+        },
+    )
     data_yaml = out_root / "data.yaml"
     data_yaml.write_text(
         "\n".join(
@@ -326,7 +407,21 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         ),
         encoding="utf-8",
     )
-    return data_yaml, data_obb_yaml
+    data_fragments_yaml = out_root / "data_fragments.yaml"
+    data_fragments_yaml.write_text(
+        "\n".join(
+            [
+                f"path: {(out_root / 'fragments').as_posix()}",
+                "train: images/train",
+                "val: images/train",
+                "names:",
+                *[f"  {index}: {name}" for index, name in enumerate(CLASS_NAMES)],
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return data_yaml, data_obb_yaml, data_fragments_yaml
 
 
 def main() -> int:
@@ -347,12 +442,13 @@ def main() -> int:
 
     contact_sheet = out_root / "contact_sheet.png"
     write_contact_sheet(variant_dirs, contact_sheet)
-    data_yaml, data_obb_yaml = write_yolo_dataset(variant_dirs, out_root)
+    data_yaml, data_obb_yaml, data_fragments_yaml = write_yolo_dataset(variant_dirs, out_root)
     if not args.skip_yolo_check:
         run([sys.executable, "scripts/check_yolo_dataset.py", "--data", str(data_yaml)])
     print(f"wrote {contact_sheet.relative_to(ROOT)}")
     print(f"wrote {data_yaml.relative_to(ROOT)}")
     print(f"wrote {data_obb_yaml.relative_to(ROOT)}")
+    print(f"wrote {data_fragments_yaml.relative_to(ROOT)}")
     return 0
 
 
