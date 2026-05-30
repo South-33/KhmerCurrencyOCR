@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import shutil
 from pathlib import Path
 
@@ -35,6 +36,10 @@ def resolve(path_text: str) -> Path:
     return path if path.is_absolute() else ROOT / path
 
 
+def split_list(value: str) -> list[str]:
+    return [item.strip() for item in re.split(r"[,\s]+", value) if item.strip()]
+
+
 def safe_clean(path: Path) -> None:
     resolved = path.resolve()
     allowed_root = (ROOT / "data").resolve()
@@ -65,9 +70,9 @@ def main() -> None:
     if args.clean:
         safe_clean(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    include_values = {value.strip().lower() for value in args.include_values.split(",") if value.strip()}
-    keep_classes = {value.strip() for value in args.classes.split(",") if value.strip()}
-    ensure_classes = {value.strip() for value in args.ensure_classes.split(",") if value.strip()}
+    include_values = {value.lower() for value in split_list(args.include_values)}
+    keep_classes = set(split_list(args.classes))
+    ensure_classes = set(split_list(args.ensure_classes))
 
     rows: list[dict[str, str]] = []
     for manifest_text in args.manifest:

@@ -118,3 +118,5 @@ Promotion requires all of these:
 - `scripts/check_browser_stack_artifacts.py` keeps detector + classifier under the mobile/browser size budget.
 
 Do not replace the browser default from crop accuracy alone. The rejected unreviewed P1 run is the warning example: better P1 crop numbers, worse real overlap fusion.
+
+The agent-reviewed broad P1 focus probes are the second warning example. A clean 13-crop `KHR_5000/20000` supplement and a balanced 25-crop supplement with `KHR_10000` replay both preserved old/common crop test accuracy, but both still topped at `4/6` same-class on the shop-overlap draft labels. Treat crop accuracy as necessary but insufficient; promotion needs row-level fusion gains on real partial/overlap cases.

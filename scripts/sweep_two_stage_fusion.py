@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import sys
 from pathlib import Path
 
@@ -47,7 +48,7 @@ def resolve(path_text: str) -> Path:
 
 
 def parse_float_list(text: str) -> list[float]:
-    return [float(part.strip()) for part in text.split(",") if part.strip()]
+    return [float(part.strip()) for part in re.split(r"[,\s]+", text) if part.strip()]
 
 
 def fused_rows(
