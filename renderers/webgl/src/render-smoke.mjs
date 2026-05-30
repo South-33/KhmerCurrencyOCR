@@ -84,8 +84,8 @@ if (!Number.isInteger(MIN_VISIBLE_PIXELS) || MIN_VISIBLE_PIXELS < 1) {
   throw new Error("--min-visible-pixels must be a positive integer");
 }
 
-if (!["auto", "stack", "fan", "qa3"].includes(SCENE_MODE)) {
-  throw new Error("--scene-mode must be one of: auto, stack, fan, qa3");
+if (!["auto", "clean", "stack", "fan", "qa3"].includes(SCENE_MODE)) {
+  throw new Error("--scene-mode must be one of: auto, clean, stack, fan, qa3");
 }
 
 const effectiveSceneMode = SCENE_MODE === "auto" ? (VARIANT >= 100 ? "fan" : "stack") : SCENE_MODE;
@@ -132,7 +132,8 @@ function listImageFiles(directory) {
 }
 
 function sceneConfig(variant, mode, backgroundPath) {
-  const rng = mulberry32(26058003 + variant * 191 + (mode === "fan" ? 1009 : 0));
+  const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "qa3" ? 3001 : 0;
+  const rng = mulberry32(26058003 + variant * 191 + modeOffset);
   const surfaces = [
     { name: "warm_wood", base: "#9b784a", light: "#fff2d6", dark: "#231810", scene: "#9b927d", repeat: [2.5, 2.0] },
     { name: "gray_counter", base: "#827f77", light: "#dedbd2", dark: "#3a3834", scene: "#86837b", repeat: [1.8, 1.8] },
@@ -256,6 +257,7 @@ const baseOccluders = [
 function variantAssets(variant) {
   if (effectiveSceneMode === "qa3") return qa3Assets(variant);
   if (effectiveSceneMode === "fan") return fanAssets(variant);
+  if (effectiveSceneMode === "clean") return cleanAssets(variant);
   if (variant === 0) return baseAssets;
   const rng = mulberry32(26053003 + variant * 101);
   const noteCount = 3 + variant % 4;
@@ -301,6 +303,7 @@ function variantAssets(variant) {
 
 function variantOccluders(variant) {
   if (effectiveSceneMode === "qa3") return [];
+  if (effectiveSceneMode === "clean") return [];
   if (effectiveSceneMode === "fan") return fanOccluders(variant);
   if (variant === 0) return baseOccluders;
   const rng = mulberry32(26054003 + variant * 131);
@@ -317,6 +320,45 @@ function variantOccluders(variant) {
       occluder.rotation[2] + randomBetween(rng, -0.38, 0.38),
     ],
   }));
+}
+
+function cleanAssets(variant) {
+  const rng = mulberry32(26055003 + variant * 149);
+  const noteCount = 1 + variant % 3;
+  const anchors = [
+    [-0.36, -0.16],
+    [0.26, 0.02],
+    [-0.02, 0.28],
+  ];
+  return Array.from({ length: noteCount }, (_, index) => {
+    const classIndex = classIndexFor(variant, index);
+    const className = CLASS_NAMES[classIndex];
+    const base = baseAssets[index % baseAssets.length];
+    const anchor = anchors[index];
+    return {
+      ...base,
+      classIndex,
+      className,
+      idColor: INSTANCE_ID_COLORS[index],
+      path: assetPathPools[className][(variant + index) % assetPathPools[className].length],
+      physicalWidthMm: PHYSICAL_WIDTH_MM[className],
+      position: [
+        anchor[0] + randomBetween(rng, -0.04, 0.04),
+        anchor[1] + randomBetween(rng, -0.04, 0.04),
+        0.03 + index * 0.01,
+      ],
+      rotation: [
+        randomBetween(rng, -0.045, 0.045),
+        randomBetween(rng, -0.055, 0.055),
+        randomBetween(rng, -0.20, 0.20),
+      ],
+      curl: 0.030 + randomBetween(rng, -0.010, 0.016),
+      ripple: 0.0,
+      roughness: randomBetween(rng, 0.72, 0.88),
+      layer: index,
+      clean: true,
+    };
+  });
 }
 
 function qa3Assets(variant) {

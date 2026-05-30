@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Allow scenes that exercise note-on-note overlap without primitive finger occluders.",
     )
+    parser.add_argument(
+        "--allow-no-overlap",
+        action="store_true",
+        help="Allow clean/separated scenes that intentionally have no note-on-note overlap.",
+    )
     return parser.parse_args()
 
 
@@ -114,7 +119,7 @@ def main() -> int:
 
     if layer_audit.get("violations") != 0:
         raise SystemExit(f"layer-order audit has violations: {layer_audit}")
-    if layer_audit.get("overlapPixels", 0) <= 0:
+    if layer_audit.get("overlapPixels", 0) <= 0 and not args.allow_no_overlap:
         raise SystemExit("layer-order audit did not exercise any overlapping pixels")
     if layer_audit.get("occluderPixels", 0) <= 0 and not args.allow_no_occluder:
         raise SystemExit("layer-order audit did not exercise any occluder pixels")

@@ -13,7 +13,8 @@ This is the project's AGENTS.md
 - Balance speed and headroom: prefer GPU for training/inference when it is the faster engine and has room, but do not force GPU for CPU-native prep/rendering if the headroom wrapper keeps the laptop responsive.
 - Never train on `data/real_fan_benchmark/`; it is evaluation/stress data only.
 - Use `rl` for terminal work in LongRun/RunLong mode, and route heavy CPU/RAM/GPU jobs through `scripts/run_with_headroom.py` or `scripts/bench_train_with_headroom.py`.
+- Work directly on `master`/mainline for this repo; do not create new `codex/*` branches unless the user explicitly overrides this rule.
 - Keep YOLO runs under repo-local ignored `runs/`, not `C:\Users\Venom\runs`.
-- Keep `results.tsv` untracked and append experiment rows with `scripts/log_research_result.py`.
+- Keep durable experiment results in `model.md`'s result ledger; `results.tsv` is deprecated local scratch and should not be treated as project memory.
 - Prefer Numista `in_circulation` scans and `data/asset_candidates/numista_current_cutout_bank_v1/` as canonical banknote assets; treat public/Roboflow/PicWish data as review or domain-stress material until curated.
 - Do not add new active model docs under `docs/`; archive/reference docs can live there, but `model.md` is the working brain.

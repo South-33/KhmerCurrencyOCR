@@ -4,7 +4,6 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 
 ## Current First-Line Commands
 
-- `log_research_result.py`: initialize/append the untracked `results.tsv` research ledger used by `model.md`.
 - `run_with_headroom.py`: wrap heavy CPU/RAM/GPU work so the machine stays below resource limits.
 - `bench_train_with_headroom.py`: safer YOLO training wrapper for longer detector probes.
 - `run_browser_smoke_cases.py`: browser/mobile deployment sanity suite.
@@ -40,6 +39,8 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 
 - `validate_3d_pipeline_config.py`: strict renderer-agnostic validator for the active 3D proof configs.
 - `render_3d_pipeline_probe.py`: P0 renderer scaffold that emits visual renders, ID masks, labels, metadata, and QA sheets from the active 3D configs.
+- `render_webgl_variant_batch.py`, `check_webgl_smoke_output.py`, `check_webgl_label_views.py`: WebGL batch render/package/QA path for detect, OBB, fragment, recipe, and QA-summary outputs.
+- `check_synthetic_recipe_catalog.py`: validates the synthetic target matrix and recipe catalog coverage.
 - `curate_reference_images.py`: bucket KHR reference assets by circulation priority.
 - `build_current_khr_cutout_bank.py`, `build_numista_cutout_bank.py`: reproducible scan/reference cutout banks.
 - `audit_cutout_bank.py`, `render_cutout_contact_sheet.py`, `score_transparent_cutouts.py`, `select_best_cutouts.py`: cutout QA.
@@ -65,3 +66,4 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 
 - `repo_hygiene_cleanup.py`: local generated-data cleanup helper. Review and dry-run before deleting or moving anything.
 - `local_runtime.py`: repo-local runtime/cache helpers for scripts.
+- `log_research_result.py`: deprecated TSV scratch helper; prefer the curated `model.md` result ledger so project memory stays in one place.

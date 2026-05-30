@@ -1,4 +1,7 @@
-"""Initialize and append CashSnap research-harness result rows."""
+"""Deprecated local TSV scratch helper.
+
+Prefer the curated Result Ledger in model.md for durable project memory.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +13,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_LEDGER = ROOT / "results.tsv"
+DEFAULT_LEDGER = ROOT / "tmp" / "results.tsv"
 FIELDNAMES = [
     "timestamp",
     "commit",

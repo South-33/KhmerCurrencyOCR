@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_real_target_matrix_v1",
+  "mission": "Phone/browser USD+KHR banknote denomination counting from casual retail photos.",
+  "out_of_scope": [
+    "counterfeit_detection",
+    "training_on_real_fan_benchmark"
+  ],
+  "global_success_metrics": [
+    "same_class_recall",
+    "any_class_recall",
+    "count_error",
+    "khr_total_error",
+    "usd_total_error",
+    "false_positive_count",
+    "browser_latency"
+  ],
+  "conditions": [
+    {
+      "id": "clean_single_or_separated_notes",
+      "required_for_v1": true,
+      "priority": "guardrail",
+      "real_benchmark": "data/cashsnap_v1/",
+      "synthetic_recipe_needed": "clean_base",
+      "status": "covered_by_existing_clean_validation",
+      "success_gate": "no material regression versus current clean-validation baseline"
+    },
+    {
+      "id": "loose_counter_stack_overlap",
+      "required_for_v1": true,
+      "priority": "p0",
+      "real_benchmark": "scoreable shop-overlap draft labels plus future reviewed captures",
+      "synthetic_recipe_needed": "overlap_stack",
+      "status": "partially_covered",
+      "success_gate": "improve same-class recall without increasing count overprediction"
+    },
+    {
+      "id": "dense_shop_overlap",
+      "required_for_v1": true,
+      "priority": "p0",
+      "real_benchmark": "reviewed partial/overlap captures, never synthetic validation alone",
+      "synthetic_recipe_needed": "dense_overlap_with_hard_negatives",
+      "status": "not_solved",
+      "success_gate": "bounded count error and fewer KHR_5000_to_KHR_10000 confusions"
+    },
+    {
+      "id": "handheld_fan",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "data/real_fan_benchmark/ for stress only plus future rights-clear phone fan captures",
+      "synthetic_recipe_needed": "fan_current_full_schema",
+      "status": "renderer_smoke_only",
+      "success_gate": "real fan same-class and count metrics improve over no-synthetic and matched 2.5D baselines"
+    },
+    {
+      "id": "finger_or_hand_split_occlusion",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "future reviewed hand-occluded phone captures",
+      "synthetic_recipe_needed": "hand_occlusion_fragments",
+      "status": "label_policy_proven_by_qa3",
+      "success_gate": "fragment evidence improves identification while fusion preserves physical counts"
+    },
+    {
+      "id": "thin_edge_partial_fragments",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "reviewed thin/edge captures, especially KHR_5000 and KHR_20000",
+      "synthetic_recipe_needed": "thin_edge_partial",
+      "status": "not_solved",
+      "success_gate": "denomination ID improves on human-identifiable slivers without broad false positives"
+    },
+    {
+      "id": "front_back_and_old_common_confusion",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "reviewed old/common KHR partial focus queues",
+      "synthetic_recipe_needed": "back_side_confusion",
+      "status": "known_failure_mode",
+      "success_gate": "reduce old/common KHR class swaps without harming clean validation"
+    },
+    {
+      "id": "repeated_same_denomination",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "future repeated-denomination capture set",
+      "synthetic_recipe_needed": "same_class_repeats",
+      "status": "metadata_support_needed_for_fusion",
+      "success_gate": "fusion does not merge separate physical notes of the same class"
+    },
+    {
+      "id": "hard_negatives_and_non_banknote_paper",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "reviewed backgrounds, receipts, wallets, cards, hands, and shop clutter",
+      "synthetic_recipe_needed": "hard_negative_replay",
+      "status": "background_qa_needed",
+      "success_gate": "false positives remain bounded on browser guard cases and clean backgrounds"
+    },
+    {
+      "id": "extreme_crumple_damage_or_folded_notes",
+      "required_for_v1": false,
+      "priority": "parked",
+      "real_benchmark": "none",
+      "synthetic_recipe_needed": "future_deformation_model",
+      "status": "parked",
+      "success_gate": "promote only after v1 overlap/fan gates improve"
+    },
+    {
+      "id": "counterfeit_or_authenticity_detection",
+      "required_for_v1": false,
+      "priority": "out_of_scope",
+      "real_benchmark": "none",
+      "synthetic_recipe_needed": "none",
+      "status": "out_of_scope",
+      "success_gate": "do not add to CashSnap phase 1"
+    }
+  ]
+}

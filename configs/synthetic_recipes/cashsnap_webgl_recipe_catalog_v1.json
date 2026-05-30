@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_webgl_recipe_catalog_v1",
+  "target_matrix": "configs/synthetic_targets/cashsnap_real_target_matrix_v1.json",
+  "default_packager": "scripts/render_webgl_variant_batch.py",
+  "recipes": [
+    {
+      "id": "webgl_clean_base_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes"],
+      "artifact_status": "smoke_ready",
+      "scene_modes": ["clean"],
+      "intended_use": "Clean/base replay guard so synthetic additions do not damage normal visible-note detection.",
+      "promotion_gate": "clean cashsnap_v1 validation does not materially regress",
+      "current_blocker": "Needs real-gated clean-replay dose test before entering trainable mixes."
+    },
+    {
+      "id": "webgl_overlap_stack_v1",
+      "target_condition_ids": ["loose_counter_stack_overlap", "dense_shop_overlap"],
+      "artifact_status": "smoke_ready",
+      "scene_modes": ["stack"],
+      "intended_use": "Counter-stack overlap training candidate with visible-only labels and fragment metadata.",
+      "promotion_gate": "improves shop-overlap same-class/count metrics over no-synthetic and matched 2.5D baselines",
+      "current_blocker": "Needs hard-negative dose and real-gated P1 training comparison."
+    },
+    {
+      "id": "webgl_fan_fullschema_v1",
+      "target_condition_ids": ["handheld_fan", "repeated_same_denomination"],
+      "artifact_status": "smoke_ready",
+      "scene_modes": ["fan"],
+      "intended_use": "Full-schema handheld fan geometry and fragment-count stress data.",
+      "promotion_gate": "real fan metrics improve while parent fusion avoids repeated-note merge errors",
+      "current_blocker": "Needs real phone fan benchmark slices beyond stress-only examples."
+    },
+    {
+      "id": "webgl_hand_occlusion_fragments_v1",
+      "target_condition_ids": ["finger_or_hand_split_occlusion"],
+      "artifact_status": "label_policy_ready",
+      "scene_modes": ["qa3", "stack", "fan"],
+      "intended_use": "Train or diagnose visible fragment evidence under hand/finger split occlusion.",
+      "promotion_gate": "fragment evidence improves partial ID and fusion preserves physical counts",
+      "current_blocker": "Primitive finger capsules need broader pose/skin/shape variation and real hand-occlusion validation."
+    },
+    {
+      "id": "webgl_thin_edge_partial_v1",
+      "target_condition_ids": ["thin_edge_partial_fragments"],
+      "artifact_status": "planned",
+      "scene_modes": ["future_thin_edge"],
+      "intended_use": "Human-identifiable thin edge/sliver recognition, especially KHR_5000 and KHR_20000.",
+      "promotion_gate": "partial ID improves without broad false positives",
+      "current_blocker": "Need a WebGL thin-edge layout mode and unknown/ignore policy for ambiguous fragments."
+    },
+    {
+      "id": "webgl_back_side_confusion_v1",
+      "target_condition_ids": ["front_back_and_old_common_confusion"],
+      "artifact_status": "planned",
+      "scene_modes": ["stack", "fan"],
+      "intended_use": "Reduce front/back and old/common KHR class swaps.",
+      "promotion_gate": "old/common KHR confusion drops without clean-validation regression",
+      "current_blocker": "Need asset-pool filtering by side/design generation and reviewed real confusion gates."
+    },
+    {
+      "id": "webgl_rare_class_support_v1",
+      "target_condition_ids": ["thin_edge_partial_fragments", "front_back_and_old_common_confusion"],
+      "artifact_status": "planned",
+      "scene_modes": ["stack", "fan"],
+      "intended_use": "Target weak/rare KHR class support without oversampling artifacts.",
+      "promotion_gate": "rare-class recall improves while common-class false positives stay bounded",
+      "current_blocker": "Needs curated class/side/design sampling weights and real rare-class validation."
+    },
+    {
+      "id": "webgl_hard_negative_replay_v1",
+      "target_condition_ids": ["hard_negatives_and_non_banknote_paper"],
+      "artifact_status": "planned",
+      "scene_modes": ["future_negative"],
+      "intended_use": "Bound false positives on receipts, wallets, cards, hands, and clean backgrounds.",
+      "promotion_gate": "browser guard false positives remain bounded after synthetic mix",
+      "current_blocker": "Need reviewed-clean non-banknote background/prop library."
+    },
+    {
+      "id": "webgl_calibration_mix_v1",
+      "target_condition_ids": [
+        "clean_single_or_separated_notes",
+        "loose_counter_stack_overlap",
+        "handheld_fan",
+        "hard_negatives_and_non_banknote_paper"
+      ],
+      "artifact_status": "planned",
+      "scene_modes": ["stack", "fan"],
+      "intended_use": "Light-dose synthetic mix with clean replay for candidate training.",
+      "promotion_gate": "real partial/fan improves and clean validation/browser guards stay within budget",
+      "current_blocker": "Depends on promoted component recipes and dose sweep."
+    }
+  ]
+}

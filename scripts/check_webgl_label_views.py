@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VALID_ARTIFACT_STATUSES = {"smoke", "diagnostic", "trainable-candidate"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,11 +63,20 @@ def main() -> int:
     trainable_obb_images = 0
     rejected_obb_images = 0
     fragment_count = 0
+    ignored_fragment_count = 0
+    visible_instance_count = 0
+    class_counts: Counter[str] = Counter()
+    layer_audit_totals: Counter[str] = Counter()
     for row in manifest:
         if not isinstance(row, dict):
             raise SystemExit("manifest row must be an object")
         boxes_doc = read_json(dataset_root / row["visible_boxes"])
         visible_boxes = boxes_doc.get("boxes", [])
+        visible_instance_count += len(visible_boxes)
+        class_counts.update(str(box.get("className", "unknown")) for box in visible_boxes)
+        layer_audit = read_json(dataset_root / row["layer_audit"])
+        for key in ("visiblePixels", "overlapPixels", "occluderPixels", "violations"):
+            layer_audit_totals[key] += int(layer_audit.get(key, 0))
         detect_rows = read_label_rows(dataset_root / row["label"], expected_columns=5)
         if len(detect_rows) != len(visible_boxes):
             raise SystemExit(f"{row['label']}: {len(detect_rows)} detect labels for {len(visible_boxes)} visible boxes")
@@ -82,6 +93,16 @@ def main() -> int:
             if not isinstance(parent_index, int) or parent_index < 0 or parent_index >= len(visible_boxes):
                 raise SystemExit(f"{row['fragment_metadata']}: invalid parentVisibleIndex {parent_index}")
         fragment_count += len(fragment_rows)
+        ignored_fragment_metadata = read_json(dataset_root / row["fragment_ignored_metadata"])
+        if not isinstance(ignored_fragment_metadata, list):
+            raise SystemExit(f"{row['fragment_ignored_metadata']}: ignored fragment metadata must be a list")
+        for fragment in ignored_fragment_metadata:
+            parent_index = fragment.get("parentVisibleIndex")
+            if not isinstance(parent_index, int) or parent_index < 0 or parent_index >= len(visible_boxes):
+                raise SystemExit(f"{row['fragment_ignored_metadata']}: invalid parentVisibleIndex {parent_index}")
+            if not str(fragment.get("ignore_reason", "")).strip():
+                raise SystemExit(f"{row['fragment_ignored_metadata']}: ignored fragment missing ignore_reason")
+        ignored_fragment_count += len(ignored_fragment_metadata)
 
         obb_status = row.get("obb_status")
         if obb_status == "accepted":
@@ -108,6 +129,32 @@ def main() -> int:
         raise SystemExit("obb summary rejected image count mismatch")
     if fragment_summary.get("fragments") != fragment_count:
         raise SystemExit("fragment summary count mismatch")
+    if fragment_summary.get("ignored_fragments") != ignored_fragment_count:
+        raise SystemExit("fragment summary ignored count mismatch")
+    qa_summary = read_json(dataset_root / "qa" / "summary.json")
+    if qa_summary.get("images") != len(manifest):
+        raise SystemExit("qa summary image count mismatch")
+    if qa_summary.get("visible_instances", {}).get("total") != visible_instance_count:
+        raise SystemExit("qa summary visible instance count mismatch")
+    if qa_summary.get("fragments", {}).get("total") != fragment_count:
+        raise SystemExit("qa summary fragment count mismatch")
+    if qa_summary.get("fragments", {}).get("ignored_total") != ignored_fragment_count:
+        raise SystemExit("qa summary ignored fragment count mismatch")
+    if qa_summary.get("class_counts") != dict(sorted(class_counts.items())):
+        raise SystemExit("qa summary class count mismatch")
+    if qa_summary.get("layer_audit_totals") != dict(sorted(layer_audit_totals.items())):
+        raise SystemExit("qa summary layer audit totals mismatch")
+    recipe = read_json(dataset_root / "recipe.json")
+    artifact_status = recipe.get("artifact_status")
+    if artifact_status not in VALID_ARTIFACT_STATUSES:
+        raise SystemExit(f"recipe artifact_status must be one of {sorted(VALID_ARTIFACT_STATUSES)}")
+    if not str(recipe.get("recipe_name", "")).strip():
+        raise SystemExit("recipe_name must be non-empty")
+    outputs = recipe.get("outputs", {})
+    if outputs.get("qa_summary"):
+        expected = str((dataset_root / "qa" / "summary.json").relative_to(ROOT))
+        if outputs["qa_summary"] != expected:
+            raise SystemExit("recipe qa_summary output path mismatch")
 
     print(
         f"ok: {len(manifest)} images, {fragment_count} fragments, "

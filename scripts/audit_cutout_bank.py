@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -14,6 +15,21 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BANK = ROOT / "data" / "asset_candidates" / "numista_current_cutout_bank_v1"
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+CLASS_NAMES = [
+    "USD_1",
+    "USD_5",
+    "USD_10",
+    "USD_20",
+    "USD_50",
+    "USD_100",
+    "KHR_500",
+    "KHR_1000",
+    "KHR_2000",
+    "KHR_5000",
+    "KHR_10000",
+    "KHR_20000",
+    "KHR_50000",
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -129,6 +145,18 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
+def write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def year_value(value: str) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def checkerboard(size: tuple[int, int], cell: int = 12) -> Image.Image:
     image = Image.new("RGB", size, "white")
     draw = ImageDraw.Draw(image)
@@ -184,6 +212,7 @@ def main() -> None:
         rows.append(
             {
                 **row,
+                "source_status": row.get("source_status", row.get("status", "")),
                 **{key: f"{value:.6f}" if isinstance(value, float) else str(value) for key, value in metrics.items()},
                 "resolved_asset_path": str(asset),
                 "flags": ";".join(flags),
@@ -198,6 +227,56 @@ def main() -> None:
     class_counts = Counter(row.get("class_name", "unknown") for row in rows)
     side_counts = Counter((row.get("class_name", "unknown"), row.get("side", "unknown")) for row in rows)
     flag_counts = Counter(flag for row in suspects for flag in row["flags"].split(";") if flag)
+    source_status_counts = Counter(row.get("source_status", "unknown") for row in rows)
+    currency_counts = Counter(row.get("currency", "unknown") for row in rows)
+    side_coverage = {}
+    missing_class_sides = []
+    for class_name in CLASS_NAMES:
+        front = side_counts[(class_name, "front")]
+        back = side_counts[(class_name, "back")]
+        side_coverage[class_name] = {"front": front, "back": back}
+        if front == 0:
+            missing_class_sides.append(f"{class_name}/front")
+        if back == 0:
+            missing_class_sides.append(f"{class_name}/back")
+    years_by_class: dict[str, dict[str, int | None]] = {}
+    for class_name in CLASS_NAMES:
+        years = [
+            year
+            for row in rows
+            if row.get("class_name") == class_name
+            for year in [year_value(row.get("max_year", ""))]
+            if year is not None
+        ]
+        years_by_class[class_name] = {
+            "min_max_year": min(years) if years else None,
+            "max_max_year": max(years) if years else None,
+        }
+    write_json(
+        out_dir / "summary.json",
+        {
+            "bank": str(bank),
+            "assets": len(rows),
+            "suspects": len(suspects),
+            "class_counts": dict(sorted(class_counts.items())),
+            "side_coverage": side_coverage,
+            "missing_class_sides": missing_class_sides,
+            "source_status_counts": dict(sorted(source_status_counts.items())),
+            "currency_counts": dict(sorted(currency_counts.items())),
+            "flag_counts": dict(sorted(flag_counts.items())),
+            "years_by_class": years_by_class,
+            "outputs": {
+                "all_assets_csv": str((out_dir / "all_assets.csv").relative_to(ROOT)),
+                "suspects_csv": str((out_dir / "suspects.csv").relative_to(ROOT)),
+                "suspect_contact": str((out_dir / "suspect_contact.jpg").relative_to(ROOT)),
+            },
+            "policy": {
+                "missing_class_sides": "must be empty before a full-schema trainable recipe can claim complete class/side coverage",
+                "suspects": "review contact sheet before using suspect assets in trainable recipes",
+                "large_red_mark_suspect": "KHR red/pink design areas can be false positives; review visually before excluding",
+            },
+        },
+    )
 
     print(f"bank: {bank}")
     print(f"assets: {len(rows)}")
@@ -206,6 +285,7 @@ def main() -> None:
     print(f"sides: {dict(sorted((f'{klass}/{side}', count) for (klass, side), count in side_counts.items()))}")
     print(f"flags: {dict(sorted(flag_counts.items()))}")
     print(f"audit: {out_dir}")
+    print(f"summary: {out_dir / 'summary.json'}")
 
 
 if __name__ == "__main__":

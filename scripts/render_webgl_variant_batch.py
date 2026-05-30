@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -42,8 +43,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", type=Path, default=Path("data/synthetic/cashsnap_webgl_variant_batch_smoke"))
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
-    parser.add_argument("--scene-mode", choices=["auto", "stack", "fan", "qa3"], default="auto")
+    parser.add_argument("--scene-mode", choices=["auto", "clean", "stack", "fan", "qa3"], default="auto")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
+    parser.add_argument("--recipe-name", default="", help="Human-readable recipe name to write into recipe.json.")
+    parser.add_argument(
+        "--artifact-status",
+        choices=["smoke", "diagnostic", "trainable-candidate"],
+        default="smoke",
+        help="Declare whether the batch is a smoke, diagnostic, or trainable-candidate artifact.",
+    )
+    parser.add_argument("--intended-use", default="", help="Short intended-use note to write into recipe.json.")
+    parser.add_argument("--notes", default="", help="Optional short recipe notes to write into recipe.json.")
     parser.add_argument("--skip-render", action="store_true", help="Only recheck/contact-sheet existing outputs.")
     parser.add_argument("--skip-yolo-check", action="store_true", help="Do not run check_yolo_dataset.py on the packaged dataset.")
     parser.add_argument("--skip-label-view-check", action="store_true", help="Do not run check_webgl_label_views.py on packaged label views.")
@@ -86,10 +96,12 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
     run(cmd)
 
 
-def check_variant(out_dir: Path, allow_no_occluder: bool = False) -> None:
+def check_variant(out_dir: Path, allow_no_occluder: bool = False, allow_no_overlap: bool = False) -> None:
     cmd = [sys.executable, "scripts/check_webgl_smoke_output.py", "--out-dir", str(out_dir)]
     if allow_no_occluder:
         cmd.append("--allow-no-occluder")
+    if allow_no_overlap:
+        cmd.append("--allow-no-overlap")
     run(cmd)
 
 
@@ -187,12 +199,13 @@ def build_obb_label(id_path: Path, boxes_path: Path) -> tuple[list[str], list[di
     return rows, metadata_rows
 
 
-def build_fragment_labels(id_path: Path, boxes_path: Path) -> tuple[list[str], list[dict[str, object]]]:
+def build_fragment_labels(id_path: Path, boxes_path: Path) -> tuple[list[str], list[dict[str, object]], list[dict[str, object]]]:
     id_image = np.array(Image.open(id_path).convert("RGB"))
     height, width = id_image.shape[:2]
     boxes_doc = json.loads(boxes_path.read_text(encoding="utf-8"))
     rows: list[str] = []
     metadata_rows: list[dict[str, object]] = []
+    ignored_rows: list[dict[str, object]] = []
 
     for parent_index, box in enumerate(boxes_doc.get("boxes", [])):
         color = np.array(box["color"], dtype=np.uint8)
@@ -204,12 +217,29 @@ def build_fragment_labels(id_path: Path, boxes_path: Path) -> tuple[list[str], l
         kept_component_index = 0
         for component_id in range(1, component_count):
             pixels = int(stats[component_id, cv2.CC_STAT_AREA])
-            if pixels < FRAGMENT_MIN_PIXELS:
-                continue
             x = int(stats[component_id, cv2.CC_STAT_LEFT])
             y = int(stats[component_id, cv2.CC_STAT_TOP])
             component_width = int(stats[component_id, cv2.CC_STAT_WIDTH])
             component_height = int(stats[component_id, cv2.CC_STAT_HEIGHT])
+            component_metadata = {
+                "classIndex": int(box["classIndex"]),
+                "className": box.get("className"),
+                "parentVisibleIndex": parent_index,
+                "parentColor": box["color"],
+                "componentId": component_id,
+                "visible_pixels": pixels,
+                "bbox_xywh_px": [x, y, component_width, component_height],
+                "component_fraction_of_parent": round(float(pixels / max(1, int(mask.sum()))), 4),
+            }
+            if pixels < FRAGMENT_MIN_PIXELS:
+                ignored_rows.append(
+                    {
+                        **component_metadata,
+                        "ignore_reason": "below_min_fragment_pixels",
+                        "min_fragment_pixels": FRAGMENT_MIN_PIXELS,
+                    }
+                )
+                continue
             cx = (x + component_width / 2) / width
             cy = (y + component_height / 2) / height
             normalized_width = component_width / width
@@ -220,20 +250,14 @@ def build_fragment_labels(id_path: Path, boxes_path: Path) -> tuple[list[str], l
             )
             metadata_rows.append(
                 {
-                    "classIndex": int(box["classIndex"]),
-                    "className": box.get("className"),
-                    "parentVisibleIndex": parent_index,
-                    "parentColor": box["color"],
+                    **component_metadata,
                     "componentIndex": kept_component_index,
-                    "componentId": component_id,
-                    "visible_pixels": pixels,
-                    "bbox_xywh_px": [x, y, component_width, component_height],
-                    "component_fraction_of_parent": round(float(pixels / max(1, int(mask.sum()))), 4),
+                    "ignore_reason": "",
                 }
             )
             kept_component_index += 1
 
-    return rows, metadata_rows
+    return rows, metadata_rows, ignored_rows
 
 
 def write_lines(path: Path, rows: list[str]) -> None:
@@ -241,7 +265,36 @@ def write_lines(path: Path, rows: list[str]) -> None:
 
 
 def write_json(path: Path, payload: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def quantile(values: list[float], fraction: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    index = min(len(ordered) - 1, max(0, round((len(ordered) - 1) * fraction)))
+    return round(float(ordered[index]), 4)
+
+
+def summarize_values(values: list[float]) -> dict[str, float]:
+    if not values:
+        return {"min": 0.0, "p50": 0.0, "p90": 0.0, "max": 0.0, "mean": 0.0}
+    return {
+        "min": round(float(min(values)), 4),
+        "p50": quantile(values, 0.5),
+        "p90": quantile(values, 0.9),
+        "max": round(float(max(values)), 4),
+        "mean": round(float(sum(values) / len(values)), 4),
+    }
 
 
 def prepare_empty_dir(directory: Path, out_root: Path) -> None:
@@ -267,6 +320,8 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
     fragment_images_dir = out_root / "fragments" / "images" / "train"
     fragment_labels_dir = out_root / "fragments" / "labels" / "train"
     fragment_metadata_dir = out_root / "fragments" / "metadata" / "train"
+    fragment_ignored_metadata_dir = out_root / "fragments" / "ignored_metadata" / "train"
+    qa_dir = out_root / "qa"
     for directory in (
         images_dir,
         labels_dir,
@@ -280,6 +335,8 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         fragment_images_dir,
         fragment_labels_dir,
         fragment_metadata_dir,
+        fragment_ignored_metadata_dir,
+        qa_dir,
     ):
         prepare_empty_dir(directory, out_root)
 
@@ -287,6 +344,19 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
     obb_image_status_counts: Counter[str] = Counter()
     obb_instance_status_counts: Counter[str] = Counter()
     fragment_counts: Counter[str] = Counter()
+    ignored_fragment_counts: Counter[str] = Counter()
+    ignored_fragment_reason_counts: Counter[str] = Counter()
+    class_counts: Counter[str] = Counter()
+    layer_audit_totals: Counter[str] = Counter()
+    scene_mode_counts: Counter[str] = Counter()
+    surface_counts: Counter[str] = Counter()
+    background_counts: Counter[str] = Counter()
+    visible_pixels_per_instance: list[float] = []
+    visible_instances_per_image: list[float] = []
+    fragments_per_image: list[float] = []
+    fragments_per_parent_values: list[float] = []
+    obb_reject_reason_counts: Counter[str] = Counter()
+    image_summary_rows: list[dict[str, object]] = []
     for variant, out_dir in variant_dirs:
         stem = f"variant_{variant:04d}"
         image_path = images_dir / f"{stem}.png"
@@ -303,21 +373,50 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         fragment_image_path = fragment_images_dir / f"{stem}.png"
         fragment_label_path = fragment_labels_dir / f"{stem}.txt"
         fragment_metadata_path = fragment_metadata_dir / f"{stem}.json"
+        fragment_ignored_metadata_path = fragment_ignored_metadata_dir / f"{stem}.json"
         shutil.copyfile(out_dir / "visual.png", image_path)
         shutil.copyfile(out_dir / "labels_visible.txt", label_path)
         shutil.copyfile(out_dir / "id.png", id_path)
         shutil.copyfile(out_dir / "visible_boxes.json", boxes_path)
         shutil.copyfile(out_dir / "layer_audit.json", audit_path)
         shutil.copyfile(out_dir / "metadata.json", source_metadata_path)
-        fragment_rows, fragment_metadata = build_fragment_labels(id_path, boxes_path)
+        boxes_doc = json.loads(boxes_path.read_text(encoding="utf-8"))
+        visible_boxes = boxes_doc.get("boxes", [])
+        layer_audit = json.loads(audit_path.read_text(encoding="utf-8"))
+        source_metadata = json.loads(source_metadata_path.read_text(encoding="utf-8"))
+        scene_mode_counts[str(source_metadata.get("sceneMode", "unknown"))] += 1
+        scene_config = source_metadata.get("sceneConfig", {})
+        if isinstance(scene_config, dict):
+            surface = scene_config.get("surface", {})
+            if isinstance(surface, dict):
+                surface_counts[str(surface.get("name", "unknown"))] += 1
+                background = surface.get("background")
+                background_counts["file" if background else "procedural"] += 1
+        fragment_rows, fragment_metadata, ignored_fragment_metadata = build_fragment_labels(id_path, boxes_path)
         shutil.copyfile(out_dir / "visual.png", fragment_image_path)
         write_lines(fragment_label_path, fragment_rows)
         write_json(fragment_metadata_path, fragment_metadata)
+        write_json(fragment_ignored_metadata_path, ignored_fragment_metadata)
         fragment_counts["images"] += 1
         fragment_counts["fragments"] += len(fragment_rows)
+        ignored_fragment_counts["ignored_fragments"] += len(ignored_fragment_metadata)
+        ignored_fragment_reason_counts.update(str(row["ignore_reason"]) for row in ignored_fragment_metadata)
+        fragments_per_image.append(float(len(fragment_rows)))
+        parent_fragment_counts: Counter[tuple[int, str]] = Counter(
+            (int(fragment["parentVisibleIndex"]), str(fragment["className"]))
+            for fragment in fragment_metadata
+        )
+        fragments_per_parent_values.extend(float(count) for count in parent_fragment_counts.values())
         obb_rows, obb_metadata = build_obb_label(id_path, boxes_path)
         obb_reject_reasons = sorted({str(row["status"]) for row in obb_metadata if row["status"] != "exported"})
+        obb_reject_reason_counts.update(obb_reject_reasons)
         obb_instance_status_counts.update(str(row["status"]) for row in obb_metadata)
+        class_counts.update(str(box.get("className", "unknown")) for box in visible_boxes)
+        visible_instances_per_image.append(float(len(visible_boxes)))
+        visible_pixels = [float(box.get("pixels", 0)) for box in visible_boxes]
+        visible_pixels_per_instance.extend(visible_pixels)
+        for key in ("visiblePixels", "overlapPixels", "occluderPixels", "violations"):
+            layer_audit_totals[key] += int(layer_audit.get(key, 0))
         manifest_row = {
             "variant": variant,
             "image": str(image_path.relative_to(out_root)),
@@ -325,12 +424,14 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
             "id": str(id_path.relative_to(out_root)),
             "visible_boxes": str(boxes_path.relative_to(out_root)),
             "layer_audit": str(audit_path.relative_to(out_root)),
+            "source_metadata": str(source_metadata_path.relative_to(out_root)),
             "fragment_image": str(fragment_image_path.relative_to(out_root)),
             "fragment_label": str(fragment_label_path.relative_to(out_root)),
             "fragment_metadata": str(fragment_metadata_path.relative_to(out_root)),
+            "fragment_ignored_metadata": str(fragment_ignored_metadata_path.relative_to(out_root)),
             "obb_status": "accepted" if not obb_reject_reasons else "rejected",
             "obb_reject_reasons": obb_reject_reasons,
-        }
+            }
         if obb_reject_reasons:
             obb_image_status_counts["rejected"] += 1
             write_lines(obb_rejected_label_path, obb_rows)
@@ -354,6 +455,32 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
                 }
             )
         manifest.append(manifest_row)
+        image_summary_rows.append(
+            {
+                "variant": variant,
+                "image": str(image_path.relative_to(out_root)),
+                "scene_mode": str(source_metadata.get("sceneMode", "unknown")),
+                "visible_instances": len(visible_boxes),
+                "visible_pixels": int(sum(visible_pixels)),
+                "fragments": len(fragment_rows),
+                "ignored_fragments": len(ignored_fragment_metadata),
+                "split_parents": sum(1 for count in parent_fragment_counts.values() if count > 1),
+                "obb_status": manifest_row["obb_status"],
+                "obb_reject_reasons": obb_reject_reasons,
+                "layer_audit": {
+                    "visiblePixels": int(layer_audit.get("visiblePixels", 0)),
+                    "overlapPixels": int(layer_audit.get("overlapPixels", 0)),
+                    "occluderPixels": int(layer_audit.get("occluderPixels", 0)),
+                    "violations": int(layer_audit.get("violations", 0)),
+                },
+                "sha256": {
+                    "visual": sha256_file(image_path),
+                    "id": sha256_file(id_path),
+                    "detect_label": sha256_file(label_path),
+                    "fragment_label": sha256_file(fragment_label_path),
+                },
+            }
+        )
 
     write_json(out_root / "manifest.json", manifest)
     write_json(
@@ -376,11 +503,57 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         {
             "images": fragment_counts["images"],
             "fragments": fragment_counts["fragments"],
+            "ignored_fragments": ignored_fragment_counts["ignored_fragments"],
+            "ignored_reason_counts": dict(sorted(ignored_fragment_reason_counts.items())),
             "min_fragment_pixels": FRAGMENT_MIN_PIXELS,
             "policy": {
                 "label_meaning": "visible connected evidence components, not physical bill counts",
+                "ignored_fragments": "components below min_fragment_pixels are recorded as ignored metadata instead of forced training labels",
                 "counting": "use parent metadata or downstream fusion to merge components from one physical bill",
             },
+        },
+    )
+    write_json(
+        qa_dir / "summary.json",
+        {
+            "images": len(manifest),
+            "variants": {
+                "start": min((variant for variant, _out_dir in variant_dirs), default=0),
+                "end": max((variant for variant, _out_dir in variant_dirs), default=0),
+            },
+            "scene_modes": dict(sorted(scene_mode_counts.items())),
+            "surfaces": dict(sorted(surface_counts.items())),
+            "backgrounds": dict(sorted(background_counts.items())),
+            "class_counts": dict(sorted(class_counts.items())),
+            "visible_instances": {
+                "total": int(sum(visible_instances_per_image)),
+                "per_image": summarize_values(visible_instances_per_image),
+                "visible_pixels_per_instance": summarize_values(visible_pixels_per_instance),
+            },
+            "fragments": {
+                "total": fragment_counts["fragments"],
+                "ignored_total": ignored_fragment_counts["ignored_fragments"],
+                "ignored_reason_counts": dict(sorted(ignored_fragment_reason_counts.items())),
+                "per_image": summarize_values(fragments_per_image),
+                "per_parent": summarize_values(fragments_per_parent_values),
+                "split_parent_count": sum(1 for value in fragments_per_parent_values if value > 1),
+                "min_fragment_pixels": FRAGMENT_MIN_PIXELS,
+            },
+            "obb": {
+                "image_status_counts": dict(sorted(obb_image_status_counts.items())),
+                "instance_status_counts": dict(sorted(obb_instance_status_counts.items())),
+                "reject_reason_counts": dict(sorted(obb_reject_reason_counts.items())),
+                "min_largest_component_frac": OBB_MIN_LARGEST_COMPONENT_FRAC,
+                "min_rect_fill_frac": OBB_MIN_RECT_FILL_FRAC,
+            },
+            "layer_audit_totals": dict(sorted(layer_audit_totals.items())),
+            "policy": {
+                "detect_labels": "visible-only AABB labels for detect-compatible probes",
+                "fragments": "visible connected evidence components, not direct count labels",
+                "obb": "trainable only when every visible instance in the image has an honest OBB",
+                "counting": "physical parent counts live in visible_boxes/source metadata and require fusion for fragment outputs",
+            },
+            "images_detail": image_summary_rows,
         },
     )
     data_yaml = out_root / "data.yaml"
@@ -428,6 +601,60 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
     return data_yaml, data_obb_yaml, data_fragments_yaml
 
 
+def rel(path: Path, root: Path = ROOT) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
+def write_recipe_metadata(
+    args: argparse.Namespace,
+    out_root: Path,
+    contact_sheet: Path,
+    data_yaml: Path,
+    data_obb_yaml: Path,
+    data_fragments_yaml: Path,
+) -> None:
+    recipe_name = args.recipe_name or f"webgl_{args.scene_mode}_variants_{args.start_variant}_{args.start_variant + args.count - 1}"
+    payload = {
+        "recipe_name": recipe_name,
+        "artifact_status": args.artifact_status,
+        "intended_use": args.intended_use,
+        "notes": args.notes,
+        "renderer": "renderers/webgl/src/render-smoke.mjs",
+        "packager": "scripts/render_webgl_variant_batch.py",
+        "output_root": rel(out_root),
+        "variant_seed_range": {
+            "start": args.start_variant,
+            "count": args.count,
+            "end": args.start_variant + args.count - 1,
+        },
+        "scene_mode": args.scene_mode,
+        "background_dir": rel(args.background_dir) if args.background_dir else "",
+        "checks": {
+            "render_smoke_check": True,
+            "detect_yolo_check": not args.skip_yolo_check,
+            "label_view_check": not args.skip_label_view_check,
+        },
+        "outputs": {
+            "detect_data_yaml": rel(data_yaml),
+            "obb_data_yaml": rel(data_obb_yaml),
+            "fragment_data_yaml": rel(data_fragments_yaml),
+            "manifest": rel(out_root / "manifest.json"),
+            "qa_summary": rel(out_root / "qa" / "summary.json"),
+            "contact_sheet": rel(contact_sheet),
+        },
+        "policy": {
+            "smoke": "pipeline functionality proof; do not train final claims from this artifact",
+            "diagnostic": "use for visual/model diagnosis unless separately promoted",
+            "trainable-candidate": "may enter a bounded training comparison only after QA summary and real guardrails pass",
+        },
+        "command": [Path(sys.executable).name, *sys.argv],
+    }
+    write_json(out_root / "recipe.json", payload)
+
+
 def main() -> int:
     args = parse_args()
     if args.count < 1:
@@ -441,7 +668,11 @@ def main() -> int:
         out_dir = out_root / f"variant_{variant:04d}"
         if not args.skip_render:
             render_variant(variant, out_dir, args.scene_mode, args.background_dir)
-        check_variant(out_dir, allow_no_occluder=args.scene_mode == "qa3")
+        check_variant(
+            out_dir,
+            allow_no_occluder=args.scene_mode in {"clean", "qa3"},
+            allow_no_overlap=args.scene_mode == "clean",
+        )
         variant_dirs.append((variant, out_dir))
 
     contact_sheet = out_root / "contact_sheet.png"
@@ -451,10 +682,12 @@ def main() -> int:
         run([sys.executable, "scripts/check_yolo_dataset.py", "--data", str(data_yaml)])
     if not args.skip_label_view_check:
         run([sys.executable, "scripts/check_webgl_label_views.py", "--root", str(out_root)])
+    write_recipe_metadata(args, out_root, contact_sheet, data_yaml, data_obb_yaml, data_fragments_yaml)
     print(f"wrote {contact_sheet.relative_to(ROOT)}")
     print(f"wrote {data_yaml.relative_to(ROOT)}")
     print(f"wrote {data_obb_yaml.relative_to(ROOT)}")
     print(f"wrote {data_fragments_yaml.relative_to(ROOT)}")
+    print(f"wrote {(out_root / 'recipe.json').relative_to(ROOT)}")
     return 0
 
 

@@ -29,6 +29,35 @@ Do not start another training run until the P0 renderer smoke proof can produce:
 
 Label policy: exact visible masks/ID colors are authoritative. Detect AABBs are compatibility labels for detect-only probes; OBB labels are useful only when the visible mask is compact enough that a rotated rectangle does not cover large hidden regions. Fragment labels mean visible connected evidence components, not physical bill counts. If one physical bill is visible as disconnected islands, keep it one counted instance in mask metadata, skip/flag unsafe OBB, and use fragment labels plus downstream fusion rather than projecting a hidden-paper box. Barely visible fragments should get a denomination label only when a human can identify the denomination from visible evidence; otherwise use ignore/unknown instead of forcing a guess.
 
+## Synthetic Data Completion Plan
+
+Goal: make synthetic data a controlled experiment generator, not just an image generator. A future model failure should map to a specific missing condition, label issue, domain gap, training mix, or fusion bug instead of the vague answer "we need better data."
+
+Definition of done for the synthetic pipeline:
+
+- [x] Real-target matrix exists: required photo conditions, parked conditions, scoreable benchmark slices, and success metrics are named in `configs/synthetic_targets/cashsnap_real_target_matrix_v1.json`.
+- [ ] Asset bank is audited by class, side, design generation, circulation priority, source, license/usage status, alpha quality, dimensions, and visual QA.
+- [x] Numista cutout audit writes `audit/summary.json` with class counts, front/back coverage, source-status counts, year ranges, suspect flags, and audit output paths.
+- [ ] Scene generator covers normal notes, loose stacks, dense overlap, fans, partial edges, repeated denominations, front/back mixes, hand/finger occlusion, reviewed backgrounds, and phone-like framing.
+- [ ] Camera and postprocess profiles are derived from real captures where possible: lens/FOV, perspective, crop, blur, noise, compression, exposure, white balance, glare, and lighting.
+- [x] Label truth separates physical parents from visible fragments and exports exact ID masks plus visible-only detect labels.
+- [x] OBB labels are audited and rejected when the visible mask is fragmented or too loose for an honest rotated rectangle.
+- [x] Fragment/evidence labels are exported separately from physical count truth.
+- [x] Below-threshold visible fragments are recorded as ignored metadata instead of forced training labels.
+- [ ] Ambiguous human-unidentifiable fragments have a full ignore/unknown policy beyond the current pixel threshold.
+- [ ] Label transforms remain exact after any crop, resize, distortion, or other geometric postprocess.
+- [x] Batch QA writes a machine-readable summary for class balance, visible area, fragment counts, fragments per parent, OBB rejection reasons, layer-audit totals, and deterministic file hashes.
+- [ ] Full visual QA suite includes mask/label overlays, contact-sheet indexing, visual regression snapshots, and bad-scene quarantine.
+- [x] Named synthetic recipe slots exist for clean/base, overlap, fan, hand occlusion, thin-edge partials, back-side confusion, rare-class support, hard negatives, and calibration mixes in `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`.
+- [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
+- [ ] Each trainable recipe has config, seed range, asset manifest, output path, QA summary, intended use, and a clear trainable-vs-diagnostic marker.
+- [ ] P1 transfer proof compares WebGL synthetic against no-synthetic and matched 2.5D baselines on clean validation, real partial/fan labels, count metrics, and browser smoke.
+- [ ] Fragment-to-physical-note fusion exists for real inference and handles split notes, repeated same-denomination notes, ambiguous backs, and count totals.
+- [ ] Operations are one-command reproducible: render, QA/package, train under headroom, evaluate clean/real/browser guards, and clean scratch outputs.
+- [ ] Promotion rules require real-scoreboard improvement, clean-validation guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
+
+Current completion status: renderer and label contract are proven at P0, target/recipe coverage is now explicit, and WebGL packages carry QA, recipe, and ignored-fragment metadata. The production training-data factory is still not complete. The next bottleneck is promoting smoke-ready recipes through real-gated P1 training experiments, then adding the missing renderer modes for clean separated notes, thin edges, hard negatives, and broader hand occlusion.
+
 ## Work Loop
 
 1. Read this file.
@@ -37,7 +66,7 @@ Label policy: exact visible masks/ID colors are authoritative. Detect AABBs are 
 4. Run bounded checks.
 5. Update this file when a result changes the plan.
 6. Commit coherent durable changes, not every tiny scratch edit.
-7. Keep `results.tsv` local and untracked for experiment rows.
+7. Record durable experiment results in the result ledger below; do not rely on sidecar ledgers as project memory.
 
 Heavy CPU/RAM/GPU work must go through a headroom wrapper. Never train directly when a safe wrapper exists.
 
@@ -58,16 +87,16 @@ Harnesses are configurable working tools, not permanent doctrine. If a harness, 
 
 ## Active Commands
 
-Initialize or append the local experiment ledger:
-
-```powershell
-rl python scripts\log_research_result.py --init
-```
-
 Validate active 3D configs:
 
 ```powershell
 rl python scripts\validate_3d_pipeline_config.py configs\3d_pipeline\proof_p0_renderer_smoke.json configs\3d_pipeline\proof_p1_transfer.json
+```
+
+Validate synthetic target/recipe coverage:
+
+```powershell
+rl python scripts\check_synthetic_recipe_catalog.py
 ```
 
 Render P0 proof scenes:
@@ -99,6 +128,26 @@ Dry-run safe training only after the renderer proof exists:
 ```powershell
 rl python scripts\bench_train_with_headroom.py --data configs\cashsnap_v1.yaml --name dry_run --dry-run --quiet
 ```
+
+## Result Ledger
+
+Keep this table curated. Add rows only for results that change what a future agent should trust, avoid, or run next.
+
+| Date UTC | Area | Status | Result |
+| --- | --- | --- | --- |
+| 2026-05-30 13:35 | harness | keep | Adapted the autoresearch program/results harness and validated active 3D configs. |
+| 2026-05-30 13:53 | renderer | keep | P0 renderer scaffold emitted 20 visual/ID-pass scenes and YOLO labels; `check_yolo_dataset.py` passed. |
+| 2026-05-30 14:03 | renderer | keep | P0 renderer deformation plus pre-resize reruns are deterministic and emit label stats/OBB sidecars. |
+| 2026-05-30 14:14 | harness | keep | Headroom wrapper records the local rig, refuses caps over 95, preflight-waits, and auto-selects GPU device 0 for YOLO. |
+| 2026-05-30 14:22 | renderer | keep | P1 renderer proof emitted 240 scenes under the headroom wrapper and YOLO dataset check passed. |
+| 2026-05-30 19:57 | renderer | note | WebGL split-label QA: `qa3` has 3 physical notes vs 5 fragments; full-schema fan P0 has 67 physical visible instances vs 120 fragments, so fragment evidence requires fusion before count totals. |
+| 2026-05-30 20:22 | renderer | keep | WebGL batch packager writes and validates `qa/summary.json` with class, visibility, fragment, OBB, layer-audit, and hash stats. |
+| 2026-05-30 20:23 | renderer | keep | WebGL batch outputs include `recipe.json` with recipe name/status/seed range/checks/outputs so smoke, diagnostic, and trainable-candidate artifacts are explicit. |
+| 2026-05-30 20:24 | data | keep | Numista cutout audit writes `summary.json`; current bank has 76 assets, full 13-class front/back coverage, and 3 red-mark visual-review suspects. |
+| 2026-05-30 20:27 | data | keep | Added `cashsnap_real_target_matrix_v1` with 11 named real conditions, required/parked scope, synthetic recipe needs, benchmarks, and success gates. |
+| 2026-05-30 20:28 | data | keep | Added WebGL recipe catalog with 9 named recipe slots mapped to real target conditions, promotion gates, and blockers. |
+| 2026-05-30 20:29 | harness | keep | Added `check_synthetic_recipe_catalog.py` to validate target/recipe JSON coverage and required-condition mapping. |
+| 2026-05-30 20:31 | renderer | keep | Fragment packaging records below-threshold components as ignored metadata and validates ignored counts in label-view QA. |
 
 ## Current Active Assets
 
@@ -171,9 +220,9 @@ Everything else belongs under `configs/archive/` unless it is promoted back to a
 
 Use these first:
 
-- Harness and safety: `log_research_result.py`, `run_with_headroom.py`, `bench_train_with_headroom.py`, `local_runtime.py`.
+- Harness and safety: `run_with_headroom.py`, `bench_train_with_headroom.py`, `local_runtime.py`.
 - 3D/synthetic proof: `render_3d_pipeline_probe.py`, `validate_3d_pipeline_config.py`, `build_numista_cutout_bank.py`, `generate_synthetic_fan_dataset.py`, `summarize_synthetic_metadata.py`, `check_yolo_dataset.py`.
-- WebGL proof: `renderers/webgl/src/render-smoke.mjs` uses Three.js + `puppeteer-core` against local Microsoft Edge; `check_webgl_smoke_output.py` validates nonblank RGB, exact ID colors, visible labels, primitive finger occlusion, and layer-order audit output; `check_webgl_label_views.py` validates packaged detect/OBB/fragment views and prevents diagnostic-only OBB labels from being mistaken for trainable data.
+- WebGL proof: `renderers/webgl/src/render-smoke.mjs` uses Three.js + `puppeteer-core` against local Microsoft Edge; `check_webgl_smoke_output.py` validates nonblank RGB, exact ID colors, visible labels, primitive finger occlusion, and layer-order audit output; `check_webgl_label_views.py` validates packaged detect/OBB/fragment views and prevents diagnostic-only OBB labels from being mistaken for trainable data; `check_synthetic_recipe_catalog.py` validates target/recipe config coverage.
 - Evaluation and deploy guards: `check_real_fan_benchmark.py`, `run_browser_smoke_cases.py`, `check_browser_stack_artifacts.py`, `val_yolo.py`, `export_yolo.py`.
 - Real capture/review: `check_capture_requirements.py`, `run_capture_review_pipeline.py`, `summarize_camera_metadata.py`, `apply_review_export.py`, `summarize_review_manifests.py`, `render_yolo_label_preview.py`, `evaluate_real_draft_labels.py`.
 - Fragment diagnostics: `build_fragment_classifier_from_review_pack.py`, `train_fragment_classifier.py`, `evaluate_fragment_classifier.py`, `classify_yolo_proposals.py`, `fuse_two_stage_csv.py`, `sweep_two_stage_fusion.py`, `inspect_two_stage_matches.py`, `probe_fragment_count_fusion.py`.
@@ -273,7 +322,11 @@ Current proof:
 - Batch rendering should still reuse one browser/page and design texture downscaling/cache behavior before scaling scene counts, but the headroom wrapper no longer suspends browser jobs merely because free RAM dips below the soft floor.
 - `render-smoke.mjs --variant N` is a real deterministic variation hook. Variant 0 is the fixed inspected smoke; variants >0 jitter pose/layer/finger placement and sample front/back/older/current textures from the Numista class pools. Variants 0-3 rendered under the headroom wrapper and passed `check_webgl_smoke_output.py`; contact sheet: `data/synthetic/cashsnap_webgl_variant_contact_v0_3.png`.
 - `scripts/render_webgl_variant_batch.py` renders/checks deterministic WebGL variants, writes a contact sheet, packages YOLO detect, OBB, and visible-fragment dataset views, then runs `check_yolo_dataset.py` on the detect view and `check_webgl_label_views.py` on all packaged views by default. Smoke command: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_smoke --count 4`; variants 0-3 passed and wrote `data/synthetic/cashsnap_webgl_variant_batch_smoke/contact_sheet.png`.
+- The WebGL batch packager now writes `qa/summary.json` with class counts, visible-pixel stats, fragment-per-parent stats, OBB rejection reasons, layer-audit totals, and SHA-256 hashes for reproducibility checks. `check_webgl_label_views.py` validates this summary against the manifest so the QA artifact cannot silently drift.
+- Fragment packaging now writes `fragments/ignored_metadata/` for connected components below `FRAGMENT_MIN_PIXELS`; `fragments/summary.json`, `qa/summary.json`, and `check_webgl_label_views.py` validate ignored counts so tiny evidence is not silently forced into denomination labels.
+- WebGL batch outputs now include `recipe.json` with recipe name, artifact status (`smoke`, `diagnostic`, or `trainable-candidate`), variant seed range, checks, output paths, and trainability policy. Smoke verification used `--recipe-name webgl_stack_smoke_v0_3 --artifact-status smoke --intended-use "renderer and label-view smoke proof"` with `--skip-render`.
 - WebGL asset pools now use the full 13-class CashSnap schema from `data/cashsnap_v1/data.yaml` and load available scan PNGs from `data/asset_candidates/numista_current_cutout_bank_v1/`. Tiny visible slivers below `--min-visible-pixels` (default 500 at 1440p) stay in the ID image but are not exported as class labels.
+- Current Numista cutout audit summary: 76 assets, all 13 classes have front/back coverage, all source rows are `in_circulation`, and 3 assets remain `large_red_mark_suspect` visual-review candidates. Summary path: `data/asset_candidates/numista_current_cutout_bank_v1/audit/summary.json`.
 - Variant class selection uses a deterministic co-prime stride instead of consecutive class IDs, so mixed-currency scenes look less like ordered dataset rows while staying reproducible.
 - P0-sized WebGL variant batch: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_p0 --count 20` completed. `check_yolo_dataset.py --data data\synthetic\cashsnap_webgl_variant_batch_p0\data.yaml` passed with 20 train/val images and 90 boxes balanced across `KHR_5000`, `KHR_10000`, and `KHR_20000`; contact sheet: `data/synthetic/cashsnap_webgl_variant_batch_p0/contact_sheet.png`.
 - First fan-mode smoke batch: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_fan_batch_smoke --start-variant 100 --count 8 --scene-mode fan` passed after sRGB-correct ID colors and zero paper ripple. It wrote 8 train/val images and 48 boxes (`KHR_5000`: 15, `KHR_10000`: 16, `KHR_20000`: 17); contact sheet: `data/synthetic/cashsnap_webgl_fan_batch_smoke/contact_sheet.png`. Best current visual QA sample after 1440p/split-renderer/supersampling changes: `data/synthetic/cashsnap_webgl_fan_probe_v8/visual.png`.
