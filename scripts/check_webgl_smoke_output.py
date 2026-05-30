@@ -111,11 +111,14 @@ def main() -> int:
         raise SystemExit(f"layer-order audit has violations: {layer_audit}")
     if layer_audit.get("overlapPixels", 0) <= 0:
         raise SystemExit("layer-order audit did not exercise any overlapping pixels")
+    if layer_audit.get("occluderPixels", 0) <= 0:
+        raise SystemExit("layer-order audit did not exercise any occluder pixels")
 
     print(
         f"ok: {visual.size[0]}x{visual.size[1]} visual, "
         f"{len(actual_colors)} exact ID colors, {len(boxes)} boxes, "
-        f"{layer_audit['overlapPixels']} audited overlap pixels"
+        f"{layer_audit['overlapPixels']} audited overlap pixels, "
+        f"{layer_audit['occluderPixels']} occluder pixels"
     )
     return 0
 

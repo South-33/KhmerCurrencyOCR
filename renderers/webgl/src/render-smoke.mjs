@@ -36,6 +36,27 @@ const assets = [
   },
 ];
 
+const occluders = [
+  {
+    kind: "finger_capsule",
+    layer: 10,
+    color: 0xc58663,
+    position: [-0.08, -0.06, 0.19],
+    rotation: [0.18, -0.10, 1.36],
+    radius: 0.045,
+    length: 0.54,
+  },
+  {
+    kind: "finger_capsule",
+    layer: 11,
+    color: 0xb87958,
+    position: [0.32, 0.08, 0.21],
+    rotation: [0.12, 0.16, 1.05],
+    radius: 0.043,
+    length: 0.46,
+  },
+];
+
 function html(textureAssets) {
   return `<!doctype html>
 <html>
@@ -54,6 +75,7 @@ function html(textureAssets) {
 import * as THREE from "three";
 
 const assets = ${JSON.stringify(textureAssets)};
+const occluders = ${JSON.stringify(occluders)};
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9b927d);
 
@@ -85,6 +107,7 @@ scene.add(table);
 
 const loader = new THREE.TextureLoader();
 const meshes = [];
+const occluderMeshes = [];
 
 function bendGeometry(geometry, curl, ripple) {
   const pos = geometry.attributes.position;
@@ -125,7 +148,30 @@ async function addNotes() {
   }
 }
 
+function addOccluders() {
+  for (const occluder of occluders) {
+    const geometry = new THREE.CapsuleGeometry(occluder.radius, occluder.length, 8, 18);
+    const material = new THREE.MeshStandardMaterial({
+      color: occluder.color,
+      roughness: 0.88,
+      metalness: 0.0,
+      depthTest: false,
+      depthWrite: false
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(...occluder.position);
+    mesh.rotation.set(...occluder.rotation);
+    mesh.renderOrder = 100 + occluder.layer;
+    mesh.castShadow = true;
+    mesh.receiveShadow = false;
+    mesh.userData = { material, occluder, finalColor: [0, 0, 0], auditColor: [255, 255, 255] };
+    occluderMeshes.push(mesh);
+    scene.add(mesh);
+  }
+}
+
 await addNotes();
+addOccluders();
 
 window.renderPass = (mode) => {
   if (mode === "id") {
@@ -142,12 +188,20 @@ window.renderPass = (mode) => {
         depthWrite: false
       });
     }
+    for (const mesh of occluderMeshes) {
+      mesh.material = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0x000000),
+        depthTest: false,
+        depthWrite: false
+      });
+    }
   } else {
     scene.background = new THREE.Color(0x9b927d);
     table.visible = true;
     hemi.visible = true;
     key.visible = true;
     for (const mesh of meshes) mesh.material = mesh.userData.material;
+    for (const mesh of occluderMeshes) mesh.material = mesh.userData.material;
   }
   renderer.render(scene, camera);
 };
@@ -168,6 +222,7 @@ function pixelKey(data, offset) {
 
 window.extractIdBoxes = () => {
   for (const mesh of meshes) mesh.visible = true;
+  for (const mesh of occluderMeshes) mesh.visible = true;
   window.renderPass("id");
   const { data, width, height } = captureCanvasPixels();
   const boxes = new Map();
@@ -207,28 +262,62 @@ window.extractIdBoxes = () => {
 
 window.auditLayerOrder = () => {
   for (const mesh of meshes) mesh.visible = true;
+  for (const mesh of occluderMeshes) mesh.visible = true;
   window.renderPass("id");
   const finalPass = captureCanvasPixels();
   const finalData = finalPass.data;
   const width = finalPass.width;
   const height = finalPass.height;
 
-  const isolated = meshes.map((targetMesh) => {
-    for (const mesh of meshes) mesh.visible = mesh === targetMesh;
-    window.renderPass("id");
+  const noteItems = meshes.map((mesh) => ({
+    mesh,
+    className: mesh.userData.asset.className,
+    layer: mesh.userData.asset.layer,
+    auditColor: mesh.userData.idColor,
+    finalColorKey: mesh.userData.idColor.join(","),
+    isOccluder: false,
+  }));
+  const occluderItems = occluderMeshes.map((mesh, index) => ({
+    mesh,
+    className: "occluder_" + index,
+    layer: mesh.userData.occluder.layer,
+    auditColor: mesh.userData.auditColor,
+    finalColorKey: mesh.userData.finalColor.join(","),
+    isOccluder: true,
+  }));
+
+  const isolated = [...noteItems, ...occluderItems].map((item) => {
+    for (const mesh of meshes) mesh.visible = mesh === item.mesh;
+    for (const mesh of occluderMeshes) mesh.visible = mesh === item.mesh;
+    scene.background = new THREE.Color(0x000000);
+    table.visible = false;
+    hemi.visible = false;
+    key.visible = false;
+    const [r, g, b] = item.auditColor;
+    item.mesh.material = new THREE.MeshBasicMaterial({
+      color: new THREE.Color(r / 255, g / 255, b / 255),
+      depthTest: false,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+    renderer.render(scene, camera);
     return {
-      className: targetMesh.userData.asset.className,
-      layer: targetMesh.userData.asset.layer,
-      colorKey: targetMesh.userData.idColor.join(","),
+      className: item.className,
+      layer: item.layer,
+      auditColorKey: item.auditColor.join(","),
+      finalColorKey: item.finalColorKey,
+      isOccluder: item.isOccluder,
       data: new Uint8ClampedArray(captureCanvasPixels().data),
     };
   });
 
   for (const mesh of meshes) mesh.visible = true;
+  for (const mesh of occluderMeshes) mesh.visible = true;
   window.renderPass("id");
 
   let visiblePixels = 0;
   let overlapPixels = 0;
+  let occluderPixels = 0;
   let violations = 0;
   const examples = [];
 
@@ -245,17 +334,18 @@ window.auditLayerOrder = () => {
       if (coverage === 0) continue;
       visiblePixels += 1;
       if (coverage > 1) overlapPixels += 1;
+      if (expected.isOccluder) occluderPixels += 1;
       const actualKey = pixelKey(finalData, offset);
-      if (actualKey !== expected.colorKey) {
+      if (actualKey !== expected.finalColorKey) {
         violations += 1;
         if (examples.length < 10) {
-          examples.push({ x, y, expected: expected.className, expectedColor: expected.colorKey, actualColor: actualKey, coverage });
+          examples.push({ x, y, expected: expected.className, expectedColor: expected.finalColorKey, actualColor: actualKey, coverage });
         }
       }
     }
   }
 
-  return { width, height, visiblePixels, overlapPixels, violations, examples };
+  return { width, height, visiblePixels, overlapPixels, occluderPixels, violations, examples };
 };
 
 window.renderPass("visual");
@@ -313,6 +403,7 @@ async function main() {
         visibilityModel: "explicit-layer-order",
         noteDepthPolicy: "banknote planes use renderOrder with depthTest/depthWrite disabled to avoid impossible surface interpenetration in visible masks",
         assets: textureAssets,
+        occluders,
       }, null, 2)
     );
     console.log(`wrote ${OUT_DIR}`);
