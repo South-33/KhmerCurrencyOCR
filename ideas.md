@@ -108,6 +108,7 @@ Living doc for high-value ideas, experiments, and results. Keep this short: only
 - Unreviewed P1 train augmentation can improve the P1 crop diagnostic (0.588/0.667 val/test) but regresses real shop-overlap fusion to 3/6 same-class, so the next classifier refresh needs reviewed rows and more real validation, not blind inclusion of public-data failure crops.
 - Raw template/keypoint matching is not a shortcut for the P1 partial crop identity problem: `probe_template_feature_verifier.py` gives only 0.326 SIFT accuracy on the 43-row P1 failure queue, with ORB/AKAZE at 0.209 and `KHR_20000` mostly collapsing into `KHR_10000`.
 - AI-assisted low-area `banknote_unknown` augmentation is a dead-end diagnostic so far: `mobilenet_v3_oldcommon_realbox_plus_p1_unknown_ai_diag_e4` keeps old/common test accuracy at 0.940 but predicts zero unknowns on shop-overlap proposals and fusion still tops out at 4/6 same-class.
+- Conservative agent review of the compact P1 failure queue found only 8 usable `KHR_5000/20000` denomination crops plus 2 clear source-mislabeled `KHR_50000` crops; e6 refreshes still top out at 4/6 same-class on shop-overlap, so the bottleneck is more real reviewed fragments.
 - Browser calibration hooks now exist (`--proposal-conf`, `--detector-override`, `--nms-iou`, `--crop-padding`). `--detector-override 0.20` reduces the shop-overlap value error from `+6000` to `-4000` KHR while keeping 4/6 same-class and passing guard cases, but do not change defaults from one draft-labeled image.
 
 ## Data Gaps

@@ -13,7 +13,17 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build a mixed ImageFolder dataset from base plus train-only extras.")
     parser.add_argument("--base", required=True, help="Base ImageFolder dataset with train/val/test splits.")
-    parser.add_argument("--train-extra", nargs="*", default=[], help="Extra ImageFolder dataset(s); only train split is copied.")
+    parser.add_argument(
+        "--train-extra",
+        nargs="*",
+        default=[],
+        help="Extra ImageFolder dataset(s) copied into output train.",
+    )
+    parser.add_argument(
+        "--train-extra-splits",
+        default="train",
+        help="Comma-separated split names to read from each train-extra dataset and copy into output train.",
+    )
     parser.add_argument("--out", required=True, help="Output ImageFolder dataset under data/.")
     parser.add_argument("--clean", action="store_true")
     return parser.parse_args()
@@ -40,11 +50,19 @@ def class_dirs(root: Path, split: str) -> list[Path]:
     return sorted(path for path in split_dir.iterdir() if path.is_dir())
 
 
-def copy_split(source_root: Path, out_dir: Path, split: str, prefix: str, rows: list[dict[str, str]]) -> int:
+def copy_split(
+    source_root: Path,
+    out_dir: Path,
+    split: str,
+    prefix: str,
+    rows: list[dict[str, str]],
+    target_split: str | None = None,
+) -> int:
+    output_split = target_split or split
     copied = 0
     for class_dir in class_dirs(source_root, split):
         class_name = class_dir.name
-        target_dir = out_dir / split / class_name
+        target_dir = out_dir / output_split / class_name
         target_dir.mkdir(parents=True, exist_ok=True)
         for source in sorted(class_dir.iterdir()):
             if source.suffix.lower() not in IMAGE_SUFFIXES or not source.is_file():
@@ -53,9 +71,10 @@ def copy_split(source_root: Path, out_dir: Path, split: str, prefix: str, rows: 
             shutil.copy2(source, target)
             rows.append(
                 {
-                    "split": split,
+                    "split": output_split,
                     "class_name": class_name,
                     "source_dataset": source_root.relative_to(ROOT).as_posix(),
+                    "source_split": split,
                     "source_path": source.relative_to(ROOT).as_posix(),
                     "image_path": target.relative_to(ROOT).as_posix(),
                 }
@@ -79,6 +98,9 @@ def main() -> None:
     args = parse_args()
     base = resolve(args.base)
     extras = [resolve(path) for path in args.train_extra]
+    extra_splits = [value.strip() for value in args.train_extra_splits.split(",") if value.strip()]
+    if not extra_splits:
+        raise SystemExit("--train-extra-splits must include at least one split")
     out_dir = resolve(args.out)
     if not base.exists():
         raise SystemExit(f"Base dataset does not exist: {base}")
@@ -95,10 +117,21 @@ def main() -> None:
     for split in ["train", "val", "test"]:
         counts[f"base_{split}"] = copy_split(base, out_dir, split, "base", rows)
     for index, extra in enumerate(extras):
-        counts[f"extra{index}_train"] = copy_split(extra, out_dir, "train", f"extra{index}", rows)
+        for split in extra_splits:
+            counts[f"extra{index}_{split}_to_train"] = copy_split(
+                extra,
+                out_dir,
+                split,
+                f"extra{index}_{split}",
+                rows,
+                "train",
+            )
 
     with (out_dir / "manifest.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["split", "class_name", "source_dataset", "source_path", "image_path"])
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=["split", "class_name", "source_dataset", "source_split", "source_path", "image_path"],
+        )
         writer.writeheader()
         writer.writerows(rows)
     print(f"wrote {len(rows)} images to {out_dir.relative_to(ROOT)}")

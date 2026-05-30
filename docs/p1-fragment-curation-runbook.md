@@ -80,10 +80,9 @@ Use the reviewed P1 rows as train-only extras against the existing old/common re
 ```powershell
 rl python scripts/build_imagefolder_mix.py `
   --base data/fragment_classifier_cashsnap_old_common_khr_realbox_v1 `
-  --extra data/fragment_classifier_p1_oldcommon_failure_reviewed_v1 `
+  --train-extra data/fragment_classifier_p1_oldcommon_failure_reviewed_v1 `
   --out data/fragment_classifier_oldcommon_realbox_plus_p1_reviewed_v1 `
-  --extra-splits train `
-  --ensure-classes KHR_1000,KHR_5000,KHR_10000,KHR_20000 `
+  --train-extra-splits train,val,test `
   --clean
 ```
 
