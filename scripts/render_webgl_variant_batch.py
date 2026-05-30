@@ -14,7 +14,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -129,6 +129,44 @@ def write_contact_sheet(variant_dirs: list[tuple[int, Path]], out_path: Path) ->
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out_path)
+
+
+def draw_label_previews(
+    image_path: Path,
+    visible_boxes: list[dict[str, object]],
+    fragment_metadata: list[dict[str, object]],
+    detect_out: Path,
+    fragment_out: Path,
+) -> None:
+    with Image.open(image_path).convert("RGB") as base:
+        detect = base.copy()
+        fragment = base.copy()
+    detect_draw = ImageDraw.Draw(detect)
+    fragment_draw = ImageDraw.Draw(fragment)
+    try:
+        font = ImageFont.load_default()
+    except Exception:
+        font = None
+
+    for box in visible_boxes:
+        x1 = int(box["minX"])
+        y1 = int(box["minY"])
+        x2 = int(box["maxX"])
+        y2 = int(box["maxY"])
+        label = str(box.get("className", ""))
+        detect_draw.rectangle((x1, y1, x2, y2), outline=(255, 230, 0), width=4)
+        detect_draw.text((x1 + 4, y1 + 4), label, fill=(255, 230, 0), font=font)
+
+    for fragment_row in fragment_metadata:
+        x, y, width, height = [int(value) for value in fragment_row["bbox_xywh_px"]]
+        label = f"{fragment_row.get('className', '')}#{fragment_row.get('componentIndex', '')}"
+        fragment_draw.rectangle((x, y, x + width, y + height), outline=(0, 255, 255), width=4)
+        fragment_draw.text((x + 4, y + 4), label, fill=(0, 255, 255), font=font)
+
+    detect_out.parent.mkdir(parents=True, exist_ok=True)
+    fragment_out.parent.mkdir(parents=True, exist_ok=True)
+    detect.save(detect_out, quality=92)
+    fragment.save(fragment_out, quality=92)
 
 
 def obb_audit_for_mask(mask: np.ndarray) -> dict[str, float | int | str]:
@@ -328,6 +366,7 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
     fragment_metadata_dir = out_root / "fragments" / "metadata" / "train"
     fragment_ignored_metadata_dir = out_root / "fragments" / "ignored_metadata" / "train"
     qa_dir = out_root / "qa"
+    preview_dir = qa_dir / "previews"
     for directory in (
         images_dir,
         labels_dir,
@@ -343,6 +382,7 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         fragment_metadata_dir,
         fragment_ignored_metadata_dir,
         qa_dir,
+        preview_dir,
     ):
         prepare_empty_dir(directory, out_root)
 
@@ -380,6 +420,8 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         fragment_label_path = fragment_labels_dir / f"{stem}.txt"
         fragment_metadata_path = fragment_metadata_dir / f"{stem}.json"
         fragment_ignored_metadata_path = fragment_ignored_metadata_dir / f"{stem}.json"
+        detect_preview_path = preview_dir / f"{stem}_detect.jpg"
+        fragment_preview_path = preview_dir / f"{stem}_fragments.jpg"
         shutil.copyfile(out_dir / "visual.png", image_path)
         shutil.copyfile(out_dir / "labels_visible.txt", label_path)
         shutil.copyfile(out_dir / "id.png", id_path)
@@ -403,6 +445,7 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
         write_lines(fragment_label_path, fragment_rows)
         write_json(fragment_metadata_path, fragment_metadata)
         write_json(fragment_ignored_metadata_path, ignored_fragment_metadata)
+        draw_label_previews(image_path, visible_boxes, fragment_metadata, detect_preview_path, fragment_preview_path)
         fragment_counts["images"] += 1
         fragment_counts["fragments"] += len(fragment_rows)
         ignored_fragment_counts["ignored_fragments"] += len(ignored_fragment_metadata)
@@ -435,6 +478,8 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
             "fragment_label": str(fragment_label_path.relative_to(out_root)),
             "fragment_metadata": str(fragment_metadata_path.relative_to(out_root)),
             "fragment_ignored_metadata": str(fragment_ignored_metadata_path.relative_to(out_root)),
+            "detect_preview": str(detect_preview_path.relative_to(out_root)),
+            "fragment_preview": str(fragment_preview_path.relative_to(out_root)),
             "obb_status": "accepted" if not obb_reject_reasons else "rejected",
             "obb_reject_reasons": obb_reject_reasons,
             }
@@ -484,6 +529,12 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path) -> 
                     "id": sha256_file(id_path),
                     "detect_label": sha256_file(label_path),
                     "fragment_label": sha256_file(fragment_label_path),
+                    "detect_preview": sha256_file(detect_preview_path),
+                    "fragment_preview": sha256_file(fragment_preview_path),
+                },
+                "previews": {
+                    "detect": str(detect_preview_path.relative_to(out_root)),
+                    "fragments": str(fragment_preview_path.relative_to(out_root)),
                 },
             }
         )
@@ -657,8 +708,9 @@ def write_recipe_metadata(
             "fragment_data_yaml": rel(data_fragments_yaml),
             "manifest": rel(out_root / "manifest.json"),
             "qa_summary": rel(out_root / "qa" / "summary.json"),
-            "contact_sheet": rel(contact_sheet),
-        },
+                "contact_sheet": rel(contact_sheet),
+                "preview_dir": rel(out_root / "qa" / "previews"),
+            },
         "policy": {
             "smoke": "pipeline functionality proof; do not train final claims from this artifact",
             "diagnostic": "use for visual/model diagnosis unless separately promoted",

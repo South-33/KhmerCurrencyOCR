@@ -47,7 +47,8 @@ Definition of done for the synthetic pipeline:
 - [ ] Ambiguous human-unidentifiable fragments have a full ignore/unknown policy beyond the current pixel threshold.
 - [ ] Label transforms remain exact after any crop, resize, distortion, or other geometric postprocess.
 - [x] Batch QA writes a machine-readable summary for class balance, visible area, fragment counts, fragments per parent, OBB rejection reasons, layer-audit totals, and deterministic file hashes.
-- [ ] Full visual QA suite includes mask/label overlays, contact-sheet indexing, visual regression snapshots, and bad-scene quarantine.
+- [x] Batch QA writes detect and fragment preview overlays under `qa/previews/` and validates their existence.
+- [ ] Full visual QA suite includes mask/ID overlays, contact-sheet indexing, visual regression snapshots, and bad-scene quarantine.
 - [x] Named synthetic recipe slots exist for clean/base, overlap, fan, hand occlusion, thin-edge partials, back-side confusion, rare-class support, hard negatives, and calibration mixes in `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`.
 - [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
 - [ ] Each trainable recipe has config, seed range, asset manifest, output path, QA summary, intended use, and a clear trainable-vs-diagnostic marker.
@@ -156,6 +157,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-30 20:31 | renderer | keep | Fragment packaging records below-threshold components as ignored metadata and validates ignored counts in label-view QA. |
 | 2026-05-30 20:45 | renderer | keep | WebGL `clean` scene mode passed a 3-image smoke (`webgl_clean_smoke_v0_2`) with 6 detect boxes, 6 fragments, and 3/3 trainable OBB images; packager headroom thresholds are now configurable and recorded in `recipe.json`. |
 | 2026-05-30 20:49 | harness | keep | Added `run_webgl_recipe.py`; `webgl_clean_base_v1` can now be run by recipe id and repackaged the clean smoke successfully with full label-view checks. |
+| 2026-05-30 20:53 | renderer | keep | WebGL batch packaging writes detect and fragment preview overlays under `qa/previews/`, records their hashes in `qa/summary.json`, and validates preview existence in label-view QA. |
 
 ## Current Active Assets
 
@@ -331,6 +333,7 @@ Current proof:
 - `render-smoke.mjs --variant N` is a real deterministic variation hook. Variant 0 is the fixed inspected smoke; variants >0 jitter pose/layer/finger placement and sample front/back/older/current textures from the Numista class pools. Variants 0-3 rendered under the headroom wrapper and passed `check_webgl_smoke_output.py`; contact sheet: `data/synthetic/cashsnap_webgl_variant_contact_v0_3.png`.
 - `scripts/render_webgl_variant_batch.py` renders/checks deterministic WebGL variants, writes a contact sheet, packages YOLO detect, OBB, and visible-fragment dataset views, then runs `check_yolo_dataset.py` on the detect view and `check_webgl_label_views.py` on all packaged views by default. Smoke command: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_smoke --count 4`; variants 0-3 passed and wrote `data/synthetic/cashsnap_webgl_variant_batch_smoke/contact_sheet.png`.
 - The WebGL batch packager now writes `qa/summary.json` with class counts, visible-pixel stats, fragment-per-parent stats, OBB rejection reasons, layer-audit totals, and SHA-256 hashes for reproducibility checks. `check_webgl_label_views.py` validates this summary against the manifest so the QA artifact cannot silently drift.
+- WebGL batch packaging writes detect and fragment label-preview overlays under `qa/previews/`; manifest rows point to them, `qa/summary.json` stores their hashes, and `check_webgl_label_views.py` validates that they exist.
 - Fragment packaging now writes `fragments/ignored_metadata/` for connected components below `FRAGMENT_MIN_PIXELS`; `fragments/summary.json`, `qa/summary.json`, and `check_webgl_label_views.py` validate ignored counts so tiny evidence is not silently forced into denomination labels.
 - WebGL batch outputs now include `recipe.json` with recipe name, artifact status (`smoke`, `diagnostic`, or `trainable-candidate`), variant seed range, checks, output paths, and trainability policy. Smoke verification used `--recipe-name webgl_stack_smoke_v0_3 --artifact-status smoke --intended-use "renderer and label-view smoke proof"` with `--skip-render`.
 - WebGL `clean` scene mode now supports separated/single-note smoke data. `webgl_clean_smoke_v0_2` passed with 3 images, 6 detect boxes, 6 fragments, and 3/3 trainable OBB images after running the packager with `--min-free-ram-gb 2`; the hard RAM cap stayed at 90%.

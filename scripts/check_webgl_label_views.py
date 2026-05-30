@@ -80,6 +80,10 @@ def main() -> int:
         detect_rows = read_label_rows(dataset_root / row["label"], expected_columns=5)
         if len(detect_rows) != len(visible_boxes):
             raise SystemExit(f"{row['label']}: {len(detect_rows)} detect labels for {len(visible_boxes)} visible boxes")
+        for preview_key in ("detect_preview", "fragment_preview"):
+            preview_path = dataset_root / row[preview_key]
+            if not preview_path.exists():
+                raise SystemExit(f"missing preview image: {preview_path}")
 
         fragment_rows = read_label_rows(dataset_root / row["fragment_label"], expected_columns=5)
         fragment_metadata = read_json(dataset_root / row["fragment_metadata"])
