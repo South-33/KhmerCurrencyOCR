@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+"""Validate packaged WebGL detect, OBB, and fragment label views."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, required=True, help="Packaged WebGL dataset root.")
+    return parser.parse_args()
+
+
+def resolve_path(path: Path) -> Path:
+    return path if path.is_absolute() else ROOT / path
+
+
+def read_json(path: Path) -> object:
+    if not path.exists():
+        raise SystemExit(f"missing JSON file: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_label_rows(path: Path, expected_columns: int) -> list[list[float]]:
+    if not path.exists():
+        raise SystemExit(f"missing label file: {path}")
+    rows: list[list[float]] = []
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        line = raw_line.strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) != expected_columns:
+            raise SystemExit(f"{path}:{line_number}: expected {expected_columns} columns, got {len(parts)}")
+        try:
+            class_id = int(parts[0])
+            values = [float(value) for value in parts[1:]]
+        except ValueError as exc:
+            raise SystemExit(f"{path}:{line_number}: invalid numeric label: {line}") from exc
+        if class_id < 0:
+            raise SystemExit(f"{path}:{line_number}: negative class id")
+        if any(value < 0.0 or value > 1.0 for value in values):
+            raise SystemExit(f"{path}:{line_number}: normalized value out of range")
+        rows.append([float(class_id), *values])
+    return rows
+
+
+def main() -> int:
+    args = parse_args()
+    dataset_root = resolve_path(args.root)
+    manifest = read_json(dataset_root / "manifest.json")
+    if not isinstance(manifest, list) or not manifest:
+        raise SystemExit("manifest.json must be a non-empty list")
+
+    trainable_obb_images = 0
+    rejected_obb_images = 0
+    fragment_count = 0
+    for row in manifest:
+        if not isinstance(row, dict):
+            raise SystemExit("manifest row must be an object")
+        boxes_doc = read_json(dataset_root / row["visible_boxes"])
+        visible_boxes = boxes_doc.get("boxes", [])
+        detect_rows = read_label_rows(dataset_root / row["label"], expected_columns=5)
+        if len(detect_rows) != len(visible_boxes):
+            raise SystemExit(f"{row['label']}: {len(detect_rows)} detect labels for {len(visible_boxes)} visible boxes")
+
+        fragment_rows = read_label_rows(dataset_root / row["fragment_label"], expected_columns=5)
+        fragment_metadata = read_json(dataset_root / row["fragment_metadata"])
+        if len(fragment_rows) != len(fragment_metadata):
+            raise SystemExit(
+                f"{row['fragment_label']}: {len(fragment_rows)} fragment labels for "
+                f"{len(fragment_metadata)} metadata rows"
+            )
+        for fragment in fragment_metadata:
+            parent_index = fragment.get("parentVisibleIndex")
+            if not isinstance(parent_index, int) or parent_index < 0 or parent_index >= len(visible_boxes):
+                raise SystemExit(f"{row['fragment_metadata']}: invalid parentVisibleIndex {parent_index}")
+        fragment_count += len(fragment_rows)
+
+        obb_status = row.get("obb_status")
+        if obb_status == "accepted":
+            trainable_obb_images += 1
+            read_label_rows(dataset_root / row["obb_label"], expected_columns=9)
+            obb_metadata = read_json(dataset_root / row["obb_metadata"])
+            bad_statuses = [item.get("status") for item in obb_metadata if item.get("status") != "exported"]
+            if bad_statuses:
+                raise SystemExit(f"{row['obb_metadata']}: accepted OBB row has rejected instances: {bad_statuses}")
+        elif obb_status == "rejected":
+            rejected_obb_images += 1
+            read_label_rows(dataset_root / row["obb_diagnostic_label"], expected_columns=9)
+            obb_metadata = read_json(dataset_root / row["obb_diagnostic_metadata"])
+            if all(item.get("status") == "exported" for item in obb_metadata):
+                raise SystemExit(f"{row['obb_diagnostic_metadata']}: rejected OBB row has no rejected instances")
+        else:
+            raise SystemExit(f"unknown obb_status: {obb_status}")
+
+    obb_summary = read_json(dataset_root / "obb" / "summary.json")
+    fragment_summary = read_json(dataset_root / "fragments" / "summary.json")
+    if obb_summary.get("trainable_obb_images") != trainable_obb_images:
+        raise SystemExit("obb summary trainable image count mismatch")
+    if obb_summary.get("rejected_obb_images") != rejected_obb_images:
+        raise SystemExit("obb summary rejected image count mismatch")
+    if fragment_summary.get("fragments") != fragment_count:
+        raise SystemExit("fragment summary count mismatch")
+
+    print(
+        f"ok: {len(manifest)} images, {fragment_count} fragments, "
+        f"{trainable_obb_images} trainable OBB images, {rejected_obb_images} rejected OBB images"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
