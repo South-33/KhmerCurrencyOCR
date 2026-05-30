@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from collections import Counter
 from pathlib import Path
@@ -27,6 +28,14 @@ def read_json(path: Path) -> object:
     if not path.exists():
         raise SystemExit(f"missing JSON file: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def read_label_rows(path: Path, expected_columns: int) -> list[list[float]]:
@@ -59,6 +68,7 @@ def main() -> int:
     manifest = read_json(dataset_root / "manifest.json")
     if not isinstance(manifest, list) or not manifest:
         raise SystemExit("manifest.json must be a non-empty list")
+    manifest_by_variant = {}
 
     trainable_obb_images = 0
     rejected_obb_images = 0
@@ -70,6 +80,7 @@ def main() -> int:
     for row in manifest:
         if not isinstance(row, dict):
             raise SystemExit("manifest row must be an object")
+        manifest_by_variant[int(row["variant"])] = row
         boxes_doc = read_json(dataset_root / row["visible_boxes"])
         visible_boxes = boxes_doc.get("boxes", [])
         visible_instance_count += len(visible_boxes)
@@ -159,6 +170,25 @@ def main() -> int:
         raise SystemExit("qa summary class count mismatch")
     if qa_summary.get("layer_audit_totals") != dict(sorted(layer_audit_totals.items())):
         raise SystemExit("qa summary layer audit totals mismatch")
+    hash_paths = {
+        "visual": "image",
+        "id": "id",
+        "detect_label": "label",
+        "fragment_label": "fragment_label",
+        "detect_preview": "detect_preview",
+        "fragment_preview": "fragment_preview",
+        "id_overlay": "id_overlay",
+    }
+    for detail in qa_summary.get("images_detail", []):
+        variant = int(detail["variant"])
+        manifest_row = manifest_by_variant.get(variant)
+        if manifest_row is None:
+            raise SystemExit(f"qa summary references unknown variant {variant}")
+        for hash_key, manifest_key in hash_paths.items():
+            expected_hash = detail.get("sha256", {}).get(hash_key)
+            actual_hash = sha256_file(dataset_root / manifest_row[manifest_key])
+            if expected_hash != actual_hash:
+                raise SystemExit(f"qa summary hash mismatch for variant {variant} {hash_key}")
     recipe = read_json(dataset_root / "recipe.json")
     artifact_status = recipe.get("artifact_status")
     if artifact_status not in VALID_ARTIFACT_STATUSES:

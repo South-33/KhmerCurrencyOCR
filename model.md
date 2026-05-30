@@ -164,6 +164,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-30 20:57 | renderer | keep | WebGL batch packaging writes `qa/quarantine.json`; stack smoke records 3 OBB trainable exclusions and 2 ignored below-threshold fragment components with explicit policies. |
 | 2026-05-30 21:00 | renderer | keep | WebGL batch packaging writes visual+ID mask overlay previews, hashes them in `qa/summary.json`, and validates them in label-view QA. |
 | 2026-05-30 21:03 | renderer | keep | WebGL batch packaging writes `qa/contact_index.json` so contact-sheet visual and ID cells map back to variants; label-view QA validates the index. |
+| 2026-05-30 21:06 | renderer | keep | `check_webgl_label_views.py` recomputes `qa/summary.json` file hashes for visual, ID, labels, and previews; clean and stack smoke packages pass after repackaging. |
 
 ## Current Active Assets
 
@@ -339,6 +340,7 @@ Current proof:
 - `render-smoke.mjs --variant N` is a real deterministic variation hook. Variant 0 is the fixed inspected smoke; variants >0 jitter pose/layer/finger placement and sample front/back/older/current textures from the Numista class pools. Variants 0-3 rendered under the headroom wrapper and passed `check_webgl_smoke_output.py`; contact sheet: `data/synthetic/cashsnap_webgl_variant_contact_v0_3.png`.
 - `scripts/render_webgl_variant_batch.py` renders/checks deterministic WebGL variants, writes a contact sheet, packages YOLO detect, OBB, and visible-fragment dataset views, then runs `check_yolo_dataset.py` on the detect view and `check_webgl_label_views.py` on all packaged views by default. Smoke command: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_smoke --count 4`; variants 0-3 passed and wrote `data/synthetic/cashsnap_webgl_variant_batch_smoke/contact_sheet.png`.
 - The WebGL batch packager now writes `qa/summary.json` with class counts, visible-pixel stats, fragment-per-parent stats, OBB rejection reasons, layer-audit totals, and SHA-256 hashes for reproducibility checks. `check_webgl_label_views.py` validates this summary against the manifest so the QA artifact cannot silently drift.
+- `check_webgl_label_views.py` recomputes `qa/summary.json` hashes for visual images, ID masks, label files, and preview images, so QA summaries function as lightweight regression snapshots.
 - WebGL batch packaging writes detect and fragment label-preview overlays under `qa/previews/`; manifest rows point to them, `qa/summary.json` stores their hashes, and `check_webgl_label_views.py` validates that they exist.
 - WebGL batch packaging writes visual+ID mask overlay previews under `qa/previews/`; these make ID-mask alignment visually reviewable without opening separate visual/mask files.
 - WebGL batch packaging writes `qa/quarantine.json` with explicit policies for trainable OBB exclusions and ignored below-threshold fragments. Stack smoke currently records 3 OBB exclusions and 2 ignored tiny fragment components.
