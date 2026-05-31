@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from local_runtime import configure_project_cache
+from yolo_data_config import resolve_ultralytics_data_yaml
 
 configure_project_cache()
 
@@ -56,6 +57,7 @@ def main() -> None:
     data_path = resolve_from_root(args.data)
     if not data_path.exists():
         raise FileNotFoundError(f"Dataset config not found: {data_path}")
+    data_path = resolve_ultralytics_data_yaml(data_path)
 
     project_path = resolve_from_root(args.project)
     val_args = {

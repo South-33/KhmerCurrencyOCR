@@ -206,6 +206,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-30 21:52 | evaluation | note | `filter_yolo_labels_by_quality.py` keeps 6/6 labels for the draft shop-overlap diagnostic at `data/audit/real_overlap_0003_commons_shop_5k_10k_20k.scoreable.txt`; this is local diagnostic material, not promoted benchmark truth. |
 | 2026-05-30 21:54 | evaluation | note | Current alpha `yolo26n_cashsnap_current_thin_legacy_clean_v1_e20_i416_b8` on the scoreable shop-overlap draft tops out at 3/6 same-class and 5/6 any-class (`416/conf=0.03` or `640/conf=0.03`); use this as a local diagnostic hurdle, not a final benchmark. |
 | 2026-05-30 21:58 | evaluation | note | Added `check_webgl_p1_readiness.py`; smoke mix, real-benchmark structure, and browser manifest pass, but full P1 transfer is blocked by 0 promoted real benchmark labels (6 draft scoreable boxes remain diagnostic-only). |
+| 2026-05-31 14:00 | training | keep | `train_yolo.py`/`val_yolo.py` now normalize YOLO data YAML roots into `.cache_runtime/ultralytics_data/` before calling Ultralytics; this fixed the smoke mix path bug and a 1-epoch/2-batch headroom train completed, writing `runs/cashsnap/webgl_smoke_mix_tiny_train_probe/weights/best.pt` with diagnostic mAP50-95 `0.00214`. |
 
 ## Current Active Assets
 

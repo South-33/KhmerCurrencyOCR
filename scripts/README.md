@@ -62,7 +62,8 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 
 ## Model Export And Debug
 
-- `train_yolo.py`, `export_yolo.py`: detector training/export entry points.
+- `train_yolo.py`, `val_yolo.py`, `export_yolo.py`: detector training/validation/export entry points.
+- `yolo_data_config.py`: normalizes relative YOLO data YAML roots into repo-local cache files before Ultralytics calls.
 - `debug_onnx_detector_preprocess.py`: compare ONNX preprocessing paths.
 - `diagnose_fan_image.py`: local stress-image detector diagnostics.
 - `probe_khmer_ocr_cues.py`: optional OCR cue probe; current evidence says OCR is auxiliary, not the main CashSnap path.
