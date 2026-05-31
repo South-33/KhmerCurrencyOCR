@@ -46,6 +46,7 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 - `check_webgl_smoke_gate.py`: mode-specific smoke promotion/quarantine gate for packaged WebGL artifacts with `recipe.json`.
 - `check_webgl_trainable_candidate_gate.py`: guardrail for packaged WebGL artifacts before they enter trainable-candidate mixes.
 - `check_webgl_trainable_candidate_suite.py`: validates trainable-candidate suite structure and can gate exact rendered outputs.
+- `make_webgl_visual_review_pack.py`, `check_webgl_visual_review.py`: human visual-realism and bad-scene review path for packaged WebGL outputs.
 - `build_webgl_mix_yaml.py`: builds a combined YOLO data YAML from gated WebGL package outputs.
 - `check_webgl_p1_readiness.py`: runs lightweight synthetic/real/browser guard checks and reports remaining P1 transfer blockers.
 - `run_webgl_p1_diagnostic_pipeline.py`: one-command WebGL P1 diagnostic sequence for smoke suite, mix, readiness, draft-label filtering, alpha eval, and optional train smoke.

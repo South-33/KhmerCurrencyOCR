@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_webgl_visual_review_rules_v1",
+  "description": "Human review rules for WebGL synthetic packages. Deterministic visual_quality acceptance is necessary but not sufficient for trainable promotion.",
+  "accepted_statuses": ["accept"],
+  "blocking_statuses": ["reject", "needs_fix", "defer"],
+  "review_statuses": [
+    {
+      "id": "accept",
+      "meaning": "Scene, visual realism, and preview labels are acceptable for the intended candidate use."
+    },
+    {
+      "id": "reject",
+      "meaning": "Scene must not enter a trainable-candidate mix."
+    },
+    {
+      "id": "needs_fix",
+      "meaning": "Scene shows a renderer, asset, or label issue that should be fixed before reuse."
+    },
+    {
+      "id": "defer",
+      "meaning": "Reviewer cannot decide from this pack; keep diagnostic-only until more evidence exists."
+    }
+  ],
+  "bad_scene_reasons": [
+    "impossible_overlap_or_depth",
+    "unrealistic_hand_or_finger_occluder",
+    "unreadable_or_ambiguous_visible_evidence",
+    "bad_asset_cutout_or_border",
+    "bad_background_or_surface",
+    "bad_lighting_exposure_or_glare",
+    "label_preview_mismatch",
+    "id_mask_alignment_suspect",
+    "too_much_texture_or_pose_repetition",
+    "wrong_scene_mode",
+    "other"
+  ],
+  "required_review_columns": [
+    "review_status",
+    "bad_scene_reasons",
+    "reviewer",
+    "reviewed_at",
+    "review_notes"
+  ]
+}

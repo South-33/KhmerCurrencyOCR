@@ -57,7 +57,7 @@ Definition of done for the synthetic pipeline:
 - [x] Hard-negative scene mode emits valid zero-box/zero-fragment packages with empty YOLO labels and full smoke QA.
 - [x] Thin-edge scene mode emits visible sliver packages with card/paper occluders and records unsafe OBB/fragment exclusions.
 - [x] Broader hand-occlusion scene mode emits multi-finger split-fragment packages and quarantines unsafe OBB views.
-- [ ] Full human visual QA suite includes realism snapshots and bad-scene review rules beyond deterministic blankness/exposure gates.
+- [x] Full human visual QA suite includes realism snapshots and bad-scene review rules beyond deterministic blankness/exposure gates.
 - [x] Named synthetic recipe slots exist for clean/base, overlap, fan, hand occlusion, thin-edge partials, back-side confusion, rare-class support, hard negatives, and calibration mixes in `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`.
 - [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
 - [x] Smoke-ready WebGL recipes can be run or repackaged as a single gated suite.
@@ -69,7 +69,7 @@ Definition of done for the synthetic pipeline:
 - [ ] Operations are one-command reproducible: render, QA/package, train under headroom, evaluate clean/real/browser guards, and clean scratch outputs.
 - [ ] Promotion rules require real-scoreboard improvement, clean-validation guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
 
-Current completion status: renderer and label contract are proven at P0, target/recipe coverage is now explicit, and WebGL packages carry QA, recipe, ignored-fragment metadata, fragment evidence-review metadata, deterministic visual-quality gates, smoke/trainable-candidate gates, clean-scene smoke, hard-negative zero-box smoke, thin-edge sliver smoke, and hand-occlusion fragment smoke. The production training-data factory is still not complete. The next bottleneck is promoting smoke-ready recipes through real-gated P1 training experiments, then improving full ignore/unknown policy and human visual QA promotion rules.
+Current completion status: renderer and label contract are proven at P0, target/recipe coverage is now explicit, and WebGL packages carry QA, recipe, ignored-fragment metadata, fragment evidence-review metadata, deterministic visual-quality gates, human visual-review packs, smoke/trainable-candidate gates, clean-scene smoke, hard-negative zero-box smoke, thin-edge sliver smoke, and hand-occlusion fragment smoke. The production training-data factory is still not complete. The next bottleneck is promoting smoke-ready recipes through real-gated P1 training experiments, then improving full ignore/unknown policy and promotion rules.
 
 ## Work Loop
 
@@ -180,6 +180,13 @@ rl python scripts\run_webgl_trainable_candidate_suite.py --dry-run
 rl python scripts\build_webgl_mix_yaml.py --suite configs\synthetic_recipes\cashsnap_webgl_trainable_candidates_v1.json --gate-kind trainable-candidate --out configs\cashsnap_webgl_trainable_candidates_mix.yaml
 ```
 
+Build and check a WebGL visual review pack:
+
+```powershell
+rl python scripts\make_webgl_visual_review_pack.py --suite configs\synthetic_recipes\cashsnap_webgl_smoke_suite_v1.json --out-dir data\review\webgl_smoke_visual_review_v1
+rl python scripts\check_webgl_visual_review.py --review-csv data\review\webgl_smoke_visual_review_v1\review.csv
+```
+
 Protect the real benchmark boundary:
 
 ```powershell
@@ -245,6 +252,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 14:28 | renderer | keep | Added fragment evidence-review metadata: kept fragments now record `trainable` or `review_required` plus warning reasons for small/low-parent-fraction evidence, summaries count these statuses, and quarantine marks affected images. Repacked smoke suite flags 8 review-required fragments while keeping smoke labels intact. |
 | 2026-05-31 14:32 | harness | keep | Added `check_webgl_trainable_candidate_gate.py` and wired it into `run_webgl_recipe.py` for `artifact_status=trainable-candidate`; gate validates visual rejects, layer violations, selected train views, OBB rejection, and review-required fragments. End-to-end clean probe passed under `.cache_runtime/webgl_trainable_gate_clean`. |
 | 2026-05-31 21:39 | harness | keep | Added `cashsnap_webgl_trainable_candidates_v1` plus suite checker/runner; structural check declares 6 candidate recipes / 272 images with detect on all rows, fragment on clean+stack, and OBB only on clean. `run_webgl_trainable_candidate_suite.py --dry-run`, default smoke mix rebuild, and a one-image trainable-gated mix probe passed; actual candidate artifacts are not rendered yet. |
+| 2026-05-31 21:45 | renderer | keep | Added WebGL human visual-review rules plus `make_webgl_visual_review_pack.py` and `check_webgl_visual_review.py`; a smoke-suite probe wrote 12 review rows with RGB/detect/fragment/ID previews, and both pending-review validation plus synthetic all-accepted strict validation passed. |
 
 ## Current Active Assets
 
