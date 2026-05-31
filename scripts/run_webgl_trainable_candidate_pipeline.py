@@ -22,6 +22,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--review-out", type=Path, default=DEFAULT_REVIEW_OUT)
     parser.add_argument("--skip-render", action="store_true", help="Repackage/check existing rendered variants.")
     parser.add_argument("--skip-review-pack", action="store_true")
+    parser.add_argument(
+        "--max-review-images-per-recipe",
+        type=int,
+        default=12,
+        help="Sample this many packaged scenes per recipe for visual review; 0 means include every image.",
+    )
     parser.add_argument("--require-visual-review", action="store_true", help="Require review.csv to have accepted rows only.")
     parser.add_argument("--skip-p1-readiness", action="store_true")
     parser.add_argument("--train-smoke", action="store_true", help="Run a tiny headroom training smoke on the candidate mix.")
@@ -113,6 +119,8 @@ def main() -> int:
                 suite,
                 "--out-dir",
                 review_out,
+                "--max-images-per-recipe",
+                str(args.max_review_images_per_recipe),
             ],
             args.dry_run,
         )
