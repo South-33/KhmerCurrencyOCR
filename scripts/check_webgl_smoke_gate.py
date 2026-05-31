@@ -51,10 +51,12 @@ def main() -> int:
     summary = read_json(dataset_root / "qa" / "summary.json")
     quarantine = read_json(dataset_root / "qa" / "quarantine.json")
     contact_index = read_json(dataset_root / "qa" / "contact_index.json")
+    visual_quality = read_json(dataset_root / "qa" / "visual_quality.json")
     require(isinstance(recipe, dict), "recipe.json must be an object")
     require(isinstance(summary, dict), "qa/summary.json must be an object")
     require(isinstance(quarantine, dict), "qa/quarantine.json must be an object")
     require(isinstance(contact_index, dict), "qa/contact_index.json must be an object")
+    require(isinstance(visual_quality, dict), "qa/visual_quality.json must be an object")
 
     recipe_name = str(recipe.get("recipe_name", ""))
     artifact_status = str(recipe.get("artifact_status", ""))
@@ -75,6 +77,9 @@ def main() -> int:
     require(len(contact_index.get("rows", [])) == images, "contact_index row count must match image count")
     require(summary.get("layer_audit_totals", {}).get("violations") == 0, "layer-order violations must be zero")
     require(isinstance(quarantine.get("rows"), list), "quarantine rows must be a list")
+    visual_quality_counts = visual_quality.get("counts", {})
+    require(isinstance(visual_quality_counts, dict), "visual_quality counts must be an object")
+    require(int(visual_quality_counts.get("rejected", 0)) == 0, "visual_quality rejected images must be zero for smoke gates")
 
     visible = int_at(summary, "visible_instances", "total")
     fragments = int_at(summary, "fragments", "total")

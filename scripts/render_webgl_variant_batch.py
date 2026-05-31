@@ -36,6 +36,11 @@ CLASS_NAMES = [
 OBB_MIN_LARGEST_COMPONENT_FRAC = 0.85
 OBB_MIN_RECT_FILL_FRAC = 0.35
 FRAGMENT_MIN_PIXELS = 500
+VISUAL_MIN_MEAN_LUMA = 20.0
+VISUAL_MAX_MEAN_LUMA = 235.0
+VISUAL_MIN_LUMA_STD = 1.0
+VISUAL_MAX_DARK_FRACTION = 0.98
+VISUAL_MAX_LIGHT_FRACTION = 0.98
 
 
 def parse_args() -> argparse.Namespace:
@@ -208,6 +213,38 @@ def write_id_overlay(visual_path: Path, id_path: Path, out_path: Path) -> None:
                 )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     overlay.save(out_path, quality=92)
+
+
+def visual_quality_for_image(image_path: Path) -> dict[str, object]:
+    with Image.open(image_path).convert("RGB") as image:
+        pixels = np.asarray(image, dtype=np.float32)
+    height, width = pixels.shape[:2]
+    luma = pixels[:, :, 0] * 0.2126 + pixels[:, :, 1] * 0.7152 + pixels[:, :, 2] * 0.0722
+    mean_luma = float(luma.mean())
+    luma_std = float(luma.std())
+    dark_fraction = float((luma < 8).mean())
+    light_fraction = float((luma > 247).mean())
+    failures: list[str] = []
+    if mean_luma < VISUAL_MIN_MEAN_LUMA:
+        failures.append("mean_luma_too_low")
+    if mean_luma > VISUAL_MAX_MEAN_LUMA:
+        failures.append("mean_luma_too_high")
+    if luma_std < VISUAL_MIN_LUMA_STD:
+        failures.append("luma_std_too_low")
+    if dark_fraction > VISUAL_MAX_DARK_FRACTION:
+        failures.append("dark_fraction_too_high")
+    if light_fraction > VISUAL_MAX_LIGHT_FRACTION:
+        failures.append("light_fraction_too_high")
+    return {
+        "status": "accepted" if not failures else "rejected",
+        "failures": failures,
+        "width": int(width),
+        "height": int(height),
+        "mean_luma": round(mean_luma, 4),
+        "luma_std": round(luma_std, 4),
+        "dark_fraction": round(dark_fraction, 6),
+        "light_fraction": round(light_fraction, 6),
+    }
 
 
 def obb_audit_for_mask(mask: np.ndarray) -> dict[str, float | int | str]:
@@ -445,6 +482,9 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path, fal
     obb_reject_reason_counts: Counter[str] = Counter()
     image_summary_rows: list[dict[str, object]] = []
     quarantine_rows: list[dict[str, object]] = []
+    visual_quality_rows: list[dict[str, object]] = []
+    visual_quality_status_counts: Counter[str] = Counter()
+    visual_quality_failure_counts: Counter[str] = Counter()
     for variant, out_dir in variant_dirs:
         stem = f"variant_{variant:04d}"
         image_path = images_dir / f"{stem}.png"
@@ -466,6 +506,25 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path, fal
         fragment_preview_path = preview_dir / f"{stem}_fragments.jpg"
         id_overlay_path = preview_dir / f"{stem}_id_overlay.jpg"
         shutil.copyfile(out_dir / "visual.png", image_path)
+        visual_quality = visual_quality_for_image(image_path)
+        visual_quality_status_counts[str(visual_quality["status"])] += 1
+        visual_quality_failure_counts.update(str(reason) for reason in visual_quality["failures"])
+        visual_quality_row = {
+            "variant": variant,
+            "image": str(image_path.relative_to(out_root)),
+            **visual_quality,
+        }
+        visual_quality_rows.append(visual_quality_row)
+        if visual_quality["status"] != "accepted":
+            quarantine_rows.append(
+                {
+                    "variant": variant,
+                    "image": str(image_path.relative_to(out_root)),
+                    "view": "visual",
+                    "action": "visual_quality_rejected",
+                    "reasons": visual_quality["failures"],
+                }
+            )
         shutil.copyfile(out_dir / "labels_visible.txt", label_path)
         shutil.copyfile(out_dir / "id.png", id_path)
         shutil.copyfile(out_dir / "visible_boxes.json", boxes_path)
@@ -588,6 +647,7 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path, fal
                 "split_parents": sum(1 for count in parent_fragment_counts.values() if count > 1),
                 "obb_status": manifest_row["obb_status"],
                 "obb_reject_reasons": obb_reject_reasons,
+                "visual_quality": visual_quality,
                 "layer_audit": {
                     "visiblePixels": int(layer_audit.get("visiblePixels", 0)),
                     "overlapPixels": int(layer_audit.get("overlapPixels", 0)),
@@ -618,9 +678,26 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path, fal
             "rows": quarantine_rows,
             "counts": dict(sorted(Counter(str(row["action"]) for row in quarantine_rows).items())),
             "policy": {
+                "visual_quality_rejected": "visual image failed deterministic brightness/blankness gates and must not be promoted without review",
                 "excluded_from_trainable_obb": "image remains valid for detect/fragment views, but is excluded from the trainable OBB split",
                 "ignored_below_threshold_components": "tiny connected components are recorded for review and not forced into fragment training labels",
             },
+        },
+    )
+    write_json(
+        qa_dir / "visual_quality.json",
+        {
+            "rows": visual_quality_rows,
+            "counts": dict(sorted(visual_quality_status_counts.items())),
+            "failure_counts": dict(sorted(visual_quality_failure_counts.items())),
+            "thresholds": {
+                "min_mean_luma": VISUAL_MIN_MEAN_LUMA,
+                "max_mean_luma": VISUAL_MAX_MEAN_LUMA,
+                "min_luma_std": VISUAL_MIN_LUMA_STD,
+                "max_dark_fraction": VISUAL_MAX_DARK_FRACTION,
+                "max_light_fraction": VISUAL_MAX_LIGHT_FRACTION,
+            },
+            "policy": "Deterministic blankness/exposure gate; accepted status is necessary but not sufficient for human visual realism review.",
         },
     )
     write_json(
@@ -687,6 +764,17 @@ def write_yolo_dataset(variant_dirs: list[tuple[int, Path]], out_root: Path, fal
                 "min_rect_fill_frac": OBB_MIN_RECT_FILL_FRAC,
             },
             "layer_audit_totals": dict(sorted(layer_audit_totals.items())),
+            "visual_quality": {
+                "status_counts": dict(sorted(visual_quality_status_counts.items())),
+                "failure_counts": dict(sorted(visual_quality_failure_counts.items())),
+                "thresholds": {
+                    "min_mean_luma": VISUAL_MIN_MEAN_LUMA,
+                    "max_mean_luma": VISUAL_MAX_MEAN_LUMA,
+                    "min_luma_std": VISUAL_MIN_LUMA_STD,
+                    "max_dark_fraction": VISUAL_MAX_DARK_FRACTION,
+                    "max_light_fraction": VISUAL_MAX_LIGHT_FRACTION,
+                },
+            },
             "policy": {
                 "detect_labels": "visible-only AABB labels for detect-compatible probes",
                 "fragments": "visible connected evidence components, not direct count labels",
@@ -795,6 +883,7 @@ def write_recipe_metadata(
             "contact_index": rel(out_root / "qa" / "contact_index.json"),
             "preview_dir": rel(out_root / "qa" / "previews"),
             "quarantine": rel(out_root / "qa" / "quarantine.json"),
+            "visual_quality": rel(out_root / "qa" / "visual_quality.json"),
         },
         "policy": {
             "smoke": "pipeline functionality proof; do not train final claims from this artifact",

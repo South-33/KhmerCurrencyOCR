@@ -51,11 +51,12 @@ Definition of done for the synthetic pipeline:
 - [x] Batch QA writes visual+ID mask overlays under `qa/previews/` and validates their existence.
 - [x] Batch QA writes `qa/quarantine.json` for trainable-view exclusions and ignored below-threshold fragment components.
 - [x] Batch QA writes `qa/contact_index.json` mapping contact-sheet cells back to variants.
+- [x] Batch QA writes deterministic visual-quality metrics and smoke gates reject blank/exposure-failed artifacts.
 - [x] Smoke artifacts have mode-specific promotion/quarantine gates that run from the recipe wrapper.
 - [x] Hard-negative scene mode emits valid zero-box/zero-fragment packages with empty YOLO labels and full smoke QA.
 - [x] Thin-edge scene mode emits visible sliver packages with card/paper occluders and records unsafe OBB/fragment exclusions.
 - [x] Broader hand-occlusion scene mode emits multi-finger split-fragment packages and quarantines unsafe OBB views.
-- [ ] Full visual QA suite includes visual regression snapshots and bad-scene quarantine promotion rules.
+- [ ] Full human visual QA suite includes realism snapshots and bad-scene review rules beyond deterministic blankness/exposure gates.
 - [x] Named synthetic recipe slots exist for clean/base, overlap, fan, hand occlusion, thin-edge partials, back-side confusion, rare-class support, hard negatives, and calibration mixes in `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`.
 - [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
 - [x] Smoke-ready WebGL recipes can be run or repackaged as a single gated suite.
@@ -65,7 +66,7 @@ Definition of done for the synthetic pipeline:
 - [ ] Operations are one-command reproducible: render, QA/package, train under headroom, evaluate clean/real/browser guards, and clean scratch outputs.
 - [ ] Promotion rules require real-scoreboard improvement, clean-validation guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
 
-Current completion status: renderer and label contract are proven at P0, target/recipe coverage is now explicit, and WebGL packages carry QA, recipe, ignored-fragment metadata, smoke gates, clean-scene smoke, hard-negative zero-box smoke, thin-edge sliver smoke, and hand-occlusion fragment smoke. The production training-data factory is still not complete. The next bottleneck is promoting smoke-ready recipes through real-gated P1 training experiments, then improving ambiguity/ignore policy and visual QA promotion rules.
+Current completion status: renderer and label contract are proven at P0, target/recipe coverage is now explicit, and WebGL packages carry QA, recipe, ignored-fragment metadata, deterministic visual-quality gates, smoke gates, clean-scene smoke, hard-negative zero-box smoke, thin-edge sliver smoke, and hand-occlusion fragment smoke. The production training-data factory is still not complete. The next bottleneck is promoting smoke-ready recipes through real-gated P1 training experiments, then improving ambiguity/ignore policy and human visual QA promotion rules.
 
 ## Work Loop
 
@@ -223,6 +224,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 14:13 | evaluation | keep | Added guarded `promote_real_benchmark_label.py`; default dry-run validates label format and scoreable quality rows, while `--confirm-reviewed --reviewed-by NAME` copies reviewed labels, updates manifests, logs hashes, renders a preview, and reruns the real benchmark check. Temp self-test promoted the 6-box draft into `.cache_runtime/` only. |
 | 2026-05-31 14:15 | evaluation | note | `check_webgl_p1_readiness.py` now reports review-ready draft image ids; current blocker is still 0 promoted labels, but `real_overlap_0003_commons_shop_5k_10k_20k` is identified as a 6-box draft candidate ready for explicit human-review promotion. |
 | 2026-05-31 14:19 | training | note | `run_webgl_p1_diagnostic_pipeline.py --train-smoke --skip-alpha-eval` passed end-to-end, including headroom tiny training; headroom paused/resumed once on CPU pressure, train CSV still reports diagnostic mAP50-95 `0.00214`, and final best-checkpoint validation printed mAP50-95 `0.00231`. |
+| 2026-05-31 14:24 | renderer | keep | Added deterministic WebGL visual-quality QA: packager writes `qa/visual_quality.json`, summary status counts, and visual quarantine rows; label-view QA validates the file and smoke gates require zero visual rejects. Repacked smoke suite shows all 19 smoke images accepted with no visual-quality failures. |
 
 ## Current Active Assets
 

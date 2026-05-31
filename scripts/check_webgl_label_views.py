@@ -149,6 +149,7 @@ def main() -> int:
     qa_summary = read_json(dataset_root / "qa" / "summary.json")
     quarantine = read_json(dataset_root / "qa" / "quarantine.json")
     contact_index = read_json(dataset_root / "qa" / "contact_index.json")
+    visual_quality = read_json(dataset_root / "qa" / "visual_quality.json")
     if len(contact_index.get("rows", [])) != len(manifest):
         raise SystemExit("contact index row count mismatch")
     if not (dataset_root / contact_index.get("contact_sheet", "")).exists():
@@ -158,6 +159,17 @@ def main() -> int:
     quarantine_counts = Counter(str(row.get("action", "")) for row in quarantine["rows"])
     if quarantine.get("counts") != dict(sorted(quarantine_counts.items())):
         raise SystemExit("quarantine count mismatch")
+    visual_quality_rows = visual_quality.get("rows", []) if isinstance(visual_quality, dict) else []
+    if not isinstance(visual_quality_rows, list):
+        raise SystemExit("visual_quality rows must be a list")
+    if len(visual_quality_rows) != len(manifest):
+        raise SystemExit("visual_quality row count mismatch")
+    visual_quality_by_variant = {int(row["variant"]): row for row in visual_quality_rows}
+    if set(visual_quality_by_variant) != set(manifest_by_variant):
+        raise SystemExit("visual_quality variants do not match manifest")
+    visual_quality_counts = Counter(str(row.get("status", "")) for row in visual_quality_rows)
+    if visual_quality.get("counts") != dict(sorted(visual_quality_counts.items())):
+        raise SystemExit("visual_quality count mismatch")
     if qa_summary.get("images") != len(manifest):
         raise SystemExit("qa summary image count mismatch")
     if qa_summary.get("visible_instances", {}).get("total") != visible_instance_count:
@@ -170,6 +182,8 @@ def main() -> int:
         raise SystemExit("qa summary class count mismatch")
     if qa_summary.get("layer_audit_totals") != dict(sorted(layer_audit_totals.items())):
         raise SystemExit("qa summary layer audit totals mismatch")
+    if qa_summary.get("visual_quality", {}).get("status_counts") != dict(sorted(visual_quality_counts.items())):
+        raise SystemExit("qa summary visual_quality status count mismatch")
     hash_paths = {
         "visual": "image",
         "id": "id",
@@ -189,6 +203,8 @@ def main() -> int:
             actual_hash = sha256_file(dataset_root / manifest_row[manifest_key])
             if expected_hash != actual_hash:
                 raise SystemExit(f"qa summary hash mismatch for variant {variant} {hash_key}")
+        if detail.get("visual_quality", {}).get("status") != visual_quality_by_variant[variant].get("status"):
+            raise SystemExit(f"qa summary visual_quality status mismatch for variant {variant}")
     recipe = read_json(dataset_root / "recipe.json")
     artifact_status = recipe.get("artifact_status")
     if artifact_status not in VALID_ARTIFACT_STATUSES:
@@ -200,6 +216,10 @@ def main() -> int:
         expected = str((dataset_root / "qa" / "summary.json").relative_to(ROOT))
         if outputs["qa_summary"] != expected:
             raise SystemExit("recipe qa_summary output path mismatch")
+    if outputs.get("visual_quality"):
+        expected = str((dataset_root / "qa" / "visual_quality.json").relative_to(ROOT))
+        if outputs["visual_quality"] != expected:
+            raise SystemExit("recipe visual_quality output path mismatch")
 
     print(
         f"ok: {len(manifest)} images, {fragment_count} fragments, "
