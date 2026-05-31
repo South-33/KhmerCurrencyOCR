@@ -12,6 +12,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 VALID_ARTIFACT_STATUSES = {"smoke", "diagnostic", "trainable-candidate"}
+VALID_IGNORED_FRAGMENT_REASONS = {
+    "below_min_fragment_pixels",
+    "requires_human_review",
+    "requires_visual_audit",
+}
+REVIEW_IGNORED_FRAGMENT_REASONS = {
+    "requires_human_review",
+    "requires_visual_audit",
+}
 GEOMETRIC_POSTPROCESS_TOKENS = {
     "crop",
     "distort",
@@ -294,12 +303,12 @@ def main() -> int:
             ignore_reason = str(fragment.get("ignore_reason", "")).strip()
             if not ignore_reason:
                 raise SystemExit(f"{row['fragment_ignored_metadata']}: ignored fragment missing ignore_reason")
-            if ignore_reason not in {"below_min_fragment_pixels", "requires_human_review"}:
+            if ignore_reason not in VALID_IGNORED_FRAGMENT_REASONS:
                 raise SystemExit(f"{row['fragment_ignored_metadata']}: invalid ignore_reason {ignore_reason!r}")
             evidence_warnings = fragment.get("evidence_warnings", [])
             if not isinstance(evidence_warnings, list):
                 raise SystemExit(f"{row['fragment_ignored_metadata']}: evidence_warnings must be a list")
-            if ignore_reason == "requires_human_review" and not evidence_warnings:
+            if ignore_reason in REVIEW_IGNORED_FRAGMENT_REASONS and not evidence_warnings:
                 raise SystemExit(f"{row['fragment_ignored_metadata']}: review-ignored fragment missing evidence_warnings")
             if fragment.get("evidence_status") != "ignored":
                 raise SystemExit(f"{row['fragment_ignored_metadata']}: ignored fragment evidence_status must be ignored")
