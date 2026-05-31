@@ -222,6 +222,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 14:06 | evaluation | keep | Added `run_webgl_p1_diagnostic_pipeline.py`; real skip-render run passed the smoke suite, gated mix build, P1 readiness check, draft scoreable-label refresh, and alpha draft eval. It remains diagnostic-only because P1 readiness still reports 0 promoted real benchmark labels. |
 | 2026-05-31 14:13 | evaluation | keep | Added guarded `promote_real_benchmark_label.py`; default dry-run validates label format and scoreable quality rows, while `--confirm-reviewed --reviewed-by NAME` copies reviewed labels, updates manifests, logs hashes, renders a preview, and reruns the real benchmark check. Temp self-test promoted the 6-box draft into `.cache_runtime/` only. |
 | 2026-05-31 14:15 | evaluation | note | `check_webgl_p1_readiness.py` now reports review-ready draft image ids; current blocker is still 0 promoted labels, but `real_overlap_0003_commons_shop_5k_10k_20k` is identified as a 6-box draft candidate ready for explicit human-review promotion. |
+| 2026-05-31 14:19 | training | note | `run_webgl_p1_diagnostic_pipeline.py --train-smoke --skip-alpha-eval` passed end-to-end, including headroom tiny training; headroom paused/resumed once on CPU pressure, train CSV still reports diagnostic mAP50-95 `0.00214`, and final best-checkpoint validation printed mAP50-95 `0.00231`. |
 
 ## Current Active Assets
 
