@@ -157,8 +157,8 @@ def main() -> None:
             print(f"- ... {len(unregistered_inbox) - 20} more")
         inbox_path = repo_path(resolve(args.inbox))
         print("Register dropped photos before trusting requirement counts:")
-        print(f"lr python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent --dry-run")
-        print(f"lr python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent")
+        print(f"rl python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent --dry-run")
+        print(f"rl python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent")
     if args.json_out:
         report = {
             "inventory_rows": len(rows),
