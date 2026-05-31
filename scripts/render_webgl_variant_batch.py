@@ -53,6 +53,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scene-mode", choices=["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"], default="auto")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
     parser.add_argument(
+        "--background-bank-config",
+        type=Path,
+        default=Path("configs/synthetic_recipes/cashsnap_webgl_background_banks_v1.json"),
+        help="Review registry used to gate --background-dir usage.",
+    )
+    parser.add_argument(
         "--asset-side-policy",
         choices=["any", "front_only", "back_only", "front_back_mix"],
         default="any",
@@ -101,6 +107,25 @@ def parse_args() -> argparse.Namespace:
 def run(cmd: list[str]) -> None:
     print(" ".join(cmd), flush=True)
     subprocess.run(cmd, cwd=ROOT, check=True)
+
+
+def check_background_bank(background_dir: Path | None, artifact_status: str, config: Path) -> None:
+    if background_dir is None:
+        return
+    cmd = [
+        sys.executable,
+        "scripts/check_webgl_background_banks.py",
+        "--config",
+        str(config),
+        "--require-path",
+        str(background_dir),
+        "--artifact-status",
+        artifact_status,
+    ]
+    print(" ".join(cmd), flush=True)
+    result = subprocess.run(cmd, cwd=ROOT, check=False)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
 
 
 def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir: Path | None, args: argparse.Namespace) -> None:
@@ -1065,6 +1090,7 @@ def main() -> int:
 
     out_root = args.out_root if args.out_root.is_absolute() else ROOT / args.out_root
     out_root.mkdir(parents=True, exist_ok=True)
+    check_background_bank(args.background_dir, args.artifact_status, args.background_bank_config)
     variant_dirs: list[tuple[int, Path]] = []
 
     for variant in range(args.start_variant, args.start_variant + args.count):

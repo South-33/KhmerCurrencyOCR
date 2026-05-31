@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_webgl_background_banks_v1",
+  "description": "Review registry for WebGL table/background texture banks. Trainable-candidate renders may only use accepted banks; proof-only banks are smoke/diagnostic evidence, not production training data.",
+  "min_trainable_images": 24,
+  "banks": [
+    {
+      "id": "webgl_reviewed_clean_smoke_v1",
+      "path": "data/backgrounds/webgl_reviewed_clean_smoke_v1",
+      "review_status": "proof_only",
+      "allowed_artifact_statuses": ["smoke", "diagnostic"],
+      "review_basis": "two-image renderer smoke proof subset",
+      "blocker": "too small and low-variety for trainable background claims"
+    },
+    {
+      "id": "cashsnap_v1_no_note_patches_geom_strict_v1",
+      "path": "data/backgrounds/cashsnap_v1_no_note_patches_geom_strict_v1",
+      "review_status": "pending_review",
+      "allowed_artifact_statuses": [],
+      "review_basis": "",
+      "blocker": "needs contact-sheet review proving no note fragments or bad context leaked into the bank"
+    },
+    {
+      "id": "cashsnap_v1_no_note_patches_strict_v1",
+      "path": "data/backgrounds/cashsnap_v1_no_note_patches_strict_v1",
+      "review_status": "pending_review",
+      "allowed_artifact_statuses": [],
+      "review_basis": "",
+      "blocker": "needs contact-sheet review proving no note fragments or bad context leaked into the bank"
+    },
+    {
+      "id": "smoke_cashsnap_no_note_patches_v1",
+      "path": "data/backgrounds/smoke_cashsnap_no_note_patches_v1",
+      "review_status": "pending_review",
+      "allowed_artifact_statuses": [],
+      "review_basis": "",
+      "blocker": "historical smoke extraction requires contact-sheet review before reuse"
+    },
+    {
+      "id": "smoke_cashsnap_no_note_patches_v2",
+      "path": "data/backgrounds/smoke_cashsnap_no_note_patches_v2",
+      "review_status": "pending_review",
+      "allowed_artifact_statuses": [],
+      "review_basis": "",
+      "blocker": "historical smoke extraction requires contact-sheet review before reuse"
+    },
+    {
+      "id": "smoke_cashsnap_no_note_patches_v3",
+      "path": "data/backgrounds/smoke_cashsnap_no_note_patches_v3",
+      "review_status": "pending_review",
+      "allowed_artifact_statuses": [],
+      "review_basis": "",
+      "blocker": "historical smoke extraction requires contact-sheet review before reuse"
+    },
+    {
+      "id": "smoke_cashsnap_no_note_patches_v4",
+      "path": "data/backgrounds/smoke_cashsnap_no_note_patches_v4",
+      "review_status": "rejected",
+      "allowed_artifact_statuses": [],
+      "review_basis": "model.md notes visible hands/note fragments/grass in the contact sheet",
+      "blocker": "do not use as a clean WebGL background source"
+    }
+  ]
+}
