@@ -144,6 +144,12 @@ Check WebGL P1 transfer readiness:
 rl python scripts\check_webgl_p1_readiness.py
 ```
 
+Run the current WebGL P1 diagnostic pipeline:
+
+```powershell
+rl python scripts\run_webgl_p1_diagnostic_pipeline.py
+```
+
 Check WebGL smoke output:
 
 ```powershell
@@ -207,6 +213,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-30 21:54 | evaluation | note | Current alpha `yolo26n_cashsnap_current_thin_legacy_clean_v1_e20_i416_b8` on the scoreable shop-overlap draft tops out at 3/6 same-class and 5/6 any-class (`416/conf=0.03` or `640/conf=0.03`); use this as a local diagnostic hurdle, not a final benchmark. |
 | 2026-05-30 21:58 | evaluation | note | Added `check_webgl_p1_readiness.py`; smoke mix, real-benchmark structure, and browser manifest pass, but full P1 transfer is blocked by 0 promoted real benchmark labels (6 draft scoreable boxes remain diagnostic-only). |
 | 2026-05-31 14:00 | training | keep | `train_yolo.py`/`val_yolo.py` now normalize YOLO data YAML roots into `.cache_runtime/ultralytics_data/` before calling Ultralytics; this fixed the smoke mix path bug and a 1-epoch/2-batch headroom train completed, writing `runs/cashsnap/webgl_smoke_mix_tiny_train_probe/weights/best.pt` with diagnostic mAP50-95 `0.00214`. |
+| 2026-05-31 14:06 | evaluation | keep | Added `run_webgl_p1_diagnostic_pipeline.py`; real skip-render run passed the smoke suite, gated mix build, P1 readiness check, draft scoreable-label refresh, and alpha draft eval. It remains diagnostic-only because P1 readiness still reports 0 promoted real benchmark labels. |
 
 ## Current Active Assets
 
