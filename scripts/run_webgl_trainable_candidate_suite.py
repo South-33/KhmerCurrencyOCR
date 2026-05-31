@@ -95,6 +95,8 @@ def build_command(row: dict, args: argparse.Namespace) -> list[str]:
     ]
     if bool(row.get("allow_zero_visible")):
         cmd.append("--allow-zero-visible-trainable")
+    if str(row.get("background_dir", "")).strip():
+        cmd.extend(["--background-dir", str(row["background_dir"])])
     if args.browser_executable:
         cmd.extend(["--browser-executable", str(args.browser_executable)])
     if args.skip_render:

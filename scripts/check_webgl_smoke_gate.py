@@ -7,17 +7,10 @@ import argparse
 import json
 from pathlib import Path
 
+from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
+
 
 ROOT = Path(__file__).resolve().parents[1]
-VALID_ASSET_SIDE_POLICIES = {"any", "front_only", "back_only", "front_back_mix"}
-VALID_CAMERA_PROFILES = {
-    "generic_phone_jitter",
-    "phone_auto",
-    "iphone_8_like",
-    "iphone_12_wide_like",
-    "budget_android_wide_like",
-    "browser_upload_resized",
-}
 
 
 def parse_args() -> argparse.Namespace:
@@ -84,8 +77,8 @@ def main() -> int:
     scene_mode = args.require_scene_mode if args.require_scene_mode else (next(iter(scene_modes)) if len(scene_modes) == 1 else "mixed")
     if args.require_asset_side_policy:
         require(
-            args.require_asset_side_policy in VALID_ASSET_SIDE_POLICIES,
-            f"--require-asset-side-policy must be one of {sorted(VALID_ASSET_SIDE_POLICIES)}",
+            args.require_asset_side_policy in WEBGL_ASSET_SIDE_POLICIES,
+            f"--require-asset-side-policy must be one of {sorted(WEBGL_ASSET_SIDE_POLICIES)}",
         )
         require(
             recipe.get("asset_side_policy", "any") == args.require_asset_side_policy,
@@ -109,8 +102,8 @@ def main() -> int:
             require(int(side_counts.get("back", 0)) > 0, "front_back_mix rendered no backs")
     if args.require_camera_profile:
         require(
-            args.require_camera_profile in VALID_CAMERA_PROFILES,
-            f"--require-camera-profile must be one of {sorted(VALID_CAMERA_PROFILES)}",
+            args.require_camera_profile in WEBGL_CAMERA_PROFILES,
+            f"--require-camera-profile must be one of {sorted(WEBGL_CAMERA_PROFILES)}",
         )
         require(
             recipe.get("camera_profile", "generic_phone_jitter") == args.require_camera_profile,

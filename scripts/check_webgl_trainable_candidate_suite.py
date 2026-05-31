@@ -10,24 +10,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SUITE = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_trainable_candidates_v1.json"
 DEFAULT_CATALOG = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
 VALID_TRAIN_VIEWS = {"detect", "fragment", "obb"}
-VALID_ASSET_SIDE_POLICIES = {"any", "front_only", "back_only", "front_back_mix"}
-VALID_CAMERA_PROFILES = {
-    "generic_phone_jitter",
-    "phone_auto",
-    "iphone_8_like",
-    "iphone_12_wide_like",
-    "budget_android_wide_like",
-    "browser_upload_resized",
-    "phone_top_down_like",
-    "phone_oblique_30_like",
-    "phone_oblique_45_like",
-    "phone_low_front_like",
-}
 RUNNABLE_STATUSES = {"smoke_ready", "label_policy_ready", "diagnostic", "trainable-candidate", "promoted"}
 
 
@@ -129,6 +118,13 @@ def check_existing(row: dict, out_root: Path, train_views: list[str]) -> None:
         recipe.get("camera_profile", "generic_phone_jitter") == row["camera_profile"],
         f"{row['recipe_id']}: rendered camera_profile mismatch",
     )
+    expected_background_dir = str(row.get("background_dir", "")).replace("\\", "/")
+    if expected_background_dir:
+        rendered_background_dir = str(recipe.get("background_dir", "")).replace("\\", "/")
+        require(
+            rendered_background_dir == expected_background_dir,
+            f"{row['recipe_id']}: rendered background_dir mismatch",
+        )
     render = recipe.get("render", {})
     if isinstance(render, dict) and "visual_scale" in render:
         require(
@@ -226,8 +222,8 @@ def main() -> int:
         require(str(row["scene_mode"]) in catalog_modes, f"{recipe_id}: scene_mode {row['scene_mode']!r} is not in catalog modes {sorted(catalog_modes)}")
         asset_side_policy = str(row["asset_side_policy"])
         require(
-            asset_side_policy in VALID_ASSET_SIDE_POLICIES,
-            f"{recipe_id}: asset_side_policy must be one of {sorted(VALID_ASSET_SIDE_POLICIES)}",
+            asset_side_policy in WEBGL_ASSET_SIDE_POLICIES,
+            f"{recipe_id}: asset_side_policy must be one of {sorted(WEBGL_ASSET_SIDE_POLICIES)}",
         )
         catalog_asset_side_policy = str(catalog_row.get("asset_side_policy", "any"))
         require(
@@ -236,8 +232,8 @@ def main() -> int:
         )
         camera_profile = str(row["camera_profile"])
         require(
-            camera_profile in VALID_CAMERA_PROFILES,
-            f"{recipe_id}: camera_profile must be one of {sorted(VALID_CAMERA_PROFILES)}",
+            camera_profile in WEBGL_CAMERA_PROFILES,
+            f"{recipe_id}: camera_profile must be one of {sorted(WEBGL_CAMERA_PROFILES)}",
         )
         catalog_camera_profile = str(catalog_row.get("camera_profile", "generic_phone_jitter"))
         require(

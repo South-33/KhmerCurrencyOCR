@@ -16,6 +16,8 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CLASS_NAMES = [
@@ -64,24 +66,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--asset-side-policy",
-        choices=["any", "front_only", "back_only", "front_back_mix"],
+        choices=sorted(WEBGL_ASSET_SIDE_POLICIES),
         default="any",
         help="Constrain banknote scan side sampling for front/back confusion recipes.",
     )
     parser.add_argument(
         "--camera-profile",
-        choices=[
-            "generic_phone_jitter",
-            "phone_auto",
-            "iphone_8_like",
-            "iphone_12_wide_like",
-            "budget_android_wide_like",
-            "browser_upload_resized",
-            "phone_top_down_like",
-            "phone_oblique_30_like",
-            "phone_oblique_45_like",
-            "phone_low_front_like",
-        ],
+        choices=sorted(WEBGL_CAMERA_PROFILES),
         default="generic_phone_jitter",
         help="Select WebGL camera/FOV/framing profile.",
     )

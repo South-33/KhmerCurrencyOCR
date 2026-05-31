@@ -10,19 +10,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
 RUNNABLE_SCENE_MODES = {"auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"}
-ASSET_SIDE_POLICIES = {"any", "front_only", "back_only", "front_back_mix"}
-CAMERA_PROFILES = {
-    "generic_phone_jitter",
-    "phone_auto",
-    "iphone_8_like",
-    "iphone_12_wide_like",
-    "budget_android_wide_like",
-    "browser_upload_resized",
-}
 STATUS_TO_BATCH_STATUS = {
     "planned": "diagnostic",
     "smoke_ready": "smoke",
@@ -109,15 +102,15 @@ def parse_train_views(value: str) -> set[str]:
 
 def choose_asset_side_policy(recipe: dict, override: str) -> str:
     policy = override or str(recipe.get("asset_side_policy", "any"))
-    if policy not in ASSET_SIDE_POLICIES:
-        raise SystemExit(f"--asset-side-policy must be one of {sorted(ASSET_SIDE_POLICIES)}")
+    if policy not in WEBGL_ASSET_SIDE_POLICIES:
+        raise SystemExit(f"--asset-side-policy must be one of {sorted(WEBGL_ASSET_SIDE_POLICIES)}")
     return policy
 
 
 def choose_camera_profile(recipe: dict, override: str) -> str:
     profile = override or str(recipe.get("camera_profile", "generic_phone_jitter"))
-    if profile not in CAMERA_PROFILES:
-        raise SystemExit(f"--camera-profile must be one of {sorted(CAMERA_PROFILES)}")
+    if profile not in WEBGL_CAMERA_PROFILES:
+        raise SystemExit(f"--camera-profile must be one of {sorted(WEBGL_CAMERA_PROFILES)}")
     return profile
 
 
