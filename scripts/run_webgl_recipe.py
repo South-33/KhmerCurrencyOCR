@@ -41,10 +41,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
     parser.add_argument("--scene-mode", default="", help="Override the first runnable scene mode from the catalog.")
+    parser.add_argument("--width", type=int, default=1440)
+    parser.add_argument("--height", type=int, default=1080)
+    parser.add_argument("--visual-scale", default="2", help="Visual WebGL supersampling scale.")
     parser.add_argument("--asset-side-policy", default="", help="Override catalog asset-side sampling policy.")
     parser.add_argument("--camera-profile", default="", help="Override catalog WebGL camera/FOV/framing profile.")
     parser.add_argument("--artifact-status", choices=["smoke", "diagnostic", "trainable-candidate"], default="")
     parser.add_argument("--background-dir", type=Path, default=None)
+    parser.add_argument("--headroom-max-percent", default="90")
+    parser.add_argument("--headroom-resume-percent", default="82")
+    parser.add_argument("--headroom-max-ram-percent", default="90")
+    parser.add_argument("--headroom-max-gpu-mem-percent", default="90")
     parser.add_argument("--min-free-ram-gb", default="3")
     parser.add_argument("--preflight-timeout", default="120")
     parser.add_argument("--skip-render", action="store_true")
@@ -142,6 +149,12 @@ def main() -> int:
         str(args.count),
         "--scene-mode",
         scene_mode,
+        "--width",
+        str(args.width),
+        "--height",
+        str(args.height),
+        "--visual-scale",
+        str(args.visual_scale),
         "--asset-side-policy",
         asset_side_policy,
         "--camera-profile",
@@ -156,6 +169,14 @@ def main() -> int:
         str(recipe.get("intended_use", "")),
         "--notes",
         f"promotion_gate={recipe.get('promotion_gate', '')}; current_blocker={recipe.get('current_blocker', '')}",
+        "--headroom-max-percent",
+        args.headroom_max_percent,
+        "--headroom-resume-percent",
+        args.headroom_resume_percent,
+        "--headroom-max-ram-percent",
+        args.headroom_max_ram_percent,
+        "--headroom-max-gpu-mem-percent",
+        args.headroom_max_gpu_mem_percent,
         "--min-free-ram-gb",
         args.min_free_ram_gb,
         "--preflight-timeout",

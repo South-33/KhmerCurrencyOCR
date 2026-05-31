@@ -51,6 +51,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
     parser.add_argument("--scene-mode", choices=["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"], default="auto")
+    parser.add_argument("--width", type=int, default=1440)
+    parser.add_argument("--height", type=int, default=1080)
+    parser.add_argument("--visual-scale", default="2", help="Visual WebGL supersampling scale passed to render-smoke.mjs.")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
     parser.add_argument(
         "--background-bank-config",
@@ -151,6 +154,12 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
         str(variant),
         "--scene-mode",
         scene_mode,
+        "--width",
+        str(args.width),
+        "--height",
+        str(args.height),
+        "--visual-scale",
+        str(args.visual_scale),
         "--asset-side-policy",
         args.asset_side_policy,
         "--camera-profile",
@@ -1040,6 +1049,11 @@ def write_recipe_metadata(
             "end": args.start_variant + args.count - 1,
         },
         "scene_mode": args.scene_mode,
+        "render": {
+            "width": args.width,
+            "height": args.height,
+            "visual_scale": args.visual_scale,
+        },
         "asset_side_policy": args.asset_side_policy,
         "camera_profile": args.camera_profile,
         "background_dir": rel(args.background_dir) if args.background_dir else "",

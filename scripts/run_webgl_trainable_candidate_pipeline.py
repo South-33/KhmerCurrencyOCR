@@ -26,6 +26,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-p1-readiness", action="store_true")
     parser.add_argument("--train-smoke", action="store_true", help="Run a tiny headroom training smoke on the candidate mix.")
     parser.add_argument("--dry-run", action="store_true", help="Print commands without running them.")
+    parser.add_argument("--width", type=int, default=1440)
+    parser.add_argument("--height", type=int, default=1080)
+    parser.add_argument("--visual-scale", default="2")
+    parser.add_argument("--headroom-max-percent", default="90")
+    parser.add_argument("--headroom-resume-percent", default="82")
+    parser.add_argument("--headroom-max-ram-percent", default="90")
+    parser.add_argument("--headroom-max-gpu-mem-percent", default="90")
     parser.add_argument("--min-free-ram-gb", default="3")
     parser.add_argument("--preflight-timeout", default="120")
     return parser.parse_args()
@@ -55,6 +62,20 @@ def main() -> int:
         "scripts/run_webgl_trainable_candidate_suite.py",
         "--suite",
         suite,
+        "--width",
+        str(args.width),
+        "--height",
+        str(args.height),
+        "--visual-scale",
+        str(args.visual_scale),
+        "--headroom-max-percent",
+        args.headroom_max_percent,
+        "--headroom-resume-percent",
+        args.headroom_resume_percent,
+        "--headroom-max-ram-percent",
+        args.headroom_max_ram_percent,
+        "--headroom-max-gpu-mem-percent",
+        args.headroom_max_gpu_mem_percent,
         "--min-free-ram-gb",
         args.min_free_ram_gb,
         "--preflight-timeout",
