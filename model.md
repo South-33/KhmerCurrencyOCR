@@ -221,6 +221,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 14:00 | training | keep | `train_yolo.py`/`val_yolo.py` now normalize YOLO data YAML roots into `.cache_runtime/ultralytics_data/` before calling Ultralytics; this fixed the smoke mix path bug and a 1-epoch/2-batch headroom train completed, writing `runs/cashsnap/webgl_smoke_mix_tiny_train_probe/weights/best.pt` with diagnostic mAP50-95 `0.00214`. |
 | 2026-05-31 14:06 | evaluation | keep | Added `run_webgl_p1_diagnostic_pipeline.py`; real skip-render run passed the smoke suite, gated mix build, P1 readiness check, draft scoreable-label refresh, and alpha draft eval. It remains diagnostic-only because P1 readiness still reports 0 promoted real benchmark labels. |
 | 2026-05-31 14:13 | evaluation | keep | Added guarded `promote_real_benchmark_label.py`; default dry-run validates label format and scoreable quality rows, while `--confirm-reviewed --reviewed-by NAME` copies reviewed labels, updates manifests, logs hashes, renders a preview, and reruns the real benchmark check. Temp self-test promoted the 6-box draft into `.cache_runtime/` only. |
+| 2026-05-31 14:15 | evaluation | note | `check_webgl_p1_readiness.py` now reports review-ready draft image ids; current blocker is still 0 promoted labels, but `real_overlap_0003_commons_shop_5k_10k_20k` is identified as a 6-box draft candidate ready for explicit human-review promotion. |
 
 ## Current Active Assets
 
