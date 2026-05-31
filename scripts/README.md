@@ -42,8 +42,10 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 - `render_webgl_variant_batch.py`, `check_webgl_smoke_output.py`, `check_webgl_label_views.py`: WebGL batch render/package/QA path for detect, OBB, fragment, recipe, and QA-summary outputs.
 - `run_webgl_recipe.py`: one-command wrapper that resolves a recipe id from the WebGL recipe catalog, runs the batch packager with recipe metadata, and applies smoke gates for smoke-ready recipes.
 - `run_webgl_smoke_suite.py`: runs or repackages the configured WebGL smoke-ready recipe suite from one manifest.
+- `run_webgl_trainable_candidate_suite.py`: runs or repackages the configured WebGL trainable-candidate suite from one manifest.
 - `check_webgl_smoke_gate.py`: mode-specific smoke promotion/quarantine gate for packaged WebGL artifacts with `recipe.json`.
 - `check_webgl_trainable_candidate_gate.py`: guardrail for packaged WebGL artifacts before they enter trainable-candidate mixes.
+- `check_webgl_trainable_candidate_suite.py`: validates trainable-candidate suite structure and can gate exact rendered outputs.
 - `build_webgl_mix_yaml.py`: builds a combined YOLO data YAML from gated WebGL package outputs.
 - `check_webgl_p1_readiness.py`: runs lightweight synthetic/real/browser guard checks and reports remaining P1 transfer blockers.
 - `run_webgl_p1_diagnostic_pipeline.py`: one-command WebGL P1 diagnostic sequence for smoke suite, mix, readiness, draft-label filtering, alpha eval, and optional train smoke.

@@ -62,6 +62,7 @@ Definition of done for the synthetic pipeline:
 - [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
 - [x] Smoke-ready WebGL recipes can be run or repackaged as a single gated suite.
 - [x] Trainable-candidate WebGL artifacts have a gate for visual rejects, layer violations, selected train views, OBB rejection, and review-required fragments.
+- [x] A bounded trainable-candidate suite manifest defines recipe seed ranges, output paths, train views, intended use, and required generated QA/manifest paths.
 - [ ] Each trainable recipe has config, seed range, asset manifest, output path, QA summary, intended use, and a clear trainable-vs-diagnostic marker.
 - [ ] P1 transfer proof compares WebGL synthetic against no-synthetic and matched 2.5D baselines on clean validation, real partial/fan labels, count metrics, and browser smoke.
 - [ ] Fragment-to-physical-note fusion exists for real inference and handles split notes, repeated same-denomination notes, ambiguous backs, and count totals.
@@ -171,6 +172,14 @@ Gate a packaged WebGL trainable candidate:
 rl python scripts\check_webgl_trainable_candidate_gate.py --root data\synthetic\candidate_root --require-recipe recipe_id --train-views detect
 ```
 
+Validate the bounded WebGL trainable-candidate suite:
+
+```powershell
+rl python scripts\check_webgl_trainable_candidate_suite.py
+rl python scripts\run_webgl_trainable_candidate_suite.py --dry-run
+rl python scripts\build_webgl_mix_yaml.py --suite configs\synthetic_recipes\cashsnap_webgl_trainable_candidates_v1.json --gate-kind trainable-candidate --out configs\cashsnap_webgl_trainable_candidates_mix.yaml
+```
+
 Protect the real benchmark boundary:
 
 ```powershell
@@ -235,6 +244,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 14:24 | renderer | keep | Added deterministic WebGL visual-quality QA: packager writes `qa/visual_quality.json`, summary status counts, and visual quarantine rows; label-view QA validates the file and smoke gates require zero visual rejects. Repacked smoke suite shows all 19 smoke images accepted with no visual-quality failures. |
 | 2026-05-31 14:28 | renderer | keep | Added fragment evidence-review metadata: kept fragments now record `trainable` or `review_required` plus warning reasons for small/low-parent-fraction evidence, summaries count these statuses, and quarantine marks affected images. Repacked smoke suite flags 8 review-required fragments while keeping smoke labels intact. |
 | 2026-05-31 14:32 | harness | keep | Added `check_webgl_trainable_candidate_gate.py` and wired it into `run_webgl_recipe.py` for `artifact_status=trainable-candidate`; gate validates visual rejects, layer violations, selected train views, OBB rejection, and review-required fragments. End-to-end clean probe passed under `.cache_runtime/webgl_trainable_gate_clean`. |
+| 2026-05-31 21:39 | harness | keep | Added `cashsnap_webgl_trainable_candidates_v1` plus suite checker/runner; structural check declares 6 candidate recipes / 272 images with detect on all rows, fragment on clean+stack, and OBB only on clean. `run_webgl_trainable_candidate_suite.py --dry-run`, default smoke mix rebuild, and a one-image trainable-gated mix probe passed; actual candidate artifacts are not rendered yet. |
 
 ## Current Active Assets
 
