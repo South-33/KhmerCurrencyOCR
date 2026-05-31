@@ -21,7 +21,7 @@ This directory is intentionally script-heavy because CashSnap has a lot of histo
 - `build_proposal_review_pack.py`: create crop review packs from proposal CSVs.
 - `build_prediction_failure_review_pack.py`: turn classifier prediction failures into focused review queues.
 - `build_partial_focus_review_queue.py`: rebuild the current P1 old/common focus queue.
-- `build_benchmark_review_index.py`, `render_yolo_label_preview.py`, `evaluate_real_draft_labels.py`: benchmark labeling helpers. Never train on `data/real_fan_benchmark/`.
+- `build_benchmark_review_index.py`, `render_yolo_label_preview.py`, `evaluate_real_draft_labels.py`, `promote_real_benchmark_label.py`: benchmark labeling helpers. Never train on `data/real_fan_benchmark/`.
 
 ## Fragment Classifier
 
