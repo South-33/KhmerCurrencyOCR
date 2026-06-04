@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "cashsnap_webgl_trainable_candidates_v1",
-  "description": "Bounded first-pass WebGL trainable-candidate suite. These artifacts are candidates for controlled P1 comparisons, not promoted production training data.",
+  "description": "Bounded first-pass WebGL trainable-candidate suite. These active artifacts are candidates for controlled P1 comparisons, not promoted production training data; rejected probe artifacts stay in the recipe catalog and model.md.",
   "artifact_status": "trainable-candidate",
   "mix_output": "configs/cashsnap_webgl_trainable_candidates_mix.yaml",
   "recipes": [

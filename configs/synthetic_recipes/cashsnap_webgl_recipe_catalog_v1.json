@@ -16,6 +16,28 @@
       "current_blocker": "Needs real-gated clean-replay dose test before entering trainable mixes."
     },
     {
+      "id": "webgl_clean_closeup_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes"],
+      "artifact_status": "rejected_probe",
+      "scene_modes": ["clean_single"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_closeup_clean_like",
+      "intended_use": "Close-up single-note clean replay matched to CashSnap clean val/test framing.",
+      "promotion_gate": "improves or preserves clean cashsnap_v1 validation/test under the real-only ablation gate",
+      "current_blocker": "Strict real-only ablation failed: test mAP50-95 0.823222 vs 0.835861 real-only (delta -0.012639), led by KHR_50000 geometry and small USD drops."
+    },
+    {
+      "id": "webgl_clean_closeup_v2",
+      "target_condition_ids": ["clean_single_or_separated_notes"],
+      "artifact_status": "rejected_probe",
+      "scene_modes": ["clean_single"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_closeup_clean_like",
+      "intended_use": "Geometry-repaired close-up single-note clean replay with KHR in-plane rotation narrowed to match held-out AABB aspect/area.",
+      "promotion_gate": "improves or preserves clean cashsnap_v1 validation/test under the real-only ablation gate",
+      "current_blocker": "Strict real-only ablation still failed after KHR rotation repair: test mAP50-95 0.821181 vs 0.835861 real-only (delta -0.014680), worst KHR_2000 and KHR_50000."
+    },
+    {
       "id": "webgl_overlap_stack_v1",
       "target_condition_ids": ["loose_counter_stack_overlap", "dense_shop_overlap"],
       "artifact_status": "smoke_ready",

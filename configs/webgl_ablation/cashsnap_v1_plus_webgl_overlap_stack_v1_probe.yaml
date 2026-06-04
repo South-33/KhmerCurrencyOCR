@@ -1,5 +1,5 @@
-path: ..
-train: configs/generated_lists/cashsnap_v1_plus_webgl_trainable_candidates_probe_train.txt
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_v1_plus_webgl_overlap_stack_v1_probe_train.txt
 val: data/cashsnap_v1/images/val
 test: data/cashsnap_v1/images/test
 names:
@@ -19,31 +19,31 @@ names:
 cashsnap_sources:
   source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
   always_include_prefixes:
-  - data/synthetic/
+  - data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1/
   target_exclude_prefixes:
   - data/synthetic/
 cashsnap_subset_policy:
   per_class_real_target: 24
   background_target: 24
-  always_included_images: 304
-  target_excluded_images: 0
-  selected_images: 621
-  selected_backgrounds: 56
+  always_included_images: 64
+  target_excluded_images: 272
+  selected_images: 381
+  selected_backgrounds: 24
   selected_target_backgrounds: 24
   selected_class_images:
-    USD_1: 131
-    USD_5: 93
-    USD_10: 88
-    USD_20: 91
-    USD_50: 90
-    USD_100: 87
-    KHR_500: 145
-    KHR_1000: 130
-    KHR_2000: 89
-    KHR_5000: 151
-    KHR_10000: 119
-    KHR_20000: 158
-    KHR_50000: 82
+    USD_1: 46
+    USD_5: 46
+    USD_10: 45
+    USD_20: 47
+    USD_50: 46
+    USD_100: 46
+    KHR_500: 45
+    KHR_1000: 46
+    KHR_2000: 45
+    KHR_5000: 46
+    KHR_10000: 45
+    KHR_20000: 37
+    KHR_50000: 37
   selected_target_class_images:
     USD_1: 24
     USD_5: 24

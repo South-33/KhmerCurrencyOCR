@@ -87,8 +87,8 @@ if (!Number.isInteger(MIN_VISIBLE_PIXELS) || MIN_VISIBLE_PIXELS < 1) {
   throw new Error("--min-visible-pixels must be a positive integer");
 }
 
-if (!["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"].includes(SCENE_MODE)) {
-  throw new Error("--scene-mode must be one of: auto, clean, negative, stack, fan, thin_edge, hand_occlusion, qa3");
+if (!["auto", "clean", "clean_single", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"].includes(SCENE_MODE)) {
+  throw new Error("--scene-mode must be one of: auto, clean, clean_single, negative, stack, fan, thin_edge, hand_occlusion, qa3");
 }
 
 if (!["any", "front_only", "back_only", "front_back_mix"].includes(ASSET_SIDE_POLICY)) {
@@ -102,12 +102,13 @@ if (![
   "iphone_12_wide_like",
   "budget_android_wide_like",
   "browser_upload_resized",
+  "phone_closeup_clean_like",
   "phone_top_down_like",
   "phone_oblique_30_like",
   "phone_oblique_45_like",
   "phone_low_front_like",
 ].includes(CAMERA_PROFILE)) {
-  throw new Error("--camera-profile must be one of: generic_phone_jitter, phone_auto, iphone_8_like, iphone_12_wide_like, budget_android_wide_like, browser_upload_resized, phone_top_down_like, phone_oblique_30_like, phone_oblique_45_like, phone_low_front_like");
+  throw new Error("--camera-profile must be one of: generic_phone_jitter, phone_auto, iphone_8_like, iphone_12_wide_like, budget_android_wide_like, browser_upload_resized, phone_closeup_clean_like, phone_top_down_like, phone_oblique_30_like, phone_oblique_45_like, phone_low_front_like");
 }
 
 const effectiveSceneMode = SCENE_MODE === "auto" ? (VARIANT >= 100 ? "fan" : "stack") : SCENE_MODE;
@@ -209,6 +210,17 @@ const CAMERA_PROFILES = {
     lookAtX: [-0.05, 0.05],
     lookAtY: [-0.03, 0.05],
   },
+  phone_closeup_clean_like: {
+    source: "cashsnap_domain_gap_audit_v1",
+    weight: 0.0,
+    targetResolution: [1440, 1080],
+    fov: [40, 54],
+    positionX: [-0.10, 0.10],
+    positionY: [-0.30, -0.06],
+    positionZ: [1.45, 1.70],
+    lookAtX: [-0.05, 0.05],
+    lookAtY: [-0.03, 0.05],
+  },
   phone_top_down_like: {
     source: "cashsnap_viewpoint_v1",
     weight: 0.20,
@@ -293,7 +305,7 @@ function cameraViewAngles(position, lookAt) {
 }
 
 function sceneConfig(variant, mode, backgroundPath) {
-  const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : mode === "hand_occlusion" ? 6007 : 0;
+  const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "clean_single" ? 2309 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : mode === "hand_occlusion" ? 6007 : 0;
   const rng = mulberry32(26058003 + variant * 191 + modeOffset);
   const cameraProfile = chooseCameraProfile(rng, CAMERA_PROFILE);
   const cameraPosition = [
@@ -307,14 +319,22 @@ function sceneConfig(variant, mode, backgroundPath) {
     0,
   ];
   const cameraAngles = cameraViewAngles(cameraPosition, cameraLookAt);
-  const surfaces = [
+  const defaultSurfaces = [
     { name: "warm_wood", base: "#9b784a", light: "#fff2d6", dark: "#231810", scene: "#9b927d", repeat: [2.5, 2.0] },
     { name: "gray_counter", base: "#827f77", light: "#dedbd2", dark: "#3a3834", scene: "#86837b", repeat: [1.8, 1.8] },
     { name: "green_plastic_mat", base: "#456f5b", light: "#b7d8c5", dark: "#1c3229", scene: "#506f61", repeat: [2.0, 1.7] },
     { name: "blue_shop_table", base: "#566f83", light: "#d6e4ef", dark: "#25323b", scene: "#627487", repeat: [2.1, 1.9] },
     { name: "dark_laminate", base: "#51473c", light: "#b5a28a", dark: "#1f1a15", scene: "#5a5147", repeat: [2.8, 2.2] },
   ];
+  const cleanSingleSurfaces = [
+    { name: "off_white_counter", base: "#c8c5ba", light: "#fffdf2", dark: "#77736a", scene: "#cfcbc0", repeat: [1.9, 1.7] },
+    { name: "pale_shop_tile", base: "#bbb8ad", light: "#f7f5ea", dark: "#6f6b62", scene: "#c5c1b6", repeat: [2.2, 2.2] },
+    { name: "light_gray_table", base: "#aaa9a2", light: "#efeee7", dark: "#62615b", scene: "#b6b5ae", repeat: [2.0, 1.8] },
+    { name: "cool_countertop", base: "#aeb7b5", light: "#edf3ef", dark: "#68716f", scene: "#bbc4c2", repeat: [1.8, 1.8] },
+  ];
+  const surfaces = mode === "clean_single" ? cleanSingleSurfaces : defaultSurfaces;
   const surface = surfaces[randomInt(rng, surfaces.length)];
+  const cleanSingle = mode === "clean_single";
   return {
     surface: {
       ...surface,
@@ -350,13 +370,13 @@ function sceneConfig(variant, mode, backgroundPath) {
       ],
     },
     postprocess: {
-      contrast: randomBetween(rng, 1.00, 1.07),
-      saturation: randomBetween(rng, 0.90, 1.07),
-      brightness: randomBetween(rng, 0.96, 1.05),
-      focusBlurPx: rng() < 0.68 ? randomBetween(rng, 0.05, 0.32) : 0,
-      grainStrength: randomBetween(rng, 24, 46),
-      grainAlpha: randomBetween(rng, 14, 30),
-      vignette: randomBetween(rng, 42, 78),
+      contrast: cleanSingle ? randomBetween(rng, 1.06, 1.14) : randomBetween(rng, 1.00, 1.07),
+      saturation: cleanSingle ? randomBetween(rng, 1.25, 1.45) : randomBetween(rng, 0.90, 1.07),
+      brightness: cleanSingle ? randomBetween(rng, 0.92, 1.00) : randomBetween(rng, 0.96, 1.05),
+      focusBlurPx: rng() < (cleanSingle ? 0.15 : 0.68) ? randomBetween(rng, cleanSingle ? 0.01 : 0.05, cleanSingle ? 0.06 : 0.32) : 0,
+      grainStrength: randomBetween(rng, cleanSingle ? 42 : 24, cleanSingle ? 70 : 46),
+      grainAlpha: randomBetween(rng, cleanSingle ? 20 : 14, cleanSingle ? 36 : 30),
+      vignette: randomBetween(rng, cleanSingle ? 18 : 42, cleanSingle ? 44 : 78),
     },
   };
 }
@@ -489,6 +509,7 @@ function variantAssets(variant) {
   if (effectiveSceneMode === "fan") return fanAssets(variant);
   if (effectiveSceneMode === "thin_edge") return thinEdgeAssets(variant);
   if (effectiveSceneMode === "hand_occlusion") return handOcclusionAssets(variant);
+  if (effectiveSceneMode === "clean_single") return cleanSingleAssets(variant);
   if (effectiveSceneMode === "clean") return cleanAssets(variant);
   if (variant === 0 && ASSET_SIDE_POLICY === "any") return baseAssets.map(annotateAsset);
   if (variant === 0) return baseAssets.map((asset, index) => enrichAsset(asset, variant, index));
@@ -536,7 +557,7 @@ function variantAssets(variant) {
 function variantOccluders(variant) {
   if (effectiveSceneMode === "negative") return negativeOccluders(variant);
   if (effectiveSceneMode === "qa3") return [];
-  if (effectiveSceneMode === "clean") return [];
+  if (effectiveSceneMode === "clean" || effectiveSceneMode === "clean_single") return [];
   if (effectiveSceneMode === "fan") return fanOccluders(variant);
   if (effectiveSceneMode === "thin_edge") return thinEdgeOccluders(variant);
   if (effectiveSceneMode === "hand_occlusion") return handOcclusionOccluders(variant);
@@ -593,6 +614,50 @@ function cleanAssets(variant) {
       clean: true,
     }, variant, index);
   });
+}
+
+function cleanSingleAssets(variant) {
+  const rng = mulberry32(26055291 + variant * 157);
+  const classIndex = classIndexFor(variant, 0);
+  const className = CLASS_NAMES[classIndex];
+  const zRange = cleanSingleZRangeForClass(className);
+  return [
+    enrichAsset({
+      ...baseAssets[0],
+      classIndex,
+      className,
+      idColor: INSTANCE_ID_COLORS[0],
+      physicalWidthMm: PHYSICAL_WIDTH_MM[className],
+      position: [
+        randomBetween(rng, -0.035, 0.035),
+        randomBetween(rng, -0.030, 0.030),
+        0.045,
+      ],
+      rotation: [
+        randomBetween(rng, -0.035, 0.055),
+        randomBetween(rng, -0.055, 0.055),
+        randomBetween(rng, zRange[0], zRange[1]),
+      ],
+      curl: 0.026 + randomBetween(rng, -0.006, 0.010),
+      ripple: 0.0,
+      roughness: randomBetween(rng, 0.76, 0.90),
+      layer: 0,
+      cleanSingle: true,
+    }, variant, 0),
+  ];
+}
+
+function cleanSingleZRangeForClass(className) {
+  const khrRanges = {
+    KHR_500: [-0.12, 0.12],
+    KHR_2000: [-0.34, 0.34],
+    KHR_5000: [-0.22, 0.22],
+    KHR_1000: [-0.42, 0.42],
+    KHR_10000: [-0.12, 0.12],
+    KHR_20000: [-0.24, 0.24],
+    KHR_50000: [-0.20, 0.20],
+  };
+  return khrRanges[className] || [-0.62, 0.62];
 }
 
 function qa3Assets(variant) {

@@ -147,7 +147,7 @@ def main() -> int:
         require(fragments == 0, "negative smoke must have zero fragments")
         require(ignored == 0, "negative smoke must have zero ignored fragments")
         require(rejected_obb == 0, "negative smoke should not quarantine OBB images")
-    elif scene_mode == "clean":
+    elif scene_mode in {"clean", "clean_single"}:
         require(visible > 0, "clean smoke must expose banknotes")
         require(fragments == visible, "clean smoke should have one fragment per visible instance")
         require(split_parents == 0, "clean smoke should not split parents")

@@ -28,9 +28,6 @@ data/inbox/
 
 # Training runs and experiment outputs
 runs/
-results.tsv
-experiments.tsv
-run.log
 
 # Scratch / temp
 tmp/
@@ -64,9 +61,6 @@ Thumbs.db
 .vscode/
 *.swp
 
-# LongRun CLI files
-.agent/
-LONGRUN.md
 
 # Local datasets and untracked files
 data/deprecated/
@@ -75,4 +69,5 @@ debug.log
 presentation.html
 
 # RunLong CLI files
+.agent/
 RUNLONG.md

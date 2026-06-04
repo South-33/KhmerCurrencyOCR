@@ -18,16 +18,15 @@ The active direction is a small detector plus fragment/evidence handling:
 
 Synthetic data is being built as a controlled experiment generator, not as a shortcut around real validation. Any synthetic recipe must improve real partial/fan benchmarks before it can be promoted.
 
-## Repository Map
+## Repository Shape
 
-- `model.md` is the main working memory: active plan, current results, data ranking, commands, and known failure modes.
-- `AGENTS.md` contains short project rules for future coding agents.
-- `configs/` contains active dataset, target, recipe, and renderer-proof configs.
-- `scripts/` contains data prep, synthetic rendering, QA, training, export, and evaluation utilities.
-- `renderers/webgl/` contains the Three.js/Edge synthetic renderer proof.
-- `docs/` is reference/archive material, not the active plan.
+The project intentionally keeps its active written memory small:
 
-Most datasets, generated synthetic images, model weights, and run outputs are intentionally git-ignored.
+- `README.md` is the user-facing overview.
+- `AGENTS.md` is the short project entry note for coding agents.
+- `model.md` is the working brain for current model direction, trusted assets, known blockers, and durable results.
+
+Most datasets, generated synthetic images, model weights, caches, and run outputs are intentionally git-ignored.
 
 ## Synthetic Pipeline
 
@@ -42,15 +41,6 @@ The current WebGL pipeline can render banknote scenes through local Microsoft Ed
 - per-batch `qa/summary.json`
 - per-batch `recipe.json`
 
-Important checks:
-
-```powershell
-rl python scripts\check_synthetic_recipe_catalog.py
-rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_smoke --count 4 --skip-render
-```
-
-Long or heavy jobs should run through the headroom wrappers so the laptop remains usable.
-
 ## Quick Start
 
 This repo is developed on Windows with Python and Node tooling. Prefer `pnpm` for Node work.
@@ -60,10 +50,9 @@ python -m pip install -r requirements.txt
 cd renderers\webgl
 pnpm install
 cd ..\..
-rl python scripts\check_synthetic_recipe_catalog.py
 ```
 
-For model training or larger rendering jobs, read `model.md` first and use the listed headroom-safe commands.
+For active model work, read `model.md` first. Long rendering or training jobs should use the repo headroom wrappers so the laptop remains usable.
 
 ## Public Data Note
 

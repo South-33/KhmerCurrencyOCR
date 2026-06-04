@@ -15,7 +15,7 @@ from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
-RUNNABLE_SCENE_MODES = {"auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"}
+RUNNABLE_SCENE_MODES = {"auto", "clean", "clean_single", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"}
 STATUS_TO_BATCH_STATUS = {
     "planned": "diagnostic",
     "smoke_ready": "smoke",

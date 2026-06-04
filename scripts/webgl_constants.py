@@ -12,6 +12,7 @@ WEBGL_CAMERA_PROFILES = {
     "iphone_12_wide_like",
     "budget_android_wide_like",
     "browser_upload_resized",
+    "phone_closeup_clean_like",
     "phone_top_down_like",
     "phone_oblique_30_like",
     "phone_oblique_45_like",

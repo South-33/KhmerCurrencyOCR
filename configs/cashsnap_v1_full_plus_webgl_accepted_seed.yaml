@@ -1,0 +1,64 @@
+path: ..
+train: configs/generated_lists/cashsnap_v1_full_plus_webgl_accepted_seed_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes:
+  - data/synthetic/cashsnap_webgl_clean_base_candidate_v1/
+  - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/
+  - data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/
+  - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/
+  target_exclude_prefixes:
+  - data/synthetic/
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  include_all_target_images: true
+  always_included_images: 128
+  target_excluded_images: 176
+  selected_images: 14164
+  selected_backgrounds: 6950
+  selected_target_backgrounds: 6918
+  selected_class_images:
+    USD_1: 642
+    USD_5: 771
+    USD_10: 1020
+    USD_20: 905
+    USD_50: 926
+    USD_100: 990
+    KHR_500: 295
+    KHR_1000: 633
+    KHR_2000: 168
+    KHR_5000: 636
+    KHR_10000: 356
+    KHR_20000: 62
+    KHR_50000: 31
+  selected_target_class_images:
+    USD_1: 625
+    USD_5: 753
+    USD_10: 1005
+    USD_20: 889
+    USD_50: 910
+    USD_100: 974
+    KHR_500: 260
+    KHR_1000: 617
+    KHR_2000: 153
+    KHR_5000: 598
+    KHR_10000: 310
+    KHR_20000: 14
+    KHR_50000: 15

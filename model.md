@@ -10,80 +10,67 @@ Counterfeit detection is out of scope.
 
 ## Current North Star
 
-Active bet: make synthetic data generation good enough to be the scaling unit.
+Active bet: make synthetic data generation good enough to be the scaling unit, but judge it only by real partial/fan transfer.
 
-Current phase: 3D synthetic-pipeline reset before the next training push.
+Current phase: WebGL synthetic generation is mechanically auditable, but the first full-real + accepted-synthetic scale seeds are rejected. The factory is good enough to run controlled experiments; the training mix/curriculum is not yet safe enough to scale into the actual model build. The strongest next evidence is a full-real real-only curriculum control, rare-class-safe sampler proof, and scoreable real fan/overlap labels.
 
 Current model direction after split-label QA: keep the lightweight detector path for clean/mostly-visible notes, add a fragment/evidence detector or classifier path for partial OCR/denomination cues, then fuse fragments into physical-note counts. Do not treat OBB as the primary hard-fan solution; use OBB only for compact visible instances where the rotated box is honest.
 
-Do not start another training run until the P0 renderer smoke proof can produce:
+Training-smoke results prove the harness, not model quality. The renderer/package contract now exists; the missing evidence is scoreable real fan/overlap stress labels for P1 transfer proof.
 
-- plausible phone-like visual renders
-- exact ID-pass visible masks
-- visible-only detect boxes and OBB boxes
-- metadata rows
-- contact sheets and mask overlays
-- deterministic reruns from a seed
+Latest model comparison: the old 621-image accepted-WebGL blend remains rejected (`0.810` held-out clean test mAP50-95 vs `0.884` clean checkpoint). A stricter 445-image blend of individually accepted WebGL recipes passes the matched real-only clean-test gate (`0.836855` vs `0.835861`, delta `+0.000994`), but fails the per-class guard on `KHR_2000` (`-0.052433`). When seeded into the full clean-real training mix it regresses badly: uncapped accepted synthetic tests at `0.807251` vs `0.883801` clean checkpoint (delta `-0.076550`), and capped synthetic dose tests at `0.785412` (delta `-0.098389`). Treat the accepted blend as ablation evidence only, not a scale target.
 
-2.5D remains useful as a matched baseline and fallback, but the next main effort is the 3D renderer proof.
+2.5D remains useful as a matched baseline and fallback, but WebGL synthetic is the main candidate path.
 
 Label policy: exact visible masks/ID colors are authoritative. Detect AABBs are compatibility labels for detect-only probes; OBB labels are useful only when the visible mask is compact enough that a rotated rectangle does not cover large hidden regions. Fragment labels mean visible connected evidence components, not physical bill counts. If one physical bill is visible as disconnected islands, keep it one counted instance in mask metadata, skip/flag unsafe OBB, and use fragment labels plus downstream fusion rather than projecting a hidden-paper box. Barely visible fragments should get a denomination label only when a human can identify the denomination from visible evidence; otherwise use ignore/unknown instead of forcing a guess.
 
-## Synthetic Data Completion Plan
+## Promising Next Moves
 
-Goal: make synthetic data a controlled experiment generator, not just an image generator. A future model failure should map to a specific missing condition, label issue, domain gap, training mix, or fusion bug instead of the vague answer "we need better data."
+The best-supported path right now is a scoreable P1 transfer test:
 
-Definition of done for the synthetic pipeline:
+1. Promote or capture rights-clean real fan/overlap stress labels, especially `KHR_5000` face+number overlaps and `KHR_20000` thin/edge backs.
+2. Run a full-real real-only curriculum control and rare-class-safe sampler check before any more synthetic scale. Keep `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` as bounded ablation evidence only; do not use the full-real accepted-synthetic seed or close-up v1/v2, overlap, fan, or hand recipes as scale targets from the current gates.
+3. Probe fragment-to-physical-note fusion once the evaluation set can expose whether fragment evidence helps or just overcounts.
+4. Promote synthetic changes when they improve the real scoreboard without materially regressing clean/base validation or browser deploy guards.
 
-- [x] Real-target matrix exists: required photo conditions, parked conditions, scoreable benchmark slices, and success metrics are named in `configs/synthetic_targets/cashsnap_real_target_matrix_v1.json`.
-- [x] Asset bank is audited by class, side, design generation, circulation priority, source, license/usage status, alpha quality, dimensions, and visual QA.
-- [x] Numista cutout audit writes `audit/summary.json` with class counts, front/back coverage, source-status counts, year ranges, suspect flags, and audit output paths.
-- [ ] Scene generator covers normal notes, loose stacks, dense overlap, fans, partial edges, repeated denominations, front/back mixes, hand/finger occlusion, reviewed backgrounds, and phone-like framing.
-- [ ] Camera and postprocess profiles are derived from real captures where possible: lens/FOV, perspective, crop, blur, noise, compression, exposure, white balance, glare, and lighting.
-- [x] Label truth separates physical parents from visible fragments and exports exact ID masks plus visible-only detect labels.
-- [x] OBB labels are audited and rejected when the visible mask is fragmented or too loose for an honest rotated rectangle.
-- [x] Fragment/evidence labels are exported separately from physical count truth.
-- [x] Below-threshold visible fragments are recorded as ignored metadata instead of forced training labels.
-- [x] Kept fragment labels carry `trainable` vs `review_required` evidence metadata so small/low-fraction fragments are visible to promotion gates.
-- [x] Ambiguous human-unidentifiable fragments have a full ignore/unknown policy beyond the current pixel threshold.
-- [x] Label transforms remain exact after any crop, resize, distortion, or other geometric postprocess.
-- [x] Batch QA writes a machine-readable summary for class balance, visible area, fragment counts, fragments per parent, OBB rejection reasons, layer-audit totals, and deterministic file hashes.
-- [x] Batch QA writes detect and fragment preview overlays under `qa/previews/` and validates their existence.
-- [x] Batch QA writes visual+ID mask overlays under `qa/previews/` and validates their existence.
-- [x] Batch QA writes `qa/quarantine.json` for trainable-view exclusions and ignored below-threshold fragment components.
-- [x] Batch QA writes `qa/contact_index.json` mapping contact-sheet cells back to variants.
-- [x] Batch QA writes deterministic visual-quality metrics and smoke gates reject blank/exposure-failed artifacts.
-- [x] Smoke artifacts have mode-specific promotion/quarantine gates that run from the recipe wrapper.
-- [x] Hard-negative scene mode emits valid zero-box/zero-fragment packages with empty YOLO labels and full smoke QA.
-- [x] Thin-edge scene mode emits visible sliver packages with card/paper occluders and records unsafe OBB/fragment exclusions.
-- [x] Broader hand-occlusion scene mode emits multi-finger split-fragment packages and quarantines unsafe OBB views.
-- [x] Full visual QA suite includes realism snapshots and bad-scene audit rules beyond deterministic blankness/exposure gates.
-- [x] Named synthetic recipe slots exist for clean/base, overlap, fan, hand occlusion, thin-edge partials, back-side confusion, rare-class support, hard negatives, and calibration mixes in `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`.
-- [x] Batch outputs include `recipe.json` with recipe name, smoke/diagnostic/trainable-candidate status, variant seed range, intended use, checks, outputs, and trainability policy.
-- [x] Smoke-ready WebGL recipes can be run or repackaged as a single gated suite.
-- [x] Trainable-candidate WebGL artifacts have a gate for visual rejects, layer violations, selected train views, OBB rejection, and review-required fragments.
-- [x] A bounded trainable-candidate suite manifest defines recipe seed ranges, output paths, train views, intended use, and required generated QA/manifest paths.
-- [x] Each trainable recipe has config, seed range, asset manifest, output path, QA summary, intended use, and a clear trainable-vs-diagnostic marker.
-- [ ] P1 transfer proof compares WebGL synthetic against no-synthetic and matched 2.5D baselines on clean validation, real partial/fan labels, count metrics, and browser smoke.
-- [ ] Fragment-to-physical-note fusion exists for real inference and handles split notes, repeated same-denomination notes, ambiguous backs, and count totals.
-- [ ] Operations are one-command reproducible: render, QA/package, train under headroom, evaluate clean/real/browser guards, and clean scratch outputs.
-- [ ] Promotion rules require real-scoreboard improvement, clean-validation guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
+Current evidence gap: P1 transfer has 0 promoted real fan/overlap stress labels. Public/raw candidates are useful diagnostics, but not scoreable substitutes.
 
-Current completion status: the first bounded WebGL trainable-candidate suite is refreshed at 1440x1080 with `visual_scale: 1`, rendered, gated, visually accepted, and train-smoke proven under headroom. Its mix YAML validates as 304 images / 1160 boxes, packages export physical count targets separate from fragment evidence, and the sampled 84-row visual audit pack is accepted by Codex contact-sheet review. One visible-denomination/mild-overlap sanity label is promoted by Codex visual audit, but P1 transfer remains blocked by 0 promoted real fan/overlap stress labels; current public/raw candidates are useful diagnostics only, not scoreable P1 substitutes.
+## Synthetic Pipeline State
 
-## Work Loop
+Goal: make synthetic data a controlled experiment generator, not just an image generator. A future failure should map to a missing condition, label issue, domain gap, training mix, or fusion bug instead of "we need better data."
 
-1. Read this file.
-2. Check git status.
-3. Work only on the current bottleneck.
-4. Run bounded checks.
-5. Update this file when a result changes the plan.
-6. Commit coherent durable changes, not every tiny scratch edit.
-7. Record durable experiment results in the result ledger below; do not rely on sidecar ledgers as project memory.
+Done and trusted:
 
-Heavy CPU/RAM/GPU work must go through a headroom wrapper. Never train directly when a safe wrapper exists.
+- Real-target matrix and WebGL recipe catalog map required conditions, promotion gates, and blockers.
+- Numista in-circulation cutout bank is the canonical clean asset source for now.
+- WebGL packages separate physical parents from visible fragments, export exact ID masks, visible-only detect labels, guarded OBB labels, fragment labels, ignored-fragment metadata, preview overlays, contact indexes, quarantine metadata, and deterministic QA hashes.
+- Smoke/trainable-candidate gates cover visual rejects, layer violations, selected train views, unsafe OBB exclusions, review-required fragments, and blank/exposure failures.
+- The first bounded WebGL trainable-candidate suite is refreshed at 1440x1080 with `visual_scale: 1`, visually accepted, and train-smoke proven under headroom. Its active mix validates as 304 images / 1160 boxes; rejected probes stay cataloged but out of `cashsnap_webgl_trainable_candidates_v1`.
+- Recipe-isolated WebGL ablation configs now exist under `configs/webgl_ablation/` with train lists under `configs/generated_lists/webgl_ablation/`; use these before scaling blended synthetic again.
+- `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` is the current bounded accepted-blend ablation: global clean-test transfer passes matched real-only by `+0.000994` mAP50-95, but its `KHR_2000` per-class drop blocks blind scale.
+- `scripts/build_yolo_balanced_subset.py --always-max-per-class` can cap labeled always-included synthetic dose per class; this is useful tooling, but the capped full-real accepted seed is also rejected and should not be promoted.
 
-Harnesses are configurable working tools, not permanent doctrine. If a harness, config, or workflow creates friction, hides a bad assumption, or slows the path to a better model, inspect it and improve it instead of working around it forever.
+Still missing:
+
+- Scoreable real fan/overlap labels for P1 transfer.
+- Real-derived camera/postprocess profiles from CashSnap captures and EXIF.
+- A fragment-to-physical-note fusion path for real inference.
+- Accepted trainable real background banks.
+- A `KHR_2000`/`KHR_50000`-safe accepted blend or a justified per-class tolerance for rare-class test variance.
+- A full-real real-only curriculum control before another synthetic scale attempt.
+- End-to-end promotion rules that combine real-scoreboard improvement, clean-validation/test guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
+
+## Operating Principle
+
+Use this file as context, not a cage. Any agent should pursue the path that best advances reliable CashSnap counting, including changing harnesses, configs, scripts, or strategy when the current setup slows the goal or encodes a bad assumption.
+
+Update this file only when something becomes durable working memory: a decision, a trusted/rejected data source, a result that changes what to run next, or a cleanup rule that prevents future wasted effort. Do not record every passing command or scratch experiment.
+
+## Practical Constraints
+
+This is a laptop workflow, so keep heavy CPU/RAM/GPU work behind a headroom wrapper when practical. If the wrapper or a harness gets in the way of a better experiment, improve the harness instead of treating it as doctrine.
+
+Default repo posture: work on `master`/mainline, keep generated YOLO/training outputs under repo-local ignored `runs/`, and treat `results.tsv` only as deprecated scratch rather than project memory.
 
 ## Local Machine Profile
 
@@ -98,119 +85,19 @@ Harnesses are configurable working tools, not permanent doctrine. If a harness, 
 - `scripts/bench_train_with_headroom.py` dry-run currently selects `batch=2`, `workers=0` on this laptop and passes `--min-free-ram-gb 4.0` to the live wrapper.
 - Balance speed and headroom. Prefer GPU for training/inference when it is the faster engine and has room, but do not force GPU for CPU-native prep/rendering if the headroom wrapper keeps the laptop responsive.
 
-## Active Commands
+## Command Posture
 
-Validate active 3D configs:
+Do not let this file become a command catalog. Keep only the few commands that express the current model decision; script discovery and older workflows belong in the code, CLI help, or archived notes.
 
-```powershell
-rl python scripts\validate_3d_pipeline_config.py configs\3d_pipeline\proof_p0_renderer_smoke.json configs\3d_pipeline\proof_p1_transfer.json
-```
+Current useful checks:
 
-Validate synthetic target/recipe coverage:
+- P1 readiness: `rl python scripts\check_webgl_p1_readiness.py --smoke-mix configs\cashsnap_webgl_trainable_candidates_mix.yaml`
+- Trainable-candidate dry run: `rl python scripts\run_webgl_trainable_candidate_pipeline.py --dry-run --train-smoke`
+- Real benchmark boundary: `rl python scripts\check_real_fan_benchmark.py`
+- Capture gaps: `rl python scripts\check_capture_requirements.py`
+- Training wrapper dry run: `rl python scripts\bench_train_with_headroom.py --data configs\cashsnap_v1.yaml --name dry_run --dry-run --quiet`
 
-```powershell
-rl python scripts\check_synthetic_recipe_catalog.py
-```
-
-Render P0 proof scenes:
-
-```powershell
-rl python scripts\render_3d_pipeline_probe.py --config configs\3d_pipeline\proof_p0_renderer_smoke.json --clean
-```
-
-Render the minimal WebGL proof:
-
-```powershell
-rl python scripts\run_with_headroom.py --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 --min-free-ram-gb 3 --preflight-timeout 120 -- node renderers\webgl\src\render-smoke.mjs
-```
-
-Run a named WebGL synthetic recipe:
-
-```powershell
-rl python scripts\run_webgl_recipe.py --recipe-id webgl_clean_base_v1 --count 3 --min-free-ram-gb 2
-```
-
-Run the gated WebGL smoke suite:
-
-```powershell
-rl python scripts\run_webgl_smoke_suite.py --skip-render
-```
-
-Build the gated smoke-suite YOLO mix:
-
-```powershell
-rl python scripts\build_webgl_mix_yaml.py --out configs\cashsnap_webgl_smoke_suite_mix.yaml
-```
-
-Check WebGL P1 transfer readiness:
-
-```powershell
-rl python scripts\check_webgl_p1_readiness.py
-```
-
-Run the current WebGL P1 diagnostic pipeline:
-
-```powershell
-rl python scripts\run_webgl_p1_diagnostic_pipeline.py
-```
-
-Check WebGL smoke output:
-
-```powershell
-rl python scripts\check_webgl_smoke_output.py --out-dir data\synthetic\cashsnap_webgl_smoke
-```
-
-Gate a packaged WebGL smoke artifact:
-
-```powershell
-rl python scripts\check_webgl_smoke_gate.py --root data\synthetic\cashsnap_webgl_clean_batch_smoke --require-recipe webgl_clean_base_v1 --require-scene-mode clean
-```
-
-Gate a packaged WebGL trainable candidate:
-
-```powershell
-rl python scripts\check_webgl_trainable_candidate_gate.py --root data\synthetic\candidate_root --require-recipe recipe_id --train-views detect
-```
-
-Validate the bounded WebGL trainable-candidate suite:
-
-```powershell
-rl python scripts\check_webgl_trainable_candidate_suite.py
-rl python scripts\run_webgl_trainable_candidate_suite.py --dry-run
-rl python scripts\build_webgl_mix_yaml.py --suite configs\synthetic_recipes\cashsnap_webgl_trainable_candidates_v1.json --gate-kind trainable-candidate --out configs\cashsnap_webgl_trainable_candidates_mix.yaml
-```
-
-Build and check a WebGL visual review pack:
-
-```powershell
-rl python scripts\make_webgl_visual_review_pack.py --suite configs\synthetic_recipes\cashsnap_webgl_smoke_suite_v1.json --out-dir data\review\webgl_smoke_visual_review_v1
-rl python scripts\check_webgl_visual_review.py --review-csv data\review\webgl_smoke_visual_review_v1\review.csv
-```
-
-Dry-run the WebGL trainable-candidate operations sequence:
-
-```powershell
-rl python scripts\run_webgl_trainable_candidate_pipeline.py --dry-run --train-smoke
-```
-
-Protect the real benchmark boundary:
-
-```powershell
-rl python scripts\check_real_fan_benchmark.py
-```
-
-Dry-run reviewed real-label promotion:
-
-```powershell
-rl python scripts\build_benchmark_review_index.py
-rl python scripts\promote_real_benchmark_label.py --image-id real_overlap_0003_commons_shop_5k_10k_20k
-```
-
-Dry-run safe training only after the renderer proof exists:
-
-```powershell
-rl python scripts\bench_train_with_headroom.py --data configs\cashsnap_v1.yaml --name dry_run --dry-run --quiet
-```
+If a different path is more promising, use or improve the relevant script instead of preserving this list.
 
 ## Result Ledger
 
@@ -234,6 +121,17 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-05-31 | operations | keep | Headless Edge is already GPU-backed on this laptop (`ANGLE` on RTX 4060/D3D11). Suite rows own `visual_scale`; global `--visual-scale` is only an explicit override. Hard-negative mode uses primitive non-banknote props so zero-box frames are not blank tables. |
 | 2026-05-31 | real data | blocked | Existing real/raw stress candidates do not unblock P1: `real_fan_0001_voa_commons` is too ambiguous to promote from model hints, `real_overlap_0002_commons_museum` is not a fan/dense-overlap stress substitute, and `data/review/roboflow_cuurecy_detection_is_multinote_probe_v1/contact_sheet.jpg` shows useful Roboflow hand/fan stress references but not scoreable labels because of public/reproduction/split and visible-region policy caveats. Next unblocker is rights-clean phone fan/overlap capture(s) or human-audited stress labels. |
 
+| 2026-06-04 | training | reject | Do not promote the blended accepted-WebGL fine-tunes (`webgl_candidate_balanced_probe_from_clean_e2_i416_noamp`, `webgl_candidate_balanced_low_lr_from_clean_e1_i416_noamp_v2`): the 621-image balanced real+accepted-WebGL subset trained cleanly and produced val mAP50-95 around `0.807`, but held-out clean test was `0.810` versus `0.884` for the prior clean checkpoint on the same split (`compare_yolo_metrics.py` delta `-0.073706`). Synthetic training must pass baseline comparison gates before scaling. |
+| 2026-06-04 | evaluation | keep | `val_yolo.py --metrics-json` plus `compare_yolo_metrics.py` is the active comparison path for candidate checkpoints; use JSON all/per-class metrics and max-drop/min-delta gates instead of scraping terminal logs. |
+| 2026-06-04 | operations | note | Laptop RAM headroom is enough after foreground cleanup, but Ultralytics `optimizer=auto` can ignore requested `lr0` (it selected AdamW around `0.000588` despite `--lr0 0.00025`). For true low-LR probes, pass an explicit optimizer such as `--optimizer AdamW`; still gate by held-out JSON comparison. |
+| 2026-06-04 | pipeline | keep | `build_webgl_recipe_ablation_configs.py` writes one balanced real-only config plus one balanced real+single-WebGL-recipe config per trainable recipe; all 8 generated YAMLs passed `check_yolo_dataset.py`, and the fan ablation config reached YOLO training end-to-end under headroom. Use recipe ablations before another blended synthetic run. |
+| 2026-06-04 | smoke | note | `--max-train-batches` sets Ultralytics `trainer.stop`, which still triggers validation and final eval even when `--no-val` is passed. For cheap train-path smoke, prefer tiny list-backed smoke YAMLs over early-stopping a full-val config. |
+| 2026-06-04 | synthetic | reject | `webgl_clean_closeup_v1` and `webgl_clean_closeup_v2` both failed strict matched real-only ablations despite valid labels. V1 scored `0.823222` mAP50-95 vs real-only `0.835861` (delta `-0.012639`); v2 improved global geometry but scored `0.821181` (delta `-0.014680`), worst on `KHR_2000`/`KHR_50000`. They are `rejected_probe` catalog entries and must stay out of active trainable mixes until background/geometry repair changes the evidence. |
+| 2026-06-04 | synthetic | provisional | The 445-image accepted blend (`clean_base`, `thin_edge`, `hard_negative`, `back_side`) is the best current scale seed: held-out clean test `0.836855` vs matched real-only `0.835861` (delta `+0.000994`). It fails the per-class guard on `KHR_2000` (`-0.052433`, threshold `-0.05`), so scale only with `KHR_2000`/`KHR_50000` watch metrics or staged dose tests. |
+| 2026-06-04 | synthetic | reject | The 413-image no-thin-edge core blend is not safer: held-out clean test `0.832365` vs real-only `0.835861` (delta `-0.003496`), with worse `KHR_50000` (`-0.059880`) and `KHR_2000` (`-0.050304`) deltas. Do not prefer it over the full accepted blend. |
+| 2026-06-04 | training | reject | Full clean-real + uncapped accepted synthetic is a hard reject. The 5-epoch low-LR/no-AMP seed had best val mAP50-95 at epoch 1 (`0.84559`), but held-out clean test was `0.807251` vs `0.883801` clean checkpoint (delta `-0.076550`), with rare-class collapse on `KHR_50000` (`-0.587183`) and `KHR_20000` (`-0.176160`). Do not promote. |
+| 2026-06-04 | training | reject | Capping accepted synthetic with `--always-max-per-class 4` does not fix the full-real seed. The 1-epoch capped probe tested at `0.785412` vs `0.883801` clean checkpoint (delta `-0.098389`), with `KHR_50000` (`-0.690631`) and `KHR_20000` (`-0.296286`) worse. The cap is useful sampler tooling, but the next step is isolating full-real real-only/background-heavy curriculum before more synthetic scale. |
+
 ## Trainable Candidate Artifacts
 
 Generated artifacts live under ignored `data/synthetic/` roots and should not be committed unless explicitly requested. Update this table only when a candidate root becomes trusted, rejected, or its intended train view changes.
@@ -241,31 +139,18 @@ Generated artifacts live under ignored `data/synthetic/` roots and should not be
 | Recipe | Root | Train views | Gate status | Use / caveat |
 | --- | --- | --- | --- | --- |
 | `webgl_clean_base_v1` | `data/synthetic/cashsnap_webgl_clean_base_candidate_v1` | detect, fragment, OBB | Passed: 32 accepted images, 65 detect/fragment boxes, 32/32 trainable OBB images, 0 visual rejects, `phone_auto` spread across all 4 named profiles. | Clean synthetic baseline candidate. |
+| `webgl_clean_closeup_v1` | `data/synthetic/cashsnap_webgl_clean_closeup_candidate_v1` | detect, OBB | Rejected by strict real-only ablation: `0.823222` mAP50-95 vs real-only `0.835861` (delta `-0.012639`). | Diagnostic only and excluded from the active trainable suite; broad KHR rotations made boxes too square/large, led by `KHR_50000`. |
+| `webgl_clean_closeup_v2` | `data/synthetic/cashsnap_webgl_clean_closeup_candidate_v2` | detect, OBB | Rejected by strict real-only ablation: `0.821181` mAP50-95 vs real-only `0.835861` (delta `-0.014680`). | Diagnostic only and excluded from the active trainable suite; geometry improved globally, but `KHR_2000`/`KHR_50000` still regress. |
 | `webgl_overlap_stack_v1` | `data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1` | detect, fragment | Passed at 1440x1080 `visual_scale: 1`: 64 accepted images, 283 detect boxes, 373 trainable fragments, 120 ignored fragments, OBB mostly rejected (8 accepted / 56 rejected). | Dense-overlap and fragment-fusion stress; not an OBB training source. |
 | `webgl_fan_fullschema_v1` | `data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1` | detect | Passed at 1440x1080 `visual_scale: 1`: 64 accepted images, 349 detect boxes, 576 fragment components in metadata, 376 ignored fragments, 83 review-required fragments, OBB rejected on all 64 images. | Handheld-fan detect candidate; fragment labels are diagnostic until fan fragment/fusion policy improves. |
 | `webgl_hand_occlusion_fragments_v1` | `data/synthetic/cashsnap_webgl_hand_occlusion_candidate_v1` | detect | Passed at 1440x1080 `visual_scale: 1`: 48 accepted images, 216 detect boxes, 402 fragment components in metadata, 183 ignored fragments, 31 review-required fragments, OBB mostly rejected (1 accepted / 47 rejected). | Hand/finger occlusion detect candidate; class-skewed to 5 denominations, so do not use as balanced hand coverage. |
-| `webgl_thin_edge_partial_v1` | `data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1` | detect | Passed at 1440x1080 `visual_scale: 1`: 32 accepted images, 105 detect boxes, 121 fragment components in metadata, 183 ignored fragments, 17 review-required fragments, OBB mostly rejected (1 accepted / 31 rejected). | Thin-edge KHR sliver candidate; class-skewed to 4 KHR denominations. `--visual-scale 1.5` hit RAM pause-loop behavior on this laptop, so use scale 1 unless memory headroom is better. |
+| `webgl_thin_edge_partial_v1` | `data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1` | detect | Passed at 1440x1080 `visual_scale: 1`: 32 accepted images, 105 detect boxes, 121 fragment components in metadata, 183 ignored fragments, 17 review-required fragments, OBB mostly rejected (1 accepted / 31 rejected). | Thin-edge KHR sliver candidate; individually passes clean guard and improves the full accepted blend globally, but scale with `KHR_2000`/`KHR_50000` watch metrics because the accepted blend fails the `KHR_2000` per-class gate. |
 | `webgl_hard_negative_replay_v1` | `data/synthetic/cashsnap_webgl_hard_negative_candidate_v1` | detect | Passed at `--visual-scale 1`: 32 accepted zero-box images, 0 visible banknotes, 0 fragments, 0 visual rejects. | False-positive guardrail candidate with primitive non-banknote props; still not a substitute for a reviewed real/background prop library. |
 | `webgl_back_side_confusion_v1` | `data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1` | detect | Passed at 1440x1080 `visual_scale: 1`: 32 accepted images, 142 detect boxes, 192 fragment components in metadata, 45 ignored fragments, 5 review-required fragments, OBB mostly rejected (5 accepted / 27 rejected). | Balanced front/back stack candidate; `front_back_mix` satisfied on all 32 images. |
 
 ## Current Active Assets
 
-Current top-level `data/` table after cleanup:
-
-- `asset_candidates/`
-- `audit/`
-- `backgrounds/`
-- `cashsnap_v1/`
-- `curated/`
-- `inbox/`
-- `numista_raw/`
-- `picwish_upload_batches_cashsnap_khr_v1/`
-- `raw_datasets/`
-- `real_fan_benchmark/`
-- `reference/`
-- `review/`
-
-Generated scratch folders removed from the table: old `data/synthetic/`, generated `data/fragment_classifier*/`, `data/deprecated/`, `data/dedup/`, `data/processed/`, `data/sampled/`, `data/diagnostics/`, and `tmp/` contents. Regenerate them only from a current config or reviewed need.
+Treat this as the durable `data/` map. Named generated outputs may be kept when they support a live result; otherwise prefer regeneration from configs/scripts over keeping stale folders around.
 
 ### Tier 0: Canonical Backbone
 
@@ -276,7 +161,7 @@ Generated scratch folders removed from the table: old `data/synthetic/`, generat
 
 ### Tier 1: Required Evaluation And Guardrails
 
-- `data/cashsnap_v1/`: verified local YOLO dataset, 13 classes, 9,048 boxes. Keep for clean/base validation.
+- `data/cashsnap_v1/`: verified clean/base YOLO dataset, 13 bill classes and 9,048 labeled boxes. Use it for validation, guardrails, diagnostics, and baseline runs; it is not evidence that hard fan/overlap counting is solved.
 - `data/real_fan_benchmark/`: scoreable/stress evaluation only. Never train on it.
 - `manifests/real_fan_benchmark_label_quality.csv`: decides which real labels are scoreable.
 - `runs/cashsnap/yolo26n_cashsnap_current_thin_legacy_clean_v1_e20_i416_b8/weights/best.pt`: current overlap-counting alpha checkpoint for diagnostics/export, not a solved final model.
@@ -322,7 +207,7 @@ Use these first:
 - Harness and safety: `run_with_headroom.py`, `bench_train_with_headroom.py`, `local_runtime.py`.
 - 3D/synthetic proof: `render_3d_pipeline_probe.py`, `validate_3d_pipeline_config.py`, `build_numista_cutout_bank.py`, `generate_synthetic_fan_dataset.py`, `summarize_synthetic_metadata.py`, `check_yolo_dataset.py`.
 - WebGL proof: `renderers/webgl/src/render-smoke.mjs` uses Three.js + `puppeteer-core` against local Microsoft Edge; `run_webgl_recipe.py` resolves named recipe ids from the catalog; `check_webgl_smoke_output.py` validates nonblank RGB, exact ID colors, visible labels, primitive finger occlusion, and layer-order audit output; `check_webgl_label_views.py` validates packaged detect/OBB/fragment views and prevents diagnostic-only OBB labels from being mistaken for trainable data; `check_synthetic_recipe_catalog.py` validates target/recipe config coverage.
-- Evaluation and deploy guards: `check_real_fan_benchmark.py`, `run_browser_smoke_cases.py`, `check_browser_stack_artifacts.py`, `val_yolo.py`, `export_yolo.py`.
+- Evaluation and deploy guards: `check_real_fan_benchmark.py`, `run_browser_smoke_cases.py`, `check_browser_stack_artifacts.py`, `build_webgl_recipe_ablation_configs.py`, `val_yolo.py`, `compare_yolo_metrics.py`, `export_yolo.py`.
 - Real capture/review: `check_capture_requirements.py`, `run_capture_review_pipeline.py`, `summarize_camera_metadata.py`, `apply_review_export.py`, `summarize_review_manifests.py`, `render_yolo_label_preview.py`, `evaluate_real_draft_labels.py`.
 - Fragment diagnostics: `build_fragment_classifier_from_review_pack.py`, `train_fragment_classifier.py`, `evaluate_fragment_classifier.py`, `classify_yolo_proposals.py`, `fuse_two_stage_csv.py`, `sweep_two_stage_fusion.py`, `inspect_two_stage_matches.py`, `probe_fragment_count_fusion.py`.
 
@@ -396,65 +281,26 @@ Current P1 render smoke:
 
 ## WebGL Renderer Smoke
 
-Goal: prove Windows/headless Edge + Three.js can render realistic-looking RGB, exact ID colors, and visible boxes before building the full synthetic factory.
+Goal: keep the synthetic factory auditable: realistic-enough RGB, exact ID colors, visible-only labels, reproducible variants, and package QA that prevents diagnostic labels from becoming training data by accident.
 
-Current proof:
+Current contract:
 
-- Package: `renderers/webgl/` with `three` and `puppeteer-core`; it uses local Microsoft Edge rather than downloading Chromium.
-- Command: `rl python scripts\run_with_headroom.py --max-percent 90 --resume-percent 82 --max-ram-percent 90 --max-gpu-mem-percent 90 --min-free-ram-gb 3 --preflight-timeout 120 -- node renderers\webgl\src\render-smoke.mjs`.
-- Output path: `data/synthetic/cashsnap_webgl_smoke/`.
-- Last smoke rendered `visual.png`, `id.png`, `visible_boxes.json`, `labels_visible.txt`, `layer_audit.json`, `metadata.json`, and the temporary `smoke.html`.
-- ID pass is exact after disabling WebGL antialiasing: black background plus one RGB ID color per visible note, no blended edge colors.
-- RGB note rendering includes an opaque paper backing behind each textured note so visual scenes read as stacked paper sheets instead of transparent scan planes.
-- RGB table rendering now uses a deterministic procedural grain texture. Codex visual audit rejected the current extracted `data/backgrounds/*no_note_patches*` banks for note fragments, people/arms, outdoor/vertical contexts, or mask artifacts; no accepted trainable WebGL background bank exists yet.
-- `render-smoke.mjs --background-dir DIR` can texture the table from a reviewed-clean image directory while keeping the ID pass black/background-free. `render_webgl_variant_batch.py` gates this through `check_webgl_background_banks.py`; smoke path `data/backgrounds/webgl_reviewed_clean_smoke_v1/` is only a two-image proof subset and is blocked from trainable-candidate use.
-- Trainable-candidate suite rows may declare `background_dir`; the runner forwards it through the background-bank gate, but current registered banks still have no accepted trainable source.
-- Scene variation now includes deterministic camera FOV/pose jitter, multiple procedural table/counter surface palettes, key-light color/intensity/position jitter, and metadata capture of the sampled profile. These are label-safe because they happen inside the WebGL render before RGB and ID extraction.
-- WebGL output defaults to 1440x1080 with RGB-only 2x visual supersampling. RGB uses an antialiased visual renderer, while the ID pass uses a separate non-antialiased hidden renderer and is saved from its canvas data URL to preserve exact colors.
-- RGB visual pass now includes deterministic non-geometric camera postprocess: mild contrast/saturation/brightness, focus blur, and grain/vignette overlay. ID pass and visible labels remain unfiltered/exact; geometric lens distortion/crop must wait until masks/boxes are transformed too.
-- Primitive finger occluders are top-layer capsule meshes. They render as skin-colored geometry in RGB and black in the ID pass, so covered bill pixels are removed from visible labels.
-- Keep primitive fingers smooth high-segment capsules until a proper hand/skin mesh is available. A quick tapered-lathe experiment looked faceted in visual QA and was reverted.
-- Note visibility uses explicit layer order (`renderOrder` with depth test/write disabled for banknote planes) so tilted sheets or fingers do not phase through upper layers and poison visible masks. The current smoke audited 88,156 overlapping pixels and 15,732 occluder pixels with zero layer-order violations. Variants >0 now use unique instance ID colors and can emit duplicate denominations in the same scene. This is an intentional topological stacking shortcut until a real contact/physics solver exists.
-- ID materials must build colors as sRGB byte values (`Color.setRGB(..., THREE.SRGBColorSpace)`). A mid-channel instance color such as `[255,128,0]` was previously color-managed into `[255,188,0]` and correctly tripped the layer audit.
-- Banknote bending should remain smooth macro curl only. The earlier sinusoidal ripple made paper look corrugated under light; default ripple is now zero unless there is a real crease/fold model. Note faces do not receive self-shadows because shadow acne created diagonal artifacts on printed bills.
-- Banknote plane height is derived from each loaded scan's pixel aspect ratio (`height = width / aspect`) so USD and KHR assets are not squeezed into one fixed rectangle. Plane width is also scaled by approximate physical denomination width: USD uses the 6.14in/156mm small-note baseline from `https://www.uscurrency.gov/node/45`, and KHR uses current NBC note-size listings from `https://www.nbc.gov.kh/english/about_the_bank/banknotes_in_circulation.php`.
-- Texture loading should stay file-backed (`file://`) instead of base64-inlining full scan PNGs into the HTML. Base64 inlining caused headroom pauses; file-backed textures completed the smoke quickly under the same wrapper caps.
-- Batch rendering should still reuse one browser/page and design texture downscaling/cache behavior before scaling scene counts, but the headroom wrapper no longer suspends browser jobs merely because free RAM dips below the soft floor.
-- `render-smoke.mjs --variant N` is a real deterministic variation hook. Variant 0 is the fixed inspected smoke; variants >0 jitter pose/layer/finger placement and sample front/back/older/current textures from the Numista class pools. Variants 0-3 rendered under the headroom wrapper and passed `check_webgl_smoke_output.py`; contact sheet: `data/synthetic/cashsnap_webgl_variant_contact_v0_3.png`.
-- `render-smoke.mjs --asset-side-policy any|front_only|back_only|front_back_mix` constrains scan-side sampling before render. Packaged QA records `asset_selection`, and smoke/trainable gates can require the selected policy so front/back confusion recipes do not depend on accidental sampling.
-- `render-smoke.mjs --camera-profile generic_phone_jitter|phone_auto|iphone_8_like|iphone_12_wide_like|budget_android_wide_like|browser_upload_resized|phone_top_down_like|phone_oblique_30_like|phone_oblique_45_like|phone_low_front_like` selects auditable FOV/framing ranges before RGB/ID extraction. `phone_auto` samples top-down/oblique/low-front phone profiles plus older phone/browser profiles; lens distortion is recorded as not applied until label-safe geometric transforms exist.
-- Headless Edge WebGL is GPU-backed on the local rig (`ANGLE` on RTX 4060 via D3D11). If Chrome/RAM is tight during render batches, prefer lowering `--visual-scale` and passing stricter headroom caps through `run_webgl_trainable_candidate_suite.py` or `run_webgl_trainable_candidate_pipeline.py`; this reduces browser/canvas RAM pressure more directly than trying to move packaging to VRAM.
-- Edge is the default browser executable because it is present on the rig and verified GPU-backed, but `render-smoke.mjs --browser-executable PATH` or `CASHSNAP_WEBGL_BROWSER=PATH` can switch to another Chromium-family browser for A/B testing.
-- `scripts/render_webgl_variant_batch.py` renders/checks deterministic WebGL variants, writes a contact sheet, packages YOLO detect, OBB, and visible-fragment dataset views, then runs `check_yolo_dataset.py` on the detect view and `check_webgl_label_views.py` on all packaged views by default. Smoke command: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_smoke --count 4`; variants 0-3 passed and wrote `data/synthetic/cashsnap_webgl_variant_batch_smoke/contact_sheet.png`.
-- The WebGL batch packager now writes `qa/summary.json` with class counts, visible-pixel stats, fragment-per-parent stats, OBB rejection reasons, layer-audit totals, and SHA-256 hashes for reproducibility checks. `check_webgl_label_views.py` validates this summary against the manifest so the QA artifact cannot silently drift.
-- `check_webgl_label_views.py` recomputes `qa/summary.json` hashes for visual images, ID masks, label files, and preview images, so QA summaries function as lightweight regression snapshots.
-- WebGL batch packaging writes detect and fragment label-preview overlays under `qa/previews/`; manifest rows point to them, `qa/summary.json` stores their hashes, and `check_webgl_label_views.py` validates that they exist.
-- WebGL batch packaging writes visual+ID mask overlay previews under `qa/previews/`; these make ID-mask alignment visually reviewable without opening separate visual/mask files.
-- WebGL batch packaging writes `qa/quarantine.json` with explicit policies for trainable OBB exclusions and ignored below-threshold fragments. Stack smoke currently records 3 OBB exclusions and 2 ignored tiny fragment components.
-- WebGL batch packaging writes `qa/contact_index.json` to map contact-sheet visual/ID cells back to variants, and `check_webgl_label_views.py` validates the index.
-- Fragment packaging now writes `fragments/ignored_metadata/` for connected components below `FRAGMENT_MIN_PIXELS`; `fragments/summary.json`, `qa/summary.json`, and `check_webgl_label_views.py` validate ignored counts so tiny evidence is not silently forced into denomination labels.
-- `check_webgl_smoke_gate.py` applies mode-specific smoke gates after label-view validation. New smoke artifacts must include `recipe.json`; older fan/stack artifacts without it need repackaging before they can be treated as gateable evidence.
-- `render_webgl_variant_batch.py --skip-render --scene-mode MODE` backfills missing `sceneMode` in copied source metadata, so older rendered variants can be repackaged into current gateable smoke artifacts without relaunching Edge.
-- WebGL batch outputs now include `recipe.json` with recipe name, artifact status (`smoke`, `diagnostic`, or `trainable-candidate`), variant seed range, checks, output paths, and trainability policy. Smoke verification used `--recipe-name webgl_stack_smoke_v0_3 --artifact-status smoke --intended-use "renderer and label-view smoke proof"` with `--skip-render`.
-- WebGL `clean` scene mode now supports separated/single-note smoke data. `webgl_clean_smoke_v0_2` passed with 3 images, 6 detect boxes, 6 fragments, and 3/3 trainable OBB images after running the packager with `--min-free-ram-gb 2`; the hard RAM cap stayed at 90%.
-- WebGL asset pools now use the full 13-class CashSnap schema from `data/cashsnap_v1/data.yaml` and load available scan PNGs from `data/asset_candidates/numista_current_cutout_bank_v1/`. Tiny visible slivers below `--min-visible-pixels` (default 500 at 1440p) stay in the ID image but are not exported as class labels.
-- Current Numista cutout audit summary: 76 assets, all 13 classes have front/back coverage, all source rows are `in_circulation`, and 3 assets remain `large_red_mark_suspect` visual-review candidates. Summary path: `data/asset_candidates/numista_current_cutout_bank_v1/audit/summary.json`.
-- Variant class selection uses a deterministic co-prime stride instead of consecutive class IDs, so mixed-currency scenes look less like ordered dataset rows while staying reproducible.
-- P0-sized WebGL variant batch: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_variant_batch_p0 --count 20` completed. `check_yolo_dataset.py --data data\synthetic\cashsnap_webgl_variant_batch_p0\data.yaml` passed with 20 train/val images and 90 boxes balanced across `KHR_5000`, `KHR_10000`, and `KHR_20000`; contact sheet: `data/synthetic/cashsnap_webgl_variant_batch_p0/contact_sheet.png`.
-- First fan-mode smoke batch: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_fan_batch_smoke --start-variant 100 --count 8 --scene-mode fan` passed after sRGB-correct ID colors and zero paper ripple. It wrote 8 train/val images and 48 boxes (`KHR_5000`: 15, `KHR_10000`: 16, `KHR_20000`: 17); contact sheet: `data/synthetic/cashsnap_webgl_fan_batch_smoke/contact_sheet.png`. Best current visual QA sample after 1440p/split-renderer/supersampling changes: `data/synthetic/cashsnap_webgl_fan_probe_v8/visual.png`.
-- Real-background smoke: `rl python scripts\run_with_headroom.py ... -- node renderers\webgl\src\render-smoke.mjs --variant 107 --scene-mode fan --background-dir data\backgrounds\webgl_reviewed_clean_smoke_v1 --out-dir data\synthetic\cashsnap_webgl_realbg_probe_v0` passed with 7 boxes, but visual QA shows the proof backgrounds are still too low-quality for training.
-- Full-schema fan smoke: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_fullschema_fan_batch_smoke --start-variant 100 --count 4 --scene-mode fan` passed. It wrote 4 train/val images and 23 boxes under the 13-class schema; contact sheet: `data/synthetic/cashsnap_webgl_fullschema_fan_batch_smoke/contact_sheet.png`.
-- Latest aspect-preserving full-schema fan smoke: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_fullschema_fan_batch_latest_smoke --start-variant 100 --count 4 --scene-mode fan` passed with 4 images and 23 boxes; contact sheet: `data/synthetic/cashsnap_webgl_fullschema_fan_batch_latest_smoke/contact_sheet.png`.
-- P0 full-schema fan smoke: `rl python scripts\render_webgl_variant_batch.py --out-root data\synthetic\cashsnap_webgl_fullschema_fan_batch_p0 --start-variant 100 --count 13 --scene-mode fan` passed with 13 images and 67 detect boxes after the co-prime class mixer and visible-sliver floor. Class counts: `USD_1` 6, `USD_5` 4, `USD_10` 6, `USD_20` 6, `USD_50` 7, `USD_100` 3, `KHR_500` 4, `KHR_1000` 6, `KHR_2000` 4, `KHR_5000` 5, `KHR_10000` 5, `KHR_20000` 5, `KHR_50000` 6; contact sheet: `data/synthetic/cashsnap_webgl_fullschema_fan_batch_p0/contact_sheet.png`; OBB dataset sidecar: `data/synthetic/cashsnap_webgl_fullschema_fan_batch_p0/data_obb.yaml`.
-- OBB export now audits connected components and rectangle fill before writing labels. On `cashsnap_webgl_fullschema_fan_batch_p0`, all 13 fan images were rejected for trainable OBB because each image had at least one unsafe visible instance; diagnostic metadata still records 34/67 compact instance OBBs, 25 loose min-area rectangles, and 8 fragmented visible masks. This all-or-nothing image policy avoids training OBB with missing labels where skipped visible bills become background.
-- Visible-fragment export writes `data_fragments.yaml`, `fragments/labels/train/`, and parent/component metadata. These labels are for evidence detection/OCR, not direct counting. On `cashsnap_webgl_fullschema_fan_batch_p0`, the fragment view has 120 boxes across the same 13 images; on the 3-bill QA set it has 4 boxes because one physical bill splits into two visible components.
-- Fragment count-fusion probe: `scripts/probe_fragment_count_fusion.py --root data\synthetic\cashsnap_webgl_qa3_split_composition_v0 --per-image` shows 3 physical bills, 5 visible fragments, and a naive fragment overcount of 2; `--root data\synthetic\cashsnap_webgl_fullschema_fan_batch_p0` shows 67 physical visible instances, 120 fragments, and a naive overcount of 53. Parent-fused synthetic counts match physical counts exactly, so real inference needs a learned or heuristic fusion layer before fragment outputs can become totals.
-- Three-bill label QA set: `data/synthetic/cashsnap_webgl_3bill_label_qa_v0/` was packaged from the fixed stack render without relaunching WebGL while RAM was high. It has 3 detect boxes; the trainable OBB split is empty because `KHR_5000` had low rectangle fill (`0.2761`), while the partial OBB polygons are kept only under `obb/rejected_labels/train/` for visual diagnosis. Preview files: `variant_0000_detect_preview.jpg`, `variant_0000_obb_diagnostic_preview.jpg`, and `variant_0000_fragment_preview.jpg`.
-- Dedicated split-label QA composition: `render-smoke.mjs --scene-mode qa3` renders a 3-note `KHR_1000/KHR_500/KHR_2000` stack matching the visible-label policy. Output `data/synthetic/cashsnap_webgl_qa3_split_composition_v0/` has 3 physical detect boxes, 5 fragment/evidence boxes, and 0 trainable OBB images because `KHR_500` and `KHR_2000` are fragmented. `check_webgl_smoke_output.py --allow-no-occluder` is required because this QA scene intentionally omits finger occluders.
-- Fixed stack variant schema smoke: `data/synthetic/cashsnap_webgl_stack_schema_probe_v0/` passed and emits labels `9/10/11` for `KHR_5000/KHR_10000/KHR_20000` under the full CashSnap schema.
-- Aspect-preserving full-schema fan probe: `data/synthetic/cashsnap_webgl_fullschema_fan_probe_v2/` passed `check_webgl_smoke_output.py` at 1440x1080 with 6 exported boxes after the tiny-sliver filter.
-- Physical-width full-schema fan probe: `data/synthetic/cashsnap_webgl_fullschema_fan_probe_v3/` passed at 1440x1080 with 6 exported boxes after per-class physical width scaling.
-- Mixed-class stride fan probe: `data/synthetic/cashsnap_webgl_fullschema_fan_probe_v4/` passed with `USD_1`, `USD_10`, `USD_100`, `KHR_1000`, `KHR_2000`, and `KHR_50000` visible in one scene.
+- Renderer: `renderers/webgl/` uses Three.js and `puppeteer-core` against local Microsoft Edge by default; Edge is verified GPU-backed on this laptop through ANGLE/D3D11. Use `CASHSNAP_WEBGL_BROWSER` or `--browser-executable` only for deliberate Chromium A/B tests.
+- Output: default RGB is 1440x1080 with RGB-only supersampling; ID pass is a separate non-antialiased render with black background and exact one-color-per-instance masks.
+- Labels: detect boxes are visible-only compatibility labels; OBB export is allowed only for compact honest masks; visible-fragment labels are evidence/OCR inputs and must be fused back to physical parents before counting.
+- Package QA: WebGL packages must include `recipe.json`, `qa/summary.json`, preview overlays, visual+ID overlays, `qa/quarantine.json`, and `qa/contact_index.json`; gates validate hashes, label views, trainability policy, ignored fragments, and OBB exclusions.
+- Assets: WebGL uses the 13-class schema from `data/cashsnap_v1/data.yaml` and scan PNGs from `data/asset_candidates/numista_current_cutout_bank_v1/`; the current Numista audit has 76 assets, full front/back coverage for all 13 classes, and 3 red-mark suspects.
+- Scene controls: variants are deterministic; class selection uses a co-prime stride; `asset-side-policy` controls front/back sampling; `camera-profile` records phone/browser framing assumptions before RGB/ID extraction.
+- Occlusion and stacking: primitive finger capsules are the accepted hand-occlusion placeholder; note planes use explicit render order to keep visible masks label-safe. This is a controlled topology shortcut, not a physical contact solver.
+- Backgrounds: no trainable real background bank is currently accepted. Existing extracted no-note banks were rejected for leaked note fragments, people/arms, outdoor/vertical contexts, or mask artifacts; `data/backgrounds/webgl_reviewed_clean_smoke_v1/` is only a two-image smoke proof.
+- Performance: keep textures file-backed instead of base64-inlined. If render batches hit Chrome/RAM pressure, lower `visual_scale` or pass stricter headroom caps through the suite/pipeline wrappers.
+
+Important caveats:
+
+- Geometric lens distortion/crop is still parked until masks and boxes are transformed with it; current postprocess is non-geometric only.
+- Smooth macro curl is acceptable; sinusoidal ripple looked corrugated and should stay off unless backed by a real crease/fold model.
+- Tiny visible slivers below `--min-visible-pixels` stay in the ID image but are ignored as class labels.
+- Dedicated split-label QA proved the counting trap: 3 physical bills can create 5 visible fragments, and full-schema fan smoke had 67 physical visible instances vs 120 fragments. Fragment outputs cannot be summed directly.
 
 ## Research Checkpoint
 
@@ -497,9 +343,6 @@ Decision from this pass: do not chase full PBR or a full hand mesh yet. Build a 
 
 ## Untested Or Parked Ideas
 
-- Full 3D WebGL renderer with ID pass, contact shadows, curls, hands/fingers, and phone postprocess.
-- Minimal browser-less Python/OpenCV renderer as a P0 stepping stone if it can satisfy exact ID masks faster.
-- Primitive finger occluders before a full hand mesh.
 - Detector plus fragment classifier remains viable if fed reviewed real partial crops.
 - Segmentation/OBB labels should be preserved from generated masks even when training detect-only.
 - More rights-clear phone captures of `KHR_5000` face+number overlaps and `KHR_20000` thin/edge backs are high leverage.
@@ -527,3 +370,11 @@ Before deleting a large data directory, verify it is under `D:\Project\KhmerCurr
 ## Documentation Policy
 
 This file is the living plan. Root `AGENTS.md` should stay short and point here. `docs/` is archive/reference only; do not add another active plan there. If something matters for model work, put it here.
+
+Keep this file honest during normal work. When a phase is achieved, abandoned, or superseded, rename or remove the old section instead of leaving stale labels like active tasks. Collapse completed checklists into current facts, delete parked ideas that became real features, and keep only the details that help the next agent make a better model decision.
+
+Preferred documentation shape: one project `AGENTS.md`, this working `model.md`, and one user-facing `README.md`. Folder-level READMEs or extra docs should be temporary, archived reference, or deleted once their useful content is folded into the main three files.
+
+Script organization should stay active too. When `scripts/` or other tool folders become noisy, group tools by current state such as `active/`, `archive/`, or domain folders only after checking imports, CLI references, and workflows that would break from a move.
+
+Current script shape: root `scripts/` holds active helpers and wired workflows; `scripts/archive/` holds standalone historical probes/prep tools that are not referenced by the active docs/configs/code path. Restore an archived script to root only when it becomes part of the live workflow again.

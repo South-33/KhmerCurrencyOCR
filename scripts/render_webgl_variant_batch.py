@@ -52,7 +52,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-root", type=Path, default=Path("data/synthetic/cashsnap_webgl_variant_batch_smoke"))
     parser.add_argument("--start-variant", type=int, default=0)
     parser.add_argument("--count", type=int, default=4)
-    parser.add_argument("--scene-mode", choices=["auto", "clean", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"], default="auto")
+    parser.add_argument(
+        "--scene-mode",
+        choices=["auto", "clean", "clean_single", "negative", "stack", "fan", "thin_edge", "hand_occlusion", "qa3"],
+        default="auto",
+    )
     parser.add_argument("--width", type=int, default=1440)
     parser.add_argument("--height", type=int, default=1080)
     parser.add_argument("--visual-scale", default="2", help="Visual WebGL supersampling scale passed to render-smoke.mjs.")
@@ -1244,8 +1248,8 @@ def main() -> int:
             render_variant(variant, out_dir, args.scene_mode, args.background_dir, args)
         check_variant(
             out_dir,
-            allow_no_occluder=args.scene_mode in {"clean", "negative", "qa3"},
-            allow_no_overlap=args.scene_mode in {"clean", "negative"},
+            allow_no_occluder=args.scene_mode in {"clean", "clean_single", "negative", "qa3"},
+            allow_no_overlap=args.scene_mode in {"clean", "clean_single", "negative"},
             allow_no_boxes=args.scene_mode == "negative",
         )
         variant_dirs.append((variant, out_dir))

@@ -1,5 +1,5 @@
-# CashSnap clean real data plus accepted WebGL trainable-candidate synthetic data.
-# Candidate-training config only: keep data/real_fan_benchmark out of train/val.
+# CashSnap clean real data plus active WebGL trainable-candidate synthetic data.
+# Candidate-training config only: rejected probes stay out; keep data/real_fan_benchmark out of train/val.
 path: ..
 train:
   - data/cashsnap_v1/images/train

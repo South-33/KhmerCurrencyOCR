@@ -14,7 +14,15 @@ from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TARGETS = ROOT / "configs" / "synthetic_targets" / "cashsnap_real_target_matrix_v1.json"
 DEFAULT_RECIPES = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
-VALID_RECIPE_STATUSES = {"planned", "smoke_ready", "label_policy_ready", "diagnostic", "trainable-candidate", "promoted"}
+VALID_RECIPE_STATUSES = {
+    "planned",
+    "smoke_ready",
+    "label_policy_ready",
+    "diagnostic",
+    "trainable-candidate",
+    "promoted",
+    "rejected_probe",
+}
 
 
 def parse_args() -> argparse.Namespace:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from collections import Counter
 from pathlib import Path
 
@@ -21,10 +22,46 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--per-class", type=int, default=24, help="Target real labeled images per class.")
     parser.add_argument("--backgrounds", type=int, default=24, help="Target empty-label real background images.")
     parser.add_argument(
+        "--include-all-target-images",
+        action="store_true",
+        help="Include every non-excluded target image instead of stopping at per-class/background targets.",
+    )
+    parser.add_argument(
         "--always-include-prefix",
         action="append",
-        default=["data/synthetic/"],
-        help="Repo-relative path prefix to include even after class targets are met.",
+        default=None,
+        help=(
+            "Repo-relative path prefix to include even after class targets are met. "
+            "Repeatable. Defaults to data/synthetic/ when omitted."
+        ),
+    )
+    parser.add_argument(
+        "--no-always-include",
+        action="store_true",
+        help="Do not force-include any prefix; useful for real-only balanced baselines.",
+    )
+    parser.add_argument(
+        "--always-max-per-class",
+        type=int,
+        default=None,
+        help=(
+            "Optional cap on labeled always-included images per class. "
+            "Useful for preventing synthetic recipes from dominating rare real classes."
+        ),
+    )
+    parser.add_argument(
+        "--target-exclude-prefix",
+        action="append",
+        default=None,
+        help=(
+            "Repo-relative path prefix to skip for target real/background filling unless it is always-included. "
+            "Repeatable. Defaults to data/synthetic/."
+        ),
+    )
+    parser.add_argument(
+        "--no-target-exclude",
+        action="store_true",
+        help="Allow non-always-included images from any prefix to fill target class/background slots.",
     )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
@@ -111,6 +148,10 @@ def repo_rel(path: Path) -> str:
         return path.resolve().as_posix()
 
 
+def rel_between(base: Path, target: Path) -> str:
+    return os.path.relpath(target.resolve(), base.resolve()).replace("\\", "/")
+
+
 def normalize_prefix(prefix: str) -> str:
     normalized = prefix.replace("\\", "/").strip("/")
     return f"{normalized}/" if normalized else normalized
@@ -132,25 +173,51 @@ def should_always_include(image: Path, prefixes: list[str]) -> bool:
     return any(rel.startswith(prefix) for prefix in prefixes)
 
 
+def should_exclude_from_target(image: Path, prefixes: list[str]) -> bool:
+    rel = repo_rel(image)
+    return any(rel.startswith(prefix) for prefix in prefixes)
+
+
 def build_subset(
     images: list[Path],
     class_count: int,
     per_class: int,
     backgrounds: int,
     always_prefixes: list[str],
-) -> tuple[list[Path], Counter[int], Counter[int], int, int, int]:
+    target_exclude_prefixes: list[str],
+    include_all_targets: bool,
+    always_max_per_class: int | None,
+) -> tuple[list[Path], Counter[int], Counter[int], Counter[int], int, int, int, int, int]:
     selected: list[Path] = []
     selected_set: set[Path] = set()
     target_class_counts: Counter[int] = Counter()
     total_class_counts: Counter[int] = Counter()
+    always_class_counts: Counter[int] = Counter()
     target_background_count = 0
     total_background_count = 0
     always_count = 0
+    target_excluded_count = 0
+    always_skipped_by_class_cap = 0
 
     for image in images:
         classes = label_classes(image)
+        unique_classes = {cls for cls in set(classes) if 0 <= cls < class_count}
         always = should_always_include(image, always_prefixes)
         if always:
+            over_class_cap = (
+                always_max_per_class is not None
+                and bool(unique_classes)
+                and any(always_class_counts[cls] >= always_max_per_class for cls in unique_classes)
+            )
+            if over_class_cap:
+                always_skipped_by_class_cap += 1
+                include = False
+            else:
+                include = True
+        elif should_exclude_from_target(image, target_exclude_prefixes):
+            target_excluded_count += 1
+            include = False
+        elif include_all_targets:
             include = True
         elif not classes:
             include = target_background_count < backgrounds
@@ -164,21 +231,37 @@ def build_subset(
         selected_set.add(image)
         if always:
             always_count += 1
+            for cls in unique_classes:
+                always_class_counts[cls] += 1
         if not classes:
             total_background_count += 1
             if not always:
                 target_background_count += 1
-        for cls in set(classes):
-            if 0 <= cls < class_count:
-                total_class_counts[cls] += 1
-                if not always:
-                    target_class_counts[cls] += 1
+        for cls in unique_classes:
+            total_class_counts[cls] += 1
+            if not always:
+                target_class_counts[cls] += 1
 
-    return selected, total_class_counts, target_class_counts, target_background_count, total_background_count, always_count
+    return (
+        selected,
+        total_class_counts,
+        target_class_counts,
+        always_class_counts,
+        target_background_count,
+        total_background_count,
+        always_count,
+        always_skipped_by_class_cap,
+        target_excluded_count,
+    )
 
 
 def main() -> None:
     args = parse_args()
+    if args.no_always_include and args.always_include_prefix:
+        raise SystemExit("--no-always-include cannot be combined with --always-include-prefix")
+    if args.always_max_per_class is not None and args.always_max_per_class < 1:
+        raise SystemExit("--always-max-per-class must be positive when provided")
+
     data_path = resolve_from_root(args.data)
     out_path = resolve_from_root(args.out)
     train_list = resolve_from_root(args.train_list) if args.train_list else out_path.with_name(f"{out_path.stem}_train.txt")
@@ -187,14 +270,32 @@ def main() -> None:
     root = data_root(data_path, config)
     names = config["names"]
     class_count = len(names)
-    prefixes = [normalize_prefix(prefix) for prefix in args.always_include_prefix]
+    raw_prefixes = [] if args.no_always_include else (args.always_include_prefix or ["data/synthetic/"])
+    prefixes = [prefix for prefix in (normalize_prefix(prefix) for prefix in raw_prefixes) if prefix]
+    raw_target_exclude_prefixes = [] if args.no_target_exclude else (args.target_exclude_prefix or ["data/synthetic/"])
+    target_exclude_prefixes = [
+        prefix for prefix in (normalize_prefix(prefix) for prefix in raw_target_exclude_prefixes) if prefix
+    ]
     images = iter_split_images(root, config["train"])
-    selected, counts, target_counts, target_background_count, total_background_count, always_count = build_subset(
+    (
+        selected,
+        counts,
+        target_counts,
+        always_counts,
+        target_background_count,
+        total_background_count,
+        always_count,
+        always_skipped_by_class_cap,
+        target_excluded_count,
+    ) = build_subset(
         images,
         class_count=class_count,
         per_class=args.per_class,
         backgrounds=args.backgrounds,
         always_prefixes=prefixes,
+        target_exclude_prefixes=target_exclude_prefixes,
+        include_all_targets=args.include_all_target_images,
+        always_max_per_class=args.always_max_per_class,
     )
 
     missing = [str(names[index]) for index in range(class_count) if counts[index] == 0]
@@ -204,7 +305,7 @@ def main() -> None:
         raise SystemExit("selected subset is empty")
 
     out_config = {
-        "path": "..",
+        "path": rel_between(out_path.parent, ROOT),
         "train": repo_rel(train_list),
         "val": split_to_repo_relative(data_path, config, config["val"]),
         "test": split_to_repo_relative(data_path, config, config["test"]) if config.get("test") else None,
@@ -212,16 +313,24 @@ def main() -> None:
         "cashsnap_sources": {
             "source_data": repo_rel(data_path),
             "always_include_prefixes": prefixes,
+            "target_exclude_prefixes": target_exclude_prefixes,
         },
         "cashsnap_subset_policy": {
             "per_class_real_target": args.per_class,
             "background_target": args.backgrounds,
+            "include_all_target_images": args.include_all_target_images,
+            "always_max_per_class": args.always_max_per_class,
             "always_included_images": always_count,
+            "always_skipped_by_class_cap": always_skipped_by_class_cap,
+            "target_excluded_images": target_excluded_count,
             "selected_images": len(selected),
             "selected_backgrounds": total_background_count,
             "selected_target_backgrounds": target_background_count,
             "selected_class_images": {str(names[index]): counts[index] for index in range(class_count)},
             "selected_target_class_images": {str(names[index]): target_counts[index] for index in range(class_count)},
+            "selected_always_class_images": {
+                str(names[index]): always_counts[index] for index in range(class_count)
+            },
         },
     }
     if out_config["test"] is None:
@@ -229,13 +338,16 @@ def main() -> None:
 
     print(
         f"selected {len(selected)} train images, target_backgrounds={target_background_count}, "
-        f"total_backgrounds={total_background_count}, always_included={always_count}",
+        f"total_backgrounds={total_background_count}, always_included={always_count}, "
+        f"always_skipped_by_class_cap={always_skipped_by_class_cap}, "
+        f"target_excluded={target_excluded_count}",
         flush=True,
     )
     for class_id, class_name in names.items():
         class_index = int(class_id)
         print(
-            f"  {class_name}: total={counts[class_index]}, target_real={target_counts[class_index]}",
+            f"  {class_name}: total={counts[class_index]}, target_real={target_counts[class_index]}, "
+            f"always={always_counts[class_index]}",
             flush=True,
         )
 
