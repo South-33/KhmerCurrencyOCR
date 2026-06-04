@@ -121,8 +121,12 @@ def select_recipes(
         recipe_id = str(row.get("recipe_id", ""))
         if not recipe_id:
             continue
-        if not allow_real_only_failures and row.get("pass_vs_real_only") is not True:
-            rejected[recipe_id] = "failed real-only mAP50-95 gate"
+        delta_vs_real_only = row.get("delta_vs_real_only")
+        if not allow_real_only_failures and (
+            delta_vs_real_only is None
+            or float(delta_vs_real_only) < 0.0
+        ):
+            rejected[recipe_id] = "failed real-only global mAP50-95 gate"
             continue
         worst_delta = worst_deltas.get(recipe_id)
         if worst_delta is not None and worst_delta < -max_per_class_drop:
