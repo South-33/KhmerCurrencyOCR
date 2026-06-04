@@ -1,0 +1,76 @@
+path: ..
+train: configs/generated_lists/cashsnap_v1_full_real_only_seed_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  include_all_target_images: true
+  always_max_per_class: null
+  always_included_images: 0
+  always_skipped_by_class_cap: 0
+  target_excluded_images: 304
+  selected_images: 14036
+  selected_backgrounds: 6918
+  selected_target_backgrounds: 6918
+  selected_class_images:
+    USD_1: 625
+    USD_5: 753
+    USD_10: 1005
+    USD_20: 889
+    USD_50: 910
+    USD_100: 974
+    KHR_500: 260
+    KHR_1000: 617
+    KHR_2000: 153
+    KHR_5000: 598
+    KHR_10000: 310
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 625
+    USD_5: 753
+    USD_10: 1005
+    USD_20: 889
+    USD_50: 910
+    USD_100: 974
+    KHR_500: 260
+    KHR_1000: 617
+    KHR_2000: 153
+    KHR_5000: 598
+    KHR_10000: 310
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_always_class_images:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0

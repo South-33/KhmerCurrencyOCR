@@ -12,13 +12,13 @@ Counterfeit detection is out of scope.
 
 Active bet: make synthetic data generation good enough to be the scaling unit, but judge it only by real partial/fan transfer.
 
-Current phase: WebGL synthetic generation is mechanically auditable, but the first full-real + accepted-synthetic scale seeds are rejected. The factory is good enough to run controlled experiments; the training mix/curriculum is not yet safe enough to scale into the actual model build. The strongest next evidence is a full-real real-only curriculum control, rare-class-safe sampler proof, and scoreable real fan/overlap labels.
+Current phase: WebGL synthetic generation is mechanically auditable, but full-real all-target training seeds are rejected. The full-real real-only control also collapses, so the immediate failure is the all-target/background-heavy curriculum and rare-class exposure shape, not accepted WebGL texture by itself. The synthetic factory is good enough to run controlled experiments; the training mix/curriculum is not yet safe enough to scale into the actual model build.
 
 Current model direction after split-label QA: keep the lightweight detector path for clean/mostly-visible notes, add a fragment/evidence detector or classifier path for partial OCR/denomination cues, then fuse fragments into physical-note counts. Do not treat OBB as the primary hard-fan solution; use OBB only for compact visible instances where the rotated box is honest.
 
 Training-smoke results prove the harness, not model quality. The renderer/package contract now exists; the missing evidence is scoreable real fan/overlap stress labels for P1 transfer proof.
 
-Latest model comparison: the old 621-image accepted-WebGL blend remains rejected (`0.810` held-out clean test mAP50-95 vs `0.884` clean checkpoint). A stricter 445-image blend of individually accepted WebGL recipes passes the matched real-only clean-test gate (`0.836855` vs `0.835861`, delta `+0.000994`), but fails the per-class guard on `KHR_2000` (`-0.052433`). When seeded into the full clean-real training mix it regresses badly: uncapped accepted synthetic tests at `0.807251` vs `0.883801` clean checkpoint (delta `-0.076550`), and capped synthetic dose tests at `0.785412` (delta `-0.098389`). Treat the accepted blend as ablation evidence only, not a scale target.
+Latest model comparison: the old 621-image accepted-WebGL blend remains rejected (`0.810` held-out clean test mAP50-95 vs `0.884` clean checkpoint). A stricter 445-image blend of individually accepted WebGL recipes passes the matched real-only clean-test gate (`0.836855` vs `0.835861`, delta `+0.000994`), but fails the per-class guard on `KHR_2000` (`-0.052433`). Full all-target seeds regress badly: uncapped accepted synthetic tests at `0.807251` vs `0.883801` clean checkpoint (delta `-0.076550`), capped accepted synthetic tests at `0.785412` (delta `-0.098389`), and full-real real-only tests at `0.783482` (delta `-0.100319`). Treat the accepted blend as ablation evidence only; fix the full-real/background-heavy curriculum before any scale target.
 
 2.5D remains useful as a matched baseline and fallback, but WebGL synthetic is the main candidate path.
 
@@ -29,7 +29,7 @@ Label policy: exact visible masks/ID colors are authoritative. Detect AABBs are 
 The best-supported path right now is a scoreable P1 transfer test:
 
 1. Promote or capture rights-clean real fan/overlap stress labels, especially `KHR_5000` face+number overlaps and `KHR_20000` thin/edge backs.
-2. Run a full-real real-only curriculum control and rare-class-safe sampler check before any more synthetic scale. Keep `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` as bounded ablation evidence only; do not use the full-real accepted-synthetic seed or close-up v1/v2, overlap, fan, or hand recipes as scale targets from the current gates.
+2. Repair the real curriculum before more synthetic scale: cap/background-sample the all-target real training set, preserve rare `KHR_20000`/`KHR_50000` exposure, and compare against the clean checkpoint before adding WebGL again. Keep `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` as bounded ablation evidence only.
 3. Probe fragment-to-physical-note fusion once the evaluation set can expose whether fragment evidence helps or just overcounts.
 4. Promote synthetic changes when they improve the real scoreboard without materially regressing clean/base validation or browser deploy guards.
 
@@ -49,6 +49,7 @@ Done and trusted:
 - Recipe-isolated WebGL ablation configs now exist under `configs/webgl_ablation/` with train lists under `configs/generated_lists/webgl_ablation/`; use these before scaling blended synthetic again.
 - `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` is the current bounded accepted-blend ablation: global clean-test transfer passes matched real-only by `+0.000994` mAP50-95, but its `KHR_2000` per-class drop blocks blind scale.
 - `scripts/build_yolo_balanced_subset.py --always-max-per-class` can cap labeled always-included synthetic dose per class; this is useful tooling, but the capped full-real accepted seed is also rejected and should not be promoted.
+- `configs/cashsnap_v1_full_real_only_seed.yaml` proves the all-target real curriculum is itself unsafe: 1 epoch from the clean checkpoint tests at `0.783482` mAP50-95 vs `0.883801` clean checkpoint, nearly identical to the capped accepted-synthetic failure.
 
 Still missing:
 
@@ -57,7 +58,7 @@ Still missing:
 - A fragment-to-physical-note fusion path for real inference.
 - Accepted trainable real background banks.
 - A `KHR_2000`/`KHR_50000`-safe accepted blend or a justified per-class tolerance for rare-class test variance.
-- A full-real real-only curriculum control before another synthetic scale attempt.
+- A repaired real-only curriculum control before another synthetic scale attempt.
 - End-to-end promotion rules that combine real-scoreboard improvement, clean-validation/test guardrails, browser/deploy guardrails, and enough metadata to diagnose regressions.
 
 ## Operating Principle
@@ -131,6 +132,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-06-04 | synthetic | reject | The 413-image no-thin-edge core blend is not safer: held-out clean test `0.832365` vs real-only `0.835861` (delta `-0.003496`), with worse `KHR_50000` (`-0.059880`) and `KHR_2000` (`-0.050304`) deltas. Do not prefer it over the full accepted blend. |
 | 2026-06-04 | training | reject | Full clean-real + uncapped accepted synthetic is a hard reject. The 5-epoch low-LR/no-AMP seed had best val mAP50-95 at epoch 1 (`0.84559`), but held-out clean test was `0.807251` vs `0.883801` clean checkpoint (delta `-0.076550`), with rare-class collapse on `KHR_50000` (`-0.587183`) and `KHR_20000` (`-0.176160`). Do not promote. |
 | 2026-06-04 | training | reject | Capping accepted synthetic with `--always-max-per-class 4` does not fix the full-real seed. The 1-epoch capped probe tested at `0.785412` vs `0.883801` clean checkpoint (delta `-0.098389`), with `KHR_50000` (`-0.690631`) and `KHR_20000` (`-0.296286`) worse. The cap is useful sampler tooling, but the next step is isolating full-real real-only/background-heavy curriculum before more synthetic scale. |
+| 2026-06-04 | training | reject | Full clean-real real-only all-target seed is also a hard reject. The 1-epoch low-LR/no-AMP control validates at `0.83542`, but held-out clean test is `0.783482` vs `0.883801` clean checkpoint (delta `-0.100319`) and `-0.001930` below the capped accepted-synthetic seed. This implicates the all-target/background-heavy real curriculum and rare-class exposure shape as the primary collapse; do not use full-real all-target seeds until the real-only curriculum is repaired. |
 
 ## Trainable Candidate Artifacts
 
