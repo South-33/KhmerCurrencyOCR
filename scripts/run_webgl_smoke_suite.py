@@ -56,6 +56,8 @@ def build_command(row: dict, args: argparse.Namespace) -> list[str]:
     ]
     if args.skip_render:
         cmd.append("--skip-render")
+    if str(row.get("class_sequence", "")).strip():
+        cmd.extend(["--class-sequence", str(row["class_sequence"])])
     return cmd
 
 

@@ -95,13 +95,14 @@
     {
       "id": "webgl_rare_class_support_v1",
       "target_condition_ids": ["thin_edge_partial_fragments", "front_back_and_old_common_confusion"],
-      "artifact_status": "planned",
+      "artifact_status": "diagnostic",
       "scene_modes": ["stack", "fan"],
       "asset_side_policy": "any",
       "camera_profile": "phone_auto",
+      "class_sequence": ["KHR_2000", "KHR_50000", "KHR_20000", "KHR_10000", "KHR_5000"],
       "intended_use": "Target weak/rare KHR class support without oversampling artifacts.",
       "promotion_gate": "rare-class recall improves while common-class false positives stay bounded",
-      "current_blocker": "Needs curated class/side/design sampling weights and real rare-class validation."
+      "current_blocker": "Tiny class-sequence smoke proof passed; still needs class-distribution audit and real rare-class validation before trainable-candidate use."
     },
     {
       "id": "webgl_hard_negative_replay_v1",

@@ -80,6 +80,11 @@ def parse_args() -> argparse.Namespace:
         default="generic_phone_jitter",
         help="Select WebGL camera/FOV/framing profile.",
     )
+    parser.add_argument(
+        "--class-sequence",
+        default="",
+        help="Optional comma/space-separated class sequence for generic clean/stack/fan sampling.",
+    )
     parser.add_argument("--recipe-name", default="", help="Human-readable recipe name to write into recipe.json.")
     parser.add_argument(
         "--artifact-status",
@@ -167,6 +172,8 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
         "--out-dir",
         str(out_dir),
     ]
+    if args.class_sequence.strip():
+        cmd.extend(["--class-sequence", args.class_sequence])
     if background_dir is not None:
         cmd.extend(["--background-dir", str(background_dir)])
     if args.browser_executable is not None:
@@ -1189,6 +1196,7 @@ def write_recipe_metadata(
         },
         "asset_side_policy": args.asset_side_policy,
         "camera_profile": args.camera_profile,
+        "class_sequence": args.class_sequence,
         "background_dir": rel(args.background_dir) if args.background_dir else "",
         "fragment_review_policy": args.fragment_review_policy,
         "label_transform_policy": {

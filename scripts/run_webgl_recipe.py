@@ -40,6 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--browser-executable", type=Path, default=None, help="Optional Chromium/Edge executable override.")
     parser.add_argument("--asset-side-policy", default="", help="Override catalog asset-side sampling policy.")
     parser.add_argument("--camera-profile", default="", help="Override catalog WebGL camera/FOV/framing profile.")
+    parser.add_argument("--class-sequence", default="", help="Override catalog class sequence for generic clean/stack/fan sampling.")
     parser.add_argument("--artifact-status", choices=["smoke", "diagnostic", "trainable-candidate"], default="")
     parser.add_argument("--background-dir", type=Path, default=None)
     parser.add_argument("--headroom-max-percent", default="90")
@@ -114,6 +115,12 @@ def choose_camera_profile(recipe: dict, override: str) -> str:
     return profile
 
 
+def normalize_class_sequence(value: object) -> str:
+    if isinstance(value, list):
+        return ",".join(str(item).strip() for item in value if str(item).strip())
+    return str(value or "").strip()
+
+
 def main() -> int:
     args = parse_args()
     catalog = read_json(resolve(args.catalog))
@@ -121,6 +128,7 @@ def main() -> int:
     scene_mode = choose_scene_mode(recipe, args.scene_mode)
     asset_side_policy = choose_asset_side_policy(recipe, args.asset_side_policy)
     camera_profile = choose_camera_profile(recipe, args.camera_profile)
+    class_sequence = args.class_sequence.strip() or normalize_class_sequence(recipe.get("class_sequence", ""))
     artifact_status = args.artifact_status or STATUS_TO_BATCH_STATUS.get(str(recipe.get("artifact_status")), "diagnostic")
     fragment_review_policy = args.fragment_review_policy
     if fragment_review_policy == "auto":
@@ -176,6 +184,8 @@ def main() -> int:
         "--preflight-timeout",
         args.preflight_timeout,
     ]
+    if class_sequence:
+        cmd.extend(["--class-sequence", class_sequence])
     if args.background_dir:
         cmd.extend(["--background-dir", str(args.background_dir)])
     if args.browser_executable:

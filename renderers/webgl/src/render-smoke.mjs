@@ -24,6 +24,7 @@ const SCENE_MODE = argValue("--scene-mode", "auto");
 const BACKGROUND_DIR = argValue("--background-dir", "");
 const ASSET_SIDE_POLICY = argValue("--asset-side-policy", "any");
 const CAMERA_PROFILE = argValue("--camera-profile", "generic_phone_jitter");
+const CLASS_SEQUENCE_RAW = argValue("--class-sequence", "");
 const BROWSER_EXECUTABLE = argValue("--browser-executable", process.env.CASHSNAP_WEBGL_BROWSER || EDGE);
 const WIDTH = Number.parseInt(argValue("--width", "1440"), 10);
 const HEIGHT = Number.parseInt(argValue("--height", "1080"), 10);
@@ -70,6 +71,17 @@ const INSTANCE_ID_COLORS = [
   [255, 128, 0],
   [128, 0, 255],
 ];
+
+function parseClassSequence(value) {
+  const classes = value.split(/[,;\s]+/).map((item) => item.trim()).filter(Boolean);
+  const unknown = classes.filter((className) => !CLASS_NAMES.includes(className));
+  if (unknown.length > 0) {
+    throw new Error(`--class-sequence contains unknown class(es): ${unknown.join(", ")}`);
+  }
+  return classes;
+}
+
+const CLASS_SEQUENCE = parseClassSequence(CLASS_SEQUENCE_RAW);
 
 if (!Number.isInteger(VARIANT) || VARIANT < 0) {
   throw new Error("--variant must be a non-negative integer");
@@ -137,6 +149,10 @@ function rotate2([x, y], angle) {
 }
 
 function classIndexFor(variant, index) {
+  if (CLASS_SEQUENCE.length > 0) {
+    const className = CLASS_SEQUENCE[(variant + index) % CLASS_SEQUENCE.length];
+    return CLASS_NAMES.indexOf(className);
+  }
   return (variant * 7 + index * 5) % CLASS_NAMES.length;
 }
 
@@ -1539,6 +1555,7 @@ async function main() {
         sceneConfig: config,
         assetSelection: {
           sidePolicy: ASSET_SIDE_POLICY,
+          classSequence: CLASS_SEQUENCE,
           sideCounts: assetSideCounts,
           frontBackMixSatisfied,
         },

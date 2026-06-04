@@ -118,6 +118,12 @@ def check_existing(row: dict, out_root: Path, train_views: list[str]) -> None:
         recipe.get("camera_profile", "generic_phone_jitter") == row["camera_profile"],
         f"{row['recipe_id']}: rendered camera_profile mismatch",
     )
+    expected_class_sequence = str(row.get("class_sequence", "")).strip()
+    if expected_class_sequence:
+        require(
+            str(recipe.get("class_sequence", "")).strip() == expected_class_sequence,
+            f"{row['recipe_id']}: rendered class_sequence mismatch",
+        )
     expected_background_dir = str(row.get("background_dir", "")).replace("\\", "/")
     if expected_background_dir:
         rendered_background_dir = str(recipe.get("background_dir", "")).replace("\\", "/")

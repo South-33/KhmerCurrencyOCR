@@ -166,6 +166,7 @@ def main() -> int:
                 "gate_kind": args.gate_kind,
                 "asset_side_policy": str(row.get("asset_side_policy", "")),
                 "camera_profile": str(row.get("camera_profile", "")),
+                "class_sequence": str(row.get("class_sequence", "")),
                 "train_views": sorted(parse_train_views(row.get("train_views", ["detect"]))),
             }
         )
