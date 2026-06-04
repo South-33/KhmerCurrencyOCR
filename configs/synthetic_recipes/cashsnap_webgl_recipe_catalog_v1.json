@@ -60,6 +60,31 @@
       "current_blocker": "Needs real phone fan benchmark slices beyond stress-only examples."
     },
     {
+      "id": "webgl_same_class_repeat_fan_v1",
+      "target_condition_ids": ["handheld_fan", "repeated_same_denomination"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["fan"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_auto",
+      "class_sequence": [
+        "KHR_5000",
+        "KHR_5000",
+        "KHR_5000",
+        "KHR_10000",
+        "KHR_10000",
+        "KHR_10000",
+        "KHR_20000",
+        "KHR_20000",
+        "KHR_20000",
+        "KHR_50000",
+        "KHR_50000",
+        "KHR_50000"
+      ],
+      "intended_use": "Stress repeated same-denomination bills inside one handheld fan so count/fusion logic does not merge physical notes.",
+      "promotion_gate": "same-class repeat count metrics improve while parent fusion preserves physical instances and clean/browser guardrails hold",
+      "current_blocker": "Small count-stress smoke passed on 4 fan images; still needs broader sequence distribution audit and real repeated-denomination fan validation before trainable-candidate use."
+    },
+    {
       "id": "webgl_hand_occlusion_fragments_v1",
       "target_condition_ids": ["finger_or_hand_split_occlusion"],
       "artifact_status": "smoke_ready",
