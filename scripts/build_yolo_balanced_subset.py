@@ -50,6 +50,16 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--oversample-min-per-class",
+        type=int,
+        default=None,
+        help=(
+            "Repeat selected labeled images until each represented class has at least this many "
+            "train-list appearances. Duplicates are appended after capped selection, so this can "
+            "raise rare-class exposure without admitting more backgrounds/common-class images."
+        ),
+    )
+    parser.add_argument(
         "--target-exclude-prefix",
         action="append",
         default=None,
@@ -255,12 +265,59 @@ def build_subset(
     )
 
 
+def oversample_underrepresented(
+    selected: list[Path],
+    class_count: int,
+    min_per_class: int | None,
+) -> tuple[list[Path], Counter[int], Counter[int], int]:
+    if min_per_class is None:
+        appearances = Counter()
+        for image in selected:
+            for cls in {cls for cls in set(label_classes(image)) if 0 <= cls < class_count}:
+                appearances[cls] += 1
+        return selected, appearances, Counter(), 0
+    if min_per_class < 1:
+        raise SystemExit("--oversample-min-per-class must be positive when provided")
+
+    class_to_pool: dict[int, list[Path]] = {class_id: [] for class_id in range(class_count)}
+    image_classes: dict[Path, set[int]] = {}
+    appearances: Counter[int] = Counter()
+    oversampled_by_trigger: Counter[int] = Counter()
+    expanded = list(selected)
+
+    for image in selected:
+        classes = {cls for cls in set(label_classes(image)) if 0 <= cls < class_count}
+        image_classes[image] = classes
+        for cls in classes:
+            class_to_pool[cls].append(image)
+            appearances[cls] += 1
+
+    added = 0
+    for class_id in range(class_count):
+        pool = class_to_pool[class_id]
+        if not pool:
+            continue
+        pool_index = 0
+        while appearances[class_id] < min_per_class:
+            image = pool[pool_index % len(pool)]
+            expanded.append(image)
+            oversampled_by_trigger[class_id] += 1
+            added += 1
+            for cls in image_classes[image]:
+                appearances[cls] += 1
+            pool_index += 1
+
+    return expanded, appearances, oversampled_by_trigger, added
+
+
 def main() -> None:
     args = parse_args()
     if args.no_always_include and args.always_include_prefix:
         raise SystemExit("--no-always-include cannot be combined with --always-include-prefix")
     if args.always_max_per_class is not None and args.always_max_per_class < 1:
         raise SystemExit("--always-max-per-class must be positive when provided")
+    if args.oversample_min_per_class is not None and args.oversample_min_per_class < 1:
+        raise SystemExit("--oversample-min-per-class must be positive when provided")
 
     data_path = resolve_from_root(args.data)
     out_path = resolve_from_root(args.out)
@@ -297,6 +354,12 @@ def main() -> None:
         include_all_targets=args.include_all_target_images,
         always_max_per_class=args.always_max_per_class,
     )
+    selected_unique_count = len(selected)
+    selected, appearance_counts, oversampled_by_trigger, oversample_added_count = oversample_underrepresented(
+        selected,
+        class_count=class_count,
+        min_per_class=args.oversample_min_per_class,
+    )
 
     missing = [str(names[index]) for index in range(class_count) if counts[index] == 0]
     if missing:
@@ -320,13 +383,19 @@ def main() -> None:
             "background_target": args.backgrounds,
             "include_all_target_images": args.include_all_target_images,
             "always_max_per_class": args.always_max_per_class,
+            "oversample_min_per_class": args.oversample_min_per_class,
+            "oversample_added_images": oversample_added_count,
+            "oversample_trigger_class_images": {
+                str(names[index]): oversampled_by_trigger[index] for index in range(class_count)
+            },
             "always_included_images": always_count,
             "always_skipped_by_class_cap": always_skipped_by_class_cap,
             "target_excluded_images": target_excluded_count,
+            "selected_unique_images": selected_unique_count,
             "selected_images": len(selected),
             "selected_backgrounds": total_background_count,
             "selected_target_backgrounds": target_background_count,
-            "selected_class_images": {str(names[index]): counts[index] for index in range(class_count)},
+            "selected_class_images": {str(names[index]): appearance_counts[index] for index in range(class_count)},
             "selected_target_class_images": {str(names[index]): target_counts[index] for index in range(class_count)},
             "selected_always_class_images": {
                 str(names[index]): always_counts[index] for index in range(class_count)
@@ -340,14 +409,16 @@ def main() -> None:
         f"selected {len(selected)} train images, target_backgrounds={target_background_count}, "
         f"total_backgrounds={total_background_count}, always_included={always_count}, "
         f"always_skipped_by_class_cap={always_skipped_by_class_cap}, "
+        f"oversample_added={oversample_added_count}, "
         f"target_excluded={target_excluded_count}",
         flush=True,
     )
     for class_id, class_name in names.items():
         class_index = int(class_id)
         print(
-            f"  {class_name}: total={counts[class_index]}, target_real={target_counts[class_index]}, "
-            f"always={always_counts[class_index]}",
+            f"  {class_name}: appearances={appearance_counts[class_index]}, "
+            f"target_unique={target_counts[class_index]}, always_unique={always_counts[class_index]}, "
+            f"oversample_trigger={oversampled_by_trigger[class_index]}",
             flush=True,
         )
 
