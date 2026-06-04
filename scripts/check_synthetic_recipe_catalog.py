@@ -12,6 +12,21 @@ from webgl_constants import WEBGL_ASSET_SIDE_POLICIES, WEBGL_CAMERA_PROFILES
 
 
 ROOT = Path(__file__).resolve().parents[1]
+CLASS_NAMES = {
+    "USD_1",
+    "USD_5",
+    "USD_10",
+    "USD_20",
+    "USD_50",
+    "USD_100",
+    "KHR_500",
+    "KHR_1000",
+    "KHR_2000",
+    "KHR_5000",
+    "KHR_10000",
+    "KHR_20000",
+    "KHR_50000",
+}
 DEFAULT_TARGETS = ROOT / "configs" / "synthetic_targets" / "cashsnap_real_target_matrix_v1.json"
 DEFAULT_RECIPES = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
 VALID_RECIPE_STATUSES = {
@@ -45,6 +60,69 @@ def read_json(path: Path) -> dict:
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
+
+
+def require_nonnegative_int(value: object, message: str) -> None:
+    require(type(value) is int and value >= 0, message)
+
+
+def validate_diagnostic_gates(recipe_id: str, gates: object) -> None:
+    if gates in (None, ""):
+        return
+    require(isinstance(gates, dict), f"{recipe_id}: diagnostic_gates must be an object")
+    allowed_gate_names = {"class_distribution", "count_stress"}
+    unknown_gate_names = sorted(str(key) for key in gates if str(key) not in allowed_gate_names)
+    require(not unknown_gate_names, f"{recipe_id}: unknown diagnostic_gates {unknown_gate_names}")
+
+    class_distribution = gates.get("class_distribution")
+    if class_distribution is not None:
+        require(isinstance(class_distribution, dict), f"{recipe_id}: class_distribution gate must be an object")
+        expected_classes = class_distribution.get("expected_classes")
+        require(
+            isinstance(expected_classes, list) and expected_classes,
+            f"{recipe_id}: class_distribution.expected_classes must be a non-empty list",
+        )
+        expected = [str(item).strip() for item in expected_classes]
+        require(all(expected), f"{recipe_id}: class_distribution expected classes must be non-empty")
+        duplicate_expected = [item for item, count in Counter(expected).items() if count > 1]
+        require(not duplicate_expected, f"{recipe_id}: duplicate class_distribution expected classes {duplicate_expected}")
+        unknown_classes = sorted(class_name for class_name in expected if class_name not in CLASS_NAMES)
+        require(not unknown_classes, f"{recipe_id}: unknown class_distribution expected classes {unknown_classes}")
+        for field in ("min_images", "min_total", "min_per_class", "max_class_spread"):
+            if field in class_distribution:
+                require_nonnegative_int(
+                    class_distribution[field],
+                    f"{recipe_id}: class_distribution.{field} must be a non-negative integer",
+                )
+        if "max_class_ratio" in class_distribution:
+            ratio = class_distribution["max_class_ratio"]
+            require(
+                isinstance(ratio, (int, float)) and not isinstance(ratio, bool) and ratio > 0,
+                f"{recipe_id}: class_distribution.max_class_ratio must be positive",
+            )
+        if "allow_extra_classes" in class_distribution:
+            require(
+                type(class_distribution["allow_extra_classes"]) is bool,
+                f"{recipe_id}: class_distribution.allow_extra_classes must be boolean",
+            )
+
+    count_stress = gates.get("count_stress")
+    if count_stress is not None:
+        require(isinstance(count_stress, dict), f"{recipe_id}: count_stress gate must be an object")
+        for field in (
+            "min_images",
+            "min_repeat_images",
+            "min_max_same_class",
+            "min_kept_split_parent_count",
+            "min_all_split_parent_count",
+            "min_naive_kept_fragment_overcount",
+            "min_naive_all_fragment_overcount",
+        ):
+            if field in count_stress:
+                require_nonnegative_int(
+                    count_stress[field],
+                    f"{recipe_id}: count_stress.{field} must be a non-negative integer",
+                )
 
 
 def main() -> int:
@@ -92,6 +170,7 @@ def main() -> int:
         require(asset_side_policy in WEBGL_ASSET_SIDE_POLICIES, f"{recipe_id}: invalid asset_side_policy {asset_side_policy!r}")
         camera_profile = str(row.get("camera_profile", ""))
         require(camera_profile in WEBGL_CAMERA_PROFILES, f"{recipe_id}: invalid camera_profile {camera_profile!r}")
+        validate_diagnostic_gates(recipe_id, row.get("diagnostic_gates"))
         for target_id in target_ids:
             coverage[str(target_id)].append(recipe_id)
 

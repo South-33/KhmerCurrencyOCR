@@ -51,6 +51,7 @@ Done and trusted:
 - `compare_yolo_metrics.py --max-per-class-drop` now turns hidden denomination regressions into comparison failures; `run_webgl_recipe_ablation.py` passes a `0.05` per-class guard by default and summarizes worst-class deltas/failure counts. Accepted-blend selection keeps global mAP failure reasons separate from per-class drop failures and preserves the post-train blend gate when the selected recipe set is unchanged.
 - `check_webgl_class_distribution.py` gates targeted WebGL dose packages from `counts/summary.json`, so class-sequence probes can fail automatically on class leakage, missing expected classes, or excessive class imbalance.
 - `check_webgl_count_stress.py` gates per-image count stress from `counts/targets.jsonl`, including same-class repeat images, max same-class count, split-parent counts, and fragment-overcount pressure.
+- Diagnostic recipe gates can live in `cashsnap_webgl_recipe_catalog_v1.json` and run via `check_webgl_recipe_diagnostic_gates.py`; rare-class and same-class-repeat recipes now declare their accepted audit thresholds.
 - `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` is the current bounded accepted-blend ablation: global clean-test transfer passes matched real-only by `+0.000994` mAP50-95, but its `KHR_2000` per-class drop blocks blind scale.
 - `scripts/build_yolo_balanced_subset.py --always-max-per-class` can cap labeled always-included synthetic dose per class; this is useful tooling, but the capped full-real accepted seed is also rejected and should not be promoted.
 - `configs/cashsnap_v1_full_real_only_seed.yaml` proves the all-target real curriculum is itself unsafe: 1 epoch from the clean checkpoint tests at `0.783482` mAP50-95 vs `0.883801` clean checkpoint, nearly identical to the capped accepted-synthetic failure.
@@ -102,6 +103,7 @@ Current useful checks:
 - Trainable-candidate dry run: `rl python scripts\run_webgl_trainable_candidate_pipeline.py --dry-run --train-smoke`
 - Targeted class-dose gate: `rl python scripts\check_webgl_class_distribution.py --root <webgl_root> --expected-classes '<CSV>' --min-images <n> --min-per-class <n> --max-class-spread <n>`
 - Count-stress gate: `rl python scripts\check_webgl_count_stress.py --root <webgl_root> --min-repeat-images <n> --min-max-same-class <n>`
+- Recipe diagnostic gates: `rl python scripts\check_webgl_recipe_diagnostic_gates.py --root <webgl_root> --recipe-id <recipe_id>`
 - Real benchmark boundary: `rl python scripts\check_real_fan_benchmark.py`
 - Capture gaps: `rl python scripts\check_capture_requirements.py`
 - Training wrapper dry run: `rl python scripts\bench_train_with_headroom.py --data configs\cashsnap_v1.yaml --name dry_run --dry-run --quiet`

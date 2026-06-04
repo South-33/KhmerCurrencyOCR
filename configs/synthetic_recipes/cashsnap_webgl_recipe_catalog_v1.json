@@ -80,6 +80,22 @@
         "KHR_50000",
         "KHR_50000"
       ],
+      "diagnostic_gates": {
+        "class_distribution": {
+          "expected_classes": ["KHR_5000", "KHR_10000", "KHR_20000", "KHR_50000"],
+          "min_images": 12,
+          "min_per_class": 15,
+          "max_class_spread": 2,
+          "max_class_ratio": 1.14
+        },
+        "count_stress": {
+          "min_images": 12,
+          "min_repeat_images": 12,
+          "min_max_same_class": 3,
+          "min_all_split_parent_count": 40,
+          "min_naive_all_fragment_overcount": 120
+        }
+      },
       "intended_use": "Stress repeated same-denomination bills inside one handheld fan so count/fusion logic does not merge physical notes.",
       "promotion_gate": "same-class repeat count metrics improve while parent fusion preserves physical instances and clean/browser guardrails hold",
       "current_blocker": "Sequence distribution and count-stress audit passed on 12 fan images; still needs real repeated-denomination fan validation before trainable-candidate use."
@@ -125,6 +141,15 @@
       "asset_side_policy": "any",
       "camera_profile": "phone_auto",
       "class_sequence": ["KHR_2000", "KHR_50000", "KHR_20000", "KHR_10000", "KHR_5000"],
+      "diagnostic_gates": {
+        "class_distribution": {
+          "expected_classes": ["KHR_2000", "KHR_50000", "KHR_20000", "KHR_10000", "KHR_5000"],
+          "min_images": 16,
+          "min_per_class": 16,
+          "max_class_spread": 2,
+          "max_class_ratio": 1.13
+        }
+      },
       "intended_use": "Target weak/rare KHR class support without oversampling artifacts.",
       "promotion_gate": "rare-class recall improves while common-class false positives stay bounded",
       "current_blocker": "Class-sequence distribution audit passed on 16 fan images; still needs real rare-class validation before trainable-candidate use."
