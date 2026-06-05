@@ -15,6 +15,9 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from check_synthetic_governance import DEFAULT_MANIFEST as DEFAULT_GOVERNANCE
+from check_synthetic_governance import check_manifest as check_governance_manifest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_latest.json"
@@ -41,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mined-review", type=Path, default=DEFAULT_MINED_REVIEW)
     parser.add_argument("--mined-review-quality", type=Path, default=DEFAULT_MINED_REVIEW_QUALITY)
     parser.add_argument("--split-coverage", type=Path, default=DEFAULT_SPLIT_COVERAGE)
+    parser.add_argument("--governance", type=Path, default=DEFAULT_GOVERNANCE)
     parser.add_argument(
         "--min-real-train-class-images",
         type=int,
@@ -604,6 +608,58 @@ def real_train_class_coverage_axis(split_coverage: dict[str, Any], min_unique_im
     )
 
 
+def governance_axis(report: dict[str, Any]) -> dict[str, Any]:
+    if not report:
+        return axis(
+            "governance_and_provenance",
+            "missing",
+            "No synthetic governance manifest/check report was supplied.",
+            next_action="Add and run the synthetic governance manifest before any perfect/done or release claim.",
+        )
+
+    status = str(report.get("status", "blocked"))
+    if status not in STATUS_ORDER:
+        status = "blocked"
+    source_artifacts = report.get("source_artifacts", [])
+    if not isinstance(source_artifacts, list):
+        source_artifacts = []
+    warnings = report.get("warnings", [])
+    if not isinstance(warnings, list):
+        warnings = []
+    blockers = report.get("blockers", [])
+    if not isinstance(blockers, list):
+        blockers = ["governance blockers are malformed"]
+    release_status = str(report.get("release_status", "")).strip()
+    summary = (
+        f"Synthetic governance manifest passes for {release_status or 'unknown'} scope "
+        f"with {len(source_artifacts)} source artifact(s)."
+        if status == "pass"
+        else f"Synthetic governance manifest is {status}."
+    )
+    return axis(
+        "governance_and_provenance",
+        status,
+        summary,
+        evidence={
+            "manifest": report.get("manifest", ""),
+            "manifest_sha256": report.get("manifest_sha256", ""),
+            "release_status": release_status,
+            "public_release_allowed": bool(report.get("public_release_allowed")),
+            "model_release_allowed": bool(report.get("model_release_allowed")),
+            "public_release_blocker": report.get("public_release_blocker", ""),
+            "model_release_blocker": report.get("model_release_blocker", ""),
+            "rights_status_counts": report.get("rights_status_counts", {}),
+            "release_limited_source_artifacts": report.get("release_limited_source_artifacts", []),
+            "check_counts": report.get("check_counts", {}),
+            "warnings": warnings,
+        },
+        blockers=[str(item) for item in blockers],
+        next_action=""
+        if status == "pass"
+        else "Repair the governance manifest, source-artifact paths, release blockers, or rights/privacy gating.",
+    )
+
+
 def build_scorecard(
     readiness: dict[str, Any],
     domain_gap: dict[str, Any],
@@ -613,6 +669,7 @@ def build_scorecard(
     split_coverage: dict[str, Any],
     min_real_train_class_images: int,
     mined_real_utility_comparisons: list[dict[str, Any]],
+    governance_report: dict[str, Any],
 ) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
     trainable = int(readiness.get("required_with_trainable_candidate", 0) or 0)
@@ -785,20 +842,7 @@ def build_scorecard(
         )
     )
 
-    axes.append(
-        axis(
-            "governance_and_provenance",
-            "review",
-            "Core provenance paths exist, but a complete release-grade datasheet/data-card/privacy package is not claimed.",
-            evidence={
-                "rubric_source": RUBRIC_SOURCE,
-                "targets": readiness.get("targets", ""),
-                "catalog": readiness.get("catalog", ""),
-                "suite": readiness.get("suite", ""),
-            },
-            next_action="Before any public/release dataset, add datasheet/data card, license/provenance audit, intended use, limitations, and privacy/memorization checks.",
-        )
-    )
+    axes.append(governance_axis(governance_report))
 
     status_counts = Counter(str(row["status"]) for row in axes)
     overall = "pass"
@@ -826,6 +870,7 @@ def main() -> int:
     mined_review = read_json(args.mined_review, required=False)
     mined_review_quality = read_json(args.mined_review_quality, required=False)
     split_coverage = read_json(args.split_coverage, required=False)
+    governance_report = check_governance_manifest(args.governance)
     comparison_paths = [] if args.no_default_mined_real_utility else list(DEFAULT_MINED_REAL_UTILITY_COMPARISONS)
     comparison_paths.extend(args.mined_real_utility_comparison)
     mined_real_utility_comparisons = read_comparison_jsons(comparison_paths)
@@ -838,6 +883,7 @@ def main() -> int:
         split_coverage,
         args.min_real_train_class_images,
         mined_real_utility_comparisons,
+        governance_report,
     )
     out = resolve(args.json_out)
     out.parent.mkdir(parents=True, exist_ok=True)

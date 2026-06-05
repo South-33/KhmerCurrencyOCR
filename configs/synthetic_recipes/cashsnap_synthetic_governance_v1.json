@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_synthetic_governance_v1",
+  "scope": "CashSnap WebGL synthetic-data pipeline, trainable-candidate packages, and bounded internal model probes.",
+  "release_status": "internal_experiment_only",
+  "public_release_allowed": false,
+  "model_release_allowed": false,
+  "public_release_blocker": "Banknote cutout source rights, local real review labels, and public reproduction constraints are not release-reviewed. Synthetic packages are internal experiment artifacts until a separate rights/privacy audit approves release.",
+  "model_release_blocker": "Synthetic additions have not passed protected real fan/overlap/hand transfer gates, clean/base guardrails, rare-class guardrails, and browser count-error guardrails.",
+  "intended_uses": [
+    "Generate auditable internal WebGL trainable-candidate and diagnostic datasets for CashSnap denomination detection/counting probes.",
+    "Fill named condition gaps from the target matrix only after real anchors, row-count controls, and model comparison gates are available.",
+    "Support visible-region label, fragment-label, OBB-label, count-contract, package-QA, and scorecard audits."
+  ],
+  "prohibited_uses": [
+    "Public dataset release, model release, or production deployment claims without a fresh rights/privacy review and a passing synthetic dataset scorecard.",
+    "Counterfeit detection, anti-counterfeit authentication, or claims about genuine/fake currency.",
+    "Treating blank-label real images as no-note hard negatives before visual verification.",
+    "Promoting diagnostic WebGL recipes into trainable mixes without their declared real bridge and controls."
+  ],
+  "limitations": [
+    "Current cutout bank is suitable for internal synthetic experiments only until source licensing and currency reproduction constraints are reviewed.",
+    "Real fan/overlap/hand stress labels and real mixed USD+KHR rare/common captures are still missing as protected transfer proof.",
+    "Synthetic domain-gap passes do not prove model utility; promotion requires real-holdout utility improvement and per-class guardrails.",
+    "Fragment labels represent visible evidence components, not physical note counts, and require downstream fusion before count claims."
+  ],
+  "privacy_controls": [
+    "Synthetic packages should not include people, faces, private documents, or store/customer identifying details.",
+    "Real capture or mined-review artifacts must stay internal until source ownership, consent, split isolation, and privacy review are complete.",
+    "Public artifacts must omit private local paths, credentials, account identifiers, and unreviewed real images."
+  ],
+  "label_policy": [
+    "Visible-region boxes/masks are authoritative for detect-only probes.",
+    "OBB labels are valid only when the visible mask is compact enough that the rotated box does not cover large hidden regions.",
+    "Disconnected visible evidence from one physical note remains one physical count target; fragment labels need fusion.",
+    "Ambiguous barely visible fragments should be ignore/unknown rather than forced denomination labels."
+  ],
+  "promotion_requirements": [
+    "Target condition is mapped in the real target matrix and recipe catalog.",
+    "Rendered package passes package QA, label-view QA, appearance diversity, count-contract, and declared diagnostic gates.",
+    "A protected real anchor/holdout exists for the condition, including fan/overlap/hand and mixed USD+KHR rare/common stress when relevant.",
+    "Synthetic candidate beats matched real-only or row-count/class-exposure controls without material clean/base, rare-class, or browser regressions.",
+    "Dataset scorecard passes with --require-pass before any perfect/done or release-ready claim."
+  ],
+  "required_source_artifact_ids": [
+    "target_matrix",
+    "recipe_catalog",
+    "trainable_candidate_suite",
+    "visual_review_rules",
+    "background_bank_registry",
+    "environment_bank_registry",
+    "cutout_bank_audit",
+    "blocked_source_leads",
+    "real_capture_inventory",
+    "real_benchmark_sources",
+    "scorecard_script"
+  ],
+  "source_artifacts": [
+    {
+      "id": "target_matrix",
+      "kind": "file",
+      "path": "configs/synthetic_targets/cashsnap_real_target_matrix_v1.json",
+      "purpose": "Required condition inventory, real bridge roles, capture requirements, and blockers.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "recipe_catalog",
+      "kind": "file",
+      "path": "configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json",
+      "purpose": "All synthetic recipe statuses, intended uses, promotion gates, and current blockers.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "trainable_candidate_suite",
+      "kind": "file",
+      "path": "configs/synthetic_recipes/cashsnap_webgl_trainable_candidates_v1.json",
+      "purpose": "Active bounded trainable-candidate package set and package paths.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "visual_review_rules",
+      "kind": "file",
+      "path": "configs/synthetic_recipes/cashsnap_webgl_visual_review_rules_v1.json",
+      "purpose": "Visual review rules for package acceptance/rejection.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "background_bank_registry",
+      "kind": "file",
+      "path": "configs/synthetic_recipes/cashsnap_webgl_background_banks_v1.json",
+      "purpose": "Reviewed/rejected background bank registry and trainable-use policy.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "environment_bank_registry",
+      "kind": "file",
+      "path": "configs/synthetic_recipes/cashsnap_webgl_environment_banks_v1.json",
+      "purpose": "Environment-map registry, source/license requirements, and acceptance state.",
+      "rights_status": "project_config",
+      "release_policy": "may_publish_project_config"
+    },
+    {
+      "id": "cutout_bank_audit",
+      "kind": "file",
+      "path": "data/asset_candidates/numista_current_cutout_bank_v1/audit/summary.json",
+      "purpose": "Cutout-bank class/side/visual/usage audit for the current internal source assets.",
+      "rights_status": "usage_review_required",
+      "release_policy": "internal_reference_only_until_rights_review"
+    },
+    {
+      "id": "blocked_source_leads",
+      "kind": "file",
+      "path": "manifests/blocked_or_manual_sources.csv",
+      "purpose": "Manual source leads and blocked/rights-review-only external dataset candidates.",
+      "rights_status": "mixed_manual_review",
+      "release_policy": "do_not_train_or_release_without_source_specific_review"
+    },
+    {
+      "id": "real_capture_inventory",
+      "kind": "file",
+      "path": "manifests/real_partial_capture_inventory.csv",
+      "purpose": "Inventory of usable/internal real stress captures for validation bridging.",
+      "rights_status": "local_capture_review_required",
+      "release_policy": "internal_validation_only_until_owner_privacy_review"
+    },
+    {
+      "id": "real_benchmark_sources",
+      "kind": "file",
+      "path": "manifests/real_fan_benchmark_sources.csv",
+      "purpose": "Real benchmark source provenance and promotion statuses.",
+      "rights_status": "local_dataset_review_required",
+      "release_policy": "internal_validation_only_until_rights_review"
+    },
+    {
+      "id": "scorecard_script",
+      "kind": "file",
+      "path": "scripts/check_synthetic_dataset_scorecard.py",
+      "purpose": "Mission-level synthetic dataset scorecard and --require-pass gate.",
+      "rights_status": "project_code",
+      "release_policy": "may_publish_project_code"
+    }
+  ]
+}
