@@ -42,6 +42,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--camera-profile", default="", help="Override catalog WebGL camera/FOV/framing profile.")
     parser.add_argument("--class-sequence", default="", help="Override catalog class sequence for supported scene modes.")
     parser.add_argument("--note-condition-policy", default="", help="Override catalog per-note dirt/crinkle/wetness policy.")
+    parser.add_argument("--lens-distortion-policy", default="", help="Override catalog shared radial lens-warp policy.")
     parser.add_argument("--artifact-status", choices=["smoke", "diagnostic", "trainable-candidate"], default="")
     parser.add_argument("--background-dir", type=Path, default=None)
     parser.add_argument("--environment-dir", type=Path, default=None, help="Optional equirectangular environment map directory for visual lighting/reflections.")
@@ -159,6 +160,9 @@ def main() -> int:
     note_condition_policy = args.note_condition_policy.strip() or str(recipe.get("note_condition_policy", "mixed")).strip() or "mixed"
     if note_condition_policy not in {"mixed", "pristine_only", "heavy_wear", "wet_stress"}:
         raise SystemExit(f"unsupported note_condition_policy: {note_condition_policy}")
+    lens_distortion_policy = args.lens_distortion_policy.strip() or str(recipe.get("lens_distortion_policy", "off")).strip() or "off"
+    if lens_distortion_policy not in {"off", "phone_mild"}:
+        raise SystemExit(f"unsupported lens_distortion_policy: {lens_distortion_policy}")
     count = int(args.count if args.count is not None else recipe.get("render_pool_count", 4))
     if count < 1:
         raise SystemExit("--count must be positive")
@@ -256,6 +260,8 @@ def main() -> int:
         cmd.extend(["--class-sequence", class_sequence])
     if note_condition_policy != "mixed":
         cmd.extend(["--note-condition-policy", note_condition_policy])
+    if lens_distortion_policy != "off":
+        cmd.extend(["--lens-distortion-policy", lens_distortion_policy])
     if balanced_subset_count > 0:
         cmd.extend(["--balanced-subset-count", str(balanced_subset_count)])
         if balanced_subset_classes:

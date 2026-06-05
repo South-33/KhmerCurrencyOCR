@@ -39,6 +39,7 @@ VALID_RECIPE_STATUSES = {
     "rejected_probe",
 }
 NOTE_CONDITION_POLICIES = {"mixed", "pristine_only", "heavy_wear", "wet_stress"}
+LENS_DISTORTION_POLICIES = {"off", "phone_mild"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -212,6 +213,11 @@ def main() -> int:
         require(
             note_condition_policy in NOTE_CONDITION_POLICIES,
             f"{recipe_id}: invalid note_condition_policy {note_condition_policy!r}",
+        )
+        lens_distortion_policy = str(row.get("lens_distortion_policy", "off"))
+        require(
+            lens_distortion_policy in LENS_DISTORTION_POLICIES,
+            f"{recipe_id}: invalid lens_distortion_policy {lens_distortion_policy!r}",
         )
         validate_diagnostic_gates(recipe_id, row.get("diagnostic_gates"))
         for target_id in target_ids:

@@ -110,6 +110,20 @@ def assert_no_geometric_postprocess(metadata: object, metadata_path: Path) -> No
     scene_config = metadata.get("sceneConfig", {})
     if not isinstance(scene_config, dict):
         return
+    label_transform_policy = scene_config.get("labelTransformPolicy", {})
+    shared_label_transform = (
+        isinstance(label_transform_policy, dict)
+        and bool(label_transform_policy.get("sharedGeometricPostprocess"))
+        and label_transform_policy.get("labelsDerivedFrom") == "postprocessed_id_pixels"
+    )
+    camera = scene_config.get("camera", {})
+    if isinstance(camera, dict):
+        lens_distortion = camera.get("lensDistortion", {})
+        if isinstance(lens_distortion, dict) and lens_distortion.get("applied"):
+            if not shared_label_transform:
+                raise SystemExit(
+                    f"{metadata_path}: camera lensDistortion is applied but labelTransformPolicy does not prove a shared RGB/ID/label transform"
+                )
     postprocess = scene_config.get("postprocess", {})
     if not isinstance(postprocess, dict):
         return
@@ -119,6 +133,8 @@ def assert_no_geometric_postprocess(metadata: object, metadata_path: Path) -> No
         if any(token in str(key).lower() for token in GEOMETRIC_POSTPROCESS_TOKENS)
     )
     if geometric_keys:
+        if shared_label_transform:
+            return
         raise SystemExit(
             f"{metadata_path}: geometric postprocess keys {geometric_keys} require an exact shared RGB/ID/label transform path"
         )

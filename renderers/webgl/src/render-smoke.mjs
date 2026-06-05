@@ -28,6 +28,7 @@ const ASSET_SIDE_POLICY = argValue("--asset-side-policy", "any");
 const CAMERA_PROFILE = argValue("--camera-profile", "generic_phone_jitter");
 const CLASS_SEQUENCE_RAW = argValue("--class-sequence", "");
 const NOTE_CONDITION_POLICY = argValue("--note-condition-policy", "mixed");
+const LENS_DISTORTION_POLICY = argValue("--lens-distortion-policy", "off");
 const BROWSER_EXECUTABLE = argValue("--browser-executable", process.env.CASHSNAP_WEBGL_BROWSER || EDGE);
 const WIDTH = Number.parseInt(argValue("--width", "1440"), 10);
 const HEIGHT = Number.parseInt(argValue("--height", "1080"), 10);
@@ -128,6 +129,10 @@ if (![
 
 if (!["mixed", "pristine_only", "heavy_wear", "wet_stress"].includes(NOTE_CONDITION_POLICY)) {
   throw new Error("--note-condition-policy must be one of: mixed, pristine_only, heavy_wear, wet_stress");
+}
+
+if (!["off", "phone_mild"].includes(LENS_DISTORTION_POLICY)) {
+  throw new Error("--lens-distortion-policy must be one of: off, phone_mild");
 }
 
 const effectiveSceneMode = SCENE_MODE === "auto" ? (VARIANT >= 100 ? "fan" : "stack") : SCENE_MODE;
@@ -437,6 +442,34 @@ function cameraViewAngles(position, lookAt) {
   };
 }
 
+function lensDistortionConfig(rng, cameraProfile) {
+  if (LENS_DISTORTION_POLICY === "off") {
+    return {
+      policy: "off",
+      applied: false,
+      model: "none",
+      k1: 0,
+    };
+  }
+  const wideProfile = /wide|low_front|oblique_45/.test(cameraProfile.name);
+  const mostlyBarrel = rng() < 0.85;
+  const k1 = mostlyBarrel
+    ? randomBetween(rng, wideProfile ? -0.060 : -0.040, wideProfile ? -0.020 : -0.010)
+    : randomBetween(rng, 0.006, wideProfile ? 0.018 : 0.014);
+  return {
+    policy: LENS_DISTORTION_POLICY,
+    applied: true,
+    model: "radial_k1_inverse_remap",
+    k1: round3(k1),
+    centerOffset: [round3(randomBetween(rng, -0.018, 0.018)), round3(randomBetween(rng, -0.018, 0.018))],
+    frameScale: round3(k1 < 0 ? Math.max(0.86, 1 + k1 * 1.8) : 1.0),
+    visualSampling: "bilinear",
+    idSampling: "nearest",
+    sharedRgbIdLabelTransform: true,
+    labelsDerivedFrom: "postprocessed_id_pixels",
+  };
+}
+
 function sceneConfig(variant, mode, backgroundPath, environmentPath) {
   const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "clean_single" ? 2309 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : mode === "hand_occlusion" ? 6007 : 0;
   const rng = mulberry32(26058003 + variant * 191 + modeOffset);
@@ -469,6 +502,7 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
   const surface = surfaces[randomInt(rng, surfaces.length)];
   const cleanSingle = mode === "clean_single";
   const environmentExtension = environmentPath ? path.extname(environmentPath).toLowerCase() : "";
+  const lensDistortion = lensDistortionConfig(rng, cameraProfile);
   return {
     noteConditionPolicy: NOTE_CONDITION_POLICY,
     surface: {
@@ -499,7 +533,7 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
       lookAt: cameraLookAt,
       viewAngleFromVerticalDeg: cameraAngles.fromVerticalDeg,
       viewAngleAboveTableDeg: cameraAngles.aboveTableDeg,
-      lensDistortion: "not_applied_until_rgb_id_and_labels_share_the_same_exact_transform",
+      lensDistortion,
     },
     lighting: {
       hemiIntensity: randomBetween(rng, 1.15, 1.95),
@@ -519,6 +553,17 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
       grainStrength: randomBetween(rng, cleanSingle ? 42 : 24, cleanSingle ? 70 : 46),
       grainAlpha: randomBetween(rng, cleanSingle ? 20 : 14, cleanSingle ? 36 : 30),
       vignette: randomBetween(rng, cleanSingle ? 18 : 42, cleanSingle ? 44 : 78),
+    },
+    labelTransformPolicy: lensDistortion.applied ? {
+      geometricPostprocess: "shared_rgb_id_label_radial_warp",
+      sharedGeometricPostprocess: true,
+      labelsDerivedFrom: "postprocessed_id_pixels",
+      visualSampling: lensDistortion.visualSampling,
+      idSampling: lensDistortion.idSampling,
+    } : {
+      geometricPostprocess: "none",
+      sharedGeometricPostprocess: false,
+      labelsDerivedFrom: "raw_id_pixels",
     },
   };
 }
@@ -1768,25 +1813,118 @@ window.renderPass = (mode) => {
     for (const mesh of occluderMeshes) mesh.material = mesh.userData.material;
   }
   grainCanvas.style.display = mode === "id" ? "none" : "block";
-  const visualFilter = [
+  visualRenderer.domElement.style.filter = mode === "id" ? "none" : visualFilterString();
+  const activeRenderer = mode === "id" ? idRenderer : visualRenderer;
+  activeRenderer.render(scene, camera);
+};
+
+function visualFilterString() {
+  return [
     "contrast(" + sceneConfig.postprocess.contrast + ")",
     "saturate(" + sceneConfig.postprocess.saturation + ")",
     "brightness(" + sceneConfig.postprocess.brightness + ")",
     sceneConfig.postprocess.focusBlurPx > 0 ? "blur(" + sceneConfig.postprocess.focusBlurPx + "px)" : "",
   ].filter(Boolean).join(" ");
-  visualRenderer.domElement.style.filter = mode === "id" ? "none" : visualFilter;
-  const activeRenderer = mode === "id" ? idRenderer : visualRenderer;
-  activeRenderer.render(scene, camera);
-};
+}
 
-function captureCanvasPixels(sourceRenderer = idRenderer) {
-  const canvas = sourceRenderer.domElement;
+function rawCanvasPixels(canvas, filter = "none", overlayCanvas = null, targetWidth = canvas.width, targetHeight = canvas.height) {
   const scratch = document.createElement("canvas");
-  scratch.width = canvas.width;
-  scratch.height = canvas.height;
+  scratch.width = targetWidth;
+  scratch.height = targetHeight;
   const context = scratch.getContext("2d", { willReadFrequently: true });
-  context.drawImage(canvas, 0, 0);
+  context.filter = filter;
+  context.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+  context.filter = "none";
+  if (overlayCanvas) context.drawImage(overlayCanvas, 0, 0, targetWidth, targetHeight);
   return context.getImageData(0, 0, scratch.width, scratch.height);
+}
+
+function samplePixelNearest(source, width, height, x, y, out, offset) {
+  const sx = Math.round(x);
+  const sy = Math.round(y);
+  if (sx < 0 || sy < 0 || sx >= width || sy >= height) {
+    out[offset] = 0;
+    out[offset + 1] = 0;
+    out[offset + 2] = 0;
+    out[offset + 3] = 255;
+    return;
+  }
+  const sourceOffset = (sy * width + sx) * 4;
+  out[offset] = source[sourceOffset];
+  out[offset + 1] = source[sourceOffset + 1];
+  out[offset + 2] = source[sourceOffset + 2];
+  out[offset + 3] = source[sourceOffset + 3];
+}
+
+function samplePixelBilinear(source, width, height, x, y, out, offset) {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const x1 = x0 + 1;
+  const y1 = y0 + 1;
+  if (x0 < 0 || y0 < 0 || x1 >= width || y1 >= height) {
+    samplePixelNearest(source, width, height, x, y, out, offset);
+    return;
+  }
+  const wx = x - x0;
+  const wy = y - y0;
+  const weights = [
+    [(1 - wx) * (1 - wy), x0, y0],
+    [wx * (1 - wy), x1, y0],
+    [(1 - wx) * wy, x0, y1],
+    [wx * wy, x1, y1],
+  ];
+  for (let channel = 0; channel < 4; channel += 1) {
+    let value = 0;
+    for (const [weight, sx, sy] of weights) {
+      value += source[(sy * width + sx) * 4 + channel] * weight;
+    }
+    out[offset + channel] = Math.max(0, Math.min(255, Math.round(value)));
+  }
+}
+
+function applySharedGeometricTransform(imageData, sampling) {
+  const lens = sceneConfig.camera.lensDistortion;
+  if (!lens || !lens.applied || Math.abs(lens.k1) < 1e-9) return imageData;
+  const { width, height, data } = imageData;
+  const output = new ImageData(width, height);
+  const out = output.data;
+  const k1 = lens.k1;
+  const [centerOffsetX, centerOffsetY] = lens.centerOffset || [0, 0];
+  const frameScale = lens.frameScale || 1;
+  for (let y = 0; y < height; y += 1) {
+    const ny = (((y + 0.5) / height) - 0.5 - centerOffsetY) * 2 * frameScale;
+    for (let x = 0; x < width; x += 1) {
+      const nx = (((x + 0.5) / width) - 0.5 - centerOffsetX) * 2 * frameScale;
+      const r2 = nx * nx + ny * ny;
+      const factor = Math.max(0.65, 1 + k1 * r2);
+      const sx = (((nx / factor) / 2) + 0.5 + centerOffsetX) * width - 0.5;
+      const sy = (((ny / factor) / 2) + 0.5 + centerOffsetY) * height - 0.5;
+      const offset = (y * width + x) * 4;
+      if (sampling === "bilinear") {
+        samplePixelBilinear(data, width, height, sx, sy, out, offset);
+      } else {
+        samplePixelNearest(data, width, height, sx, sy, out, offset);
+      }
+    }
+  }
+  return output;
+}
+
+function imageDataToPngDataUrl(imageData) {
+  const canvas = document.createElement("canvas");
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  canvas.getContext("2d").putImageData(imageData, 0, 0);
+  return canvas.toDataURL("image/png");
+}
+
+function captureCanvasPixels(sourceRenderer = idRenderer, sampling = "nearest") {
+  return applySharedGeometricTransform(rawCanvasPixels(sourceRenderer.domElement), sampling);
+}
+
+function captureVisualPixels() {
+  const imageData = rawCanvasPixels(visualRenderer.domElement, visualFilterString(), grainCanvas, WIDTH, HEIGHT);
+  return applySharedGeometricTransform(imageData, "bilinear");
 }
 
 function pixelKey(data, offset) {
@@ -1928,7 +2066,8 @@ window.auditLayerOrder = () => {
 };
 
 window.renderPass("visual");
-window.captureIdPng = () => idRenderer.domElement.toDataURL("image/png");
+window.captureVisualPng = () => imageDataToPngDataUrl(captureVisualPixels());
+window.captureIdPng = () => imageDataToPngDataUrl(captureCanvasPixels(idRenderer, "nearest"));
 window.__cashsnapReady = true;
 </script>
 </body>
@@ -1970,7 +2109,8 @@ async function main() {
     await page.goto(pathToFileURL(htmlPath).href, { waitUntil: "domcontentloaded", timeout: 180000 });
     await page.waitForFunction("window.__cashsnapReady === true");
     await page.evaluate(() => window.renderPass("visual"));
-    await page.screenshot({ path: path.join(OUT_DIR, "visual.png") });
+    const visualPngDataUrl = await page.evaluate(() => window.captureVisualPng());
+    writeDataUrlPng(visualPngDataUrl, path.join(OUT_DIR, "visual.png"));
     const idPngDataUrl = await page.evaluate(() => {
       window.renderPass("id");
       return window.captureIdPng();

@@ -101,6 +101,12 @@ def parse_args() -> argparse.Namespace:
         default="mixed",
         help="Per-note condition distribution for dirt/crinkle/wetness rendering.",
     )
+    parser.add_argument(
+        "--lens-distortion-policy",
+        choices=["off", "phone_mild"],
+        default="off",
+        help="Optional shared RGB/ID/label radial lens-warp policy.",
+    )
     parser.add_argument("--recipe-name", default="", help="Human-readable recipe name to write into recipe.json.")
     parser.add_argument(
         "--artifact-status",
@@ -246,6 +252,8 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
         cmd.extend(["--class-sequence", args.class_sequence])
     if args.note_condition_policy != "mixed":
         cmd.extend(["--note-condition-policy", args.note_condition_policy])
+    if args.lens_distortion_policy != "off":
+        cmd.extend(["--lens-distortion-policy", args.lens_distortion_policy])
     if background_dir is not None:
         cmd.extend(["--background-dir", str(background_dir)])
     if args.environment_dir is not None:
@@ -1360,8 +1368,8 @@ def write_yolo_dataset(
             "review_min_parent_fraction": FRAGMENT_REVIEW_MIN_PARENT_FRACTION,
             "fragment_review_policy": fragment_review_policy,
             "label_transform_policy": {
-                "geometric_postprocess": "disallowed_until_rgb_id_and_labels_share_the_same_exact_transform",
-                "current_postprocess": "non_geometric_rgb_only",
+                "geometric_postprocess": "allowed_only_when_source_metadata_declares_shared_rgb_id_label_transform",
+                "current_postprocess": "shared_rgb_id_label_transform_when_lens_distortion_policy_enabled",
             },
             "policy": {
                 "label_meaning": "visible connected evidence components, not physical bill counts",
@@ -1435,8 +1443,8 @@ def write_yolo_dataset(
             },
             "balanced_subset": balanced_subset_report or {"enabled": False},
             "label_transform_policy": {
-                "geometric_postprocess": "disallowed_until_rgb_id_and_labels_share_the_same_exact_transform",
-                "current_postprocess": "non_geometric_rgb_only",
+                "geometric_postprocess": "allowed_only_when_source_metadata_declares_shared_rgb_id_label_transform",
+                "current_postprocess": "shared_rgb_id_label_transform_when_lens_distortion_policy_enabled",
             },
             "policy": {
                 "detect_labels": "visible-only AABB labels for detect-compatible probes",
@@ -1444,7 +1452,7 @@ def write_yolo_dataset(
                 "obb": "trainable only when every visible instance in the image has an honest OBB",
                 "counting": "physical parent counts live in visible_boxes/source metadata and require fusion for fragment outputs",
                 "asset_side_policy": "front/back policies constrain scan-side sampling before render; front_back_mix should show both sides in multi-note images",
-                "camera_profiles": "profile requests choose auditable phone-like FOV/framing ranges before RGB/ID extraction; no geometric postprocess is applied after labels",
+                "camera_profiles": "profile requests choose auditable phone-like FOV/framing ranges before RGB/ID extraction; optional geometric postprocess must be shared by RGB, ID, and labels",
             },
             "images_detail": image_summary_rows,
         },
@@ -1532,6 +1540,7 @@ def write_recipe_metadata(
             "visual_scale": args.visual_scale,
             "browser_executable": rel(args.browser_executable) if args.browser_executable else "",
             "note_condition_policy": args.note_condition_policy,
+            "lens_distortion_policy": args.lens_distortion_policy,
         },
         "asset_side_policy": args.asset_side_policy,
         "camera_profile": args.camera_profile,
@@ -1559,8 +1568,8 @@ def write_recipe_metadata(
         "environment_dir": rel(args.environment_dir) if args.environment_dir else "",
         "fragment_review_policy": args.fragment_review_policy,
         "label_transform_policy": {
-            "geometric_postprocess": "disallowed_until_rgb_id_and_labels_share_the_same_exact_transform",
-            "current_postprocess": "non_geometric_rgb_only",
+            "geometric_postprocess": "allowed_only_when_source_metadata_declares_shared_rgb_id_label_transform",
+            "current_postprocess": "shared_rgb_id_label_transform_when_lens_distortion_policy_enabled",
         },
         "headroom": {
             "max_percent": args.headroom_max_percent,

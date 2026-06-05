@@ -256,6 +256,19 @@
       "current_blocker": "Synthetic props are now diversity-gated, but this still needs reviewed real no-note backgrounds and non-banknote paper/prop captures before promotion."
     },
     {
+      "id": "webgl_shared_lens_distortion_audit_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes", "loose_counter_stack_overlap"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["stack"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_auto",
+      "lens_distortion_policy": "phone_mild",
+      "render_pool_count": 8,
+      "intended_use": "Audit label-safe phone-like radial lens distortion with RGB, ID masks, and labels sharing the exact same post-render transform.",
+      "promotion_gate": "label views pass after shared geometric transform and visual review finds plausible phone distortion without mask/label drift",
+      "current_blocker": "Diagnostic only until visual review and real-transfer/model-side tests show lens warp improves target-device robustness."
+    },
+    {
       "id": "webgl_calibration_mix_v1",
       "target_condition_ids": [
         "clean_single_or_separated_notes",
