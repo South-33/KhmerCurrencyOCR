@@ -20,6 +20,10 @@ DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_l
 DEFAULT_DOMAIN_GAP = ROOT / "runs" / "cashsnap" / "domain_gap_accepted_nowarmup_train.json"
 DEFAULT_MINED_REVIEW = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_latest.json"
 DEFAULT_MINED_REVIEW_QUALITY = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_quality_summary_latest.json"
+DEFAULT_MINED_REAL_UTILITY_COMPARISONS = [
+    ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed0_i416_present_classes.json",
+    ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed1_i416_present_classes.json",
+]
 DEFAULT_JSON_OUT = ROOT / "runs" / "cashsnap" / "synthetic_dataset_scorecard_latest.json"
 
 STATUS_ORDER = {"pass": 0, "review": 1, "missing": 2, "blocked": 3}
@@ -32,6 +36,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--domain-gap", type=Path, default=DEFAULT_DOMAIN_GAP)
     parser.add_argument("--mined-review", type=Path, default=DEFAULT_MINED_REVIEW)
     parser.add_argument("--mined-review-quality", type=Path, default=DEFAULT_MINED_REVIEW_QUALITY)
+    parser.add_argument(
+        "--mined-real-utility-comparison",
+        type=Path,
+        action="append",
+        default=[],
+        help="Optional compare_yolo_metrics.py JSON for the mined held-out diagnostic utility axis.",
+    )
+    parser.add_argument(
+        "--no-default-mined-real-utility",
+        action="store_true",
+        help="Do not load the default accepted-WebGL-vs-p24 mined held-out comparisons.",
+    )
     parser.add_argument("--json-out", type=Path, default=DEFAULT_JSON_OUT)
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when any axis is blocked or missing.")
     return parser.parse_args()
@@ -58,6 +74,19 @@ def read_json(path: Path, *, required: bool = True) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise SystemExit(f"{repo_path(resolved)}: expected JSON object")
     return data
+
+
+def read_comparison_jsons(paths: list[Path]) -> list[dict[str, Any]]:
+    comparisons = []
+    for path in paths:
+        resolved = resolve(path)
+        if not resolved.exists():
+            comparisons.append({"_source": repo_path(resolved), "_missing": True})
+            continue
+        data = read_json(resolved)
+        data["_source"] = repo_path(resolved)
+        comparisons.append(data)
+    return comparisons
 
 
 def axis(
@@ -164,11 +193,83 @@ def domain_gap_axis(domain_gap: dict[str, Any]) -> dict[str, Any]:
     )
 
 
+def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
+    if not comparisons:
+        return axis(
+            "diagnostic_real_utility",
+            "missing",
+            "No mined held-out diagnostic model comparisons were supplied.",
+            next_action="Run val_yolo.py on the mined held-out scoreable dataset and compare candidates with compare_yolo_metrics.py --classes-from-summary.",
+        )
+
+    evidence_rows = []
+    blockers = []
+    for comparison in comparisons:
+        source = str(comparison.get("_source", ""))
+        if comparison.get("_missing"):
+            evidence_rows.append({"source": source, "passed": False, "missing": True})
+            blockers.append(f"{source}: comparison JSON missing")
+            continue
+        passed = bool(comparison.get("passed"))
+        delta = float(comparison.get("delta", 0.0) or 0.0)
+        per_class_failures = comparison.get("per_class_failures", [])
+        if not isinstance(per_class_failures, list):
+            per_class_failures = []
+        failed_classes = [
+            str(row.get("class_name"))
+            for row in per_class_failures
+            if isinstance(row, dict) and row.get("class_name") is not None
+        ]
+        checks = comparison.get("checks", [])
+        if not isinstance(checks, list):
+            checks = []
+        failed_checks = [
+            str(check.get("name"))
+            for check in checks
+            if isinstance(check, dict) and not check.get("passed", False)
+        ]
+        evidence_rows.append(
+            {
+                "source": source,
+                "passed": passed,
+                "baseline_path": comparison.get("baseline_path", ""),
+                "candidate_path": comparison.get("candidate_path", ""),
+                "baseline": comparison.get("baseline"),
+                "candidate": comparison.get("candidate"),
+                "delta": comparison.get("delta"),
+                "failed_checks": failed_checks,
+                "failed_classes": failed_classes,
+            }
+        )
+        if not passed:
+            reason = f"{source or comparison.get('candidate_path', 'candidate')}: delta {delta:+.6f}"
+            if failed_checks:
+                reason += f"; failed checks {', '.join(failed_checks)}"
+            if failed_classes:
+                reason += f"; failed classes {', '.join(failed_classes)}"
+            blockers.append(reason)
+
+    pass_count = sum(1 for row in evidence_rows if row["passed"])
+    status = "review" if pass_count == len(evidence_rows) else "blocked"
+    summary = f"{pass_count}/{len(evidence_rows)} mined held-out diagnostic comparison(s) pass."
+    return axis(
+        "diagnostic_real_utility",
+        status,
+        summary,
+        evidence={"comparisons": evidence_rows},
+        blockers=blockers,
+        next_action=(
+            "Treat failed mined held-out comparisons as a stop sign for synthetic scale; even passing diagnostic slices still need protected real fan/overlap proof."
+        ),
+    )
+
+
 def build_scorecard(
     readiness: dict[str, Any],
     domain_gap: dict[str, Any],
     mined_review: dict[str, Any],
     mined_review_quality: dict[str, Any],
+    mined_real_utility_comparisons: list[dict[str, Any]],
 ) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
     trainable = int(readiness.get("required_with_trainable_candidate", 0) or 0)
@@ -280,6 +381,7 @@ def build_scorecard(
     )
 
     axes.append(domain_gap_axis(domain_gap))
+    axes.append(mined_real_utility_axis(mined_real_utility_comparisons))
 
     axes.append(
         axis(
@@ -333,7 +435,16 @@ def main() -> int:
     domain_gap = read_json(args.domain_gap, required=False)
     mined_review = read_json(args.mined_review, required=False)
     mined_review_quality = read_json(args.mined_review_quality, required=False)
-    scorecard = build_scorecard(readiness, domain_gap, mined_review, mined_review_quality)
+    comparison_paths = [] if args.no_default_mined_real_utility else list(DEFAULT_MINED_REAL_UTILITY_COMPARISONS)
+    comparison_paths.extend(args.mined_real_utility_comparison)
+    mined_real_utility_comparisons = read_comparison_jsons(comparison_paths)
+    scorecard = build_scorecard(
+        readiness,
+        domain_gap,
+        mined_review,
+        mined_review_quality,
+        mined_real_utility_comparisons,
+    )
     out = resolve(args.json_out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(scorecard, indent=2, sort_keys=True) + "\n", encoding="utf-8")
