@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from collections import Counter, defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -71,6 +73,42 @@ def repo_path(path: Path) -> str:
 def read_csv(path: Path) -> list[dict[str, str]]:
     with resolve(path).open("r", newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def file_fingerprint(path: Path) -> dict[str, Any]:
+    resolved = resolve(path)
+    row: dict[str, Any] = {"path": repo_path(resolved), "exists": resolved.exists()}
+    if resolved.exists() and resolved.is_file():
+        row["sha256"] = file_sha256(resolved)
+        row["size_bytes"] = resolved.stat().st_size
+    return row
+
+
+def directory_fingerprint(path: Path) -> dict[str, Any]:
+    resolved = resolve(path)
+    row: dict[str, Any] = {"path": repo_path(resolved), "exists": resolved.exists(), "kind": "directory"}
+    if not resolved.exists() or not resolved.is_dir():
+        return row
+    digest = hashlib.sha256()
+    count = 0
+    for item in sorted(child for child in resolved.rglob("*") if child.is_file()):
+        rel = repo_path(item)
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\n")
+        digest.update(file_sha256(item).encode("utf-8"))
+        digest.update(b"\n")
+        count += 1
+    row["listing_sha256"] = digest.hexdigest()
+    row["file_count"] = count
+    return row
 
 
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
@@ -290,10 +328,16 @@ def main() -> int:
     ]
     scoreable_boxes = sum(int(row["scoreable_boxes"]) for row in report_rows)
     summary = {
+        "generated_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "sources": repo_path(args.sources),
         "quality": repo_path(args.quality),
         "draft_label_dir": repo_path(args.draft_label_dir),
         "scoreable_label_dir": repo_path(args.scoreable_label_dir),
+        "input_fingerprints": {
+            "sources": file_fingerprint(args.sources),
+            "quality": file_fingerprint(args.quality),
+            "draft_label_dir": directory_fingerprint(args.draft_label_dir),
+        },
         "images": len(sources),
         "draft_boxes": sum(int(row["draft_boxes"]) for row in report_rows),
         "quality_rows": len(quality_rows),

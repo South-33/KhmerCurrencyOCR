@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import html
 import json
 import os
@@ -19,6 +20,7 @@ import shutil
 import subprocess
 import sys
 from collections import Counter, defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -122,6 +124,42 @@ def repo_path(path: Path) -> str:
 def read_csv(path: Path) -> list[dict[str, str]]:
     with resolve(path).open("r", newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def file_fingerprint(path: Path) -> dict[str, object]:
+    resolved = resolve(path)
+    row: dict[str, object] = {"path": repo_path(resolved), "exists": resolved.exists()}
+    if resolved.exists() and resolved.is_file():
+        row["sha256"] = file_sha256(resolved)
+        row["size_bytes"] = resolved.stat().st_size
+    return row
+
+
+def directory_fingerprint(path: Path) -> dict[str, object]:
+    resolved = resolve(path)
+    row: dict[str, object] = {"path": repo_path(resolved), "exists": resolved.exists(), "kind": "directory"}
+    if not resolved.exists() or not resolved.is_dir():
+        return row
+    digest = hashlib.sha256()
+    count = 0
+    for item in sorted(child for child in resolved.rglob("*") if child.is_file()):
+        rel = repo_path(item)
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\n")
+        digest.update(file_sha256(item).encode("utf-8"))
+        digest.update(b"\n")
+        count += 1
+    row["listing_sha256"] = digest.hexdigest()
+    row["file_count"] = count
+    return row
 
 
 def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
@@ -474,6 +512,7 @@ def main() -> int:
 
     counts = Counter(row["scene_type"] for row in selected)
     summary = {
+        "generated_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "review_csv": repo_path(args.review_csv),
         "sources_out": repo_path(args.sources_out),
         "tasks_out": repo_path(args.tasks_out),
@@ -485,6 +524,16 @@ def main() -> int:
         "selected_total": len(selected),
         "quality_template_rows": len(quality_rows),
         "selected_by_scene": dict(sorted(counts.items())),
+        "input_fingerprints": {
+            "review_csv": file_fingerprint(args.review_csv),
+        },
+        "output_fingerprints": {
+            "sources_out": file_fingerprint(args.sources_out),
+            "tasks_out": file_fingerprint(args.tasks_out),
+            "quality_template_out": file_fingerprint(args.quality_template_out),
+            "review_index": file_fingerprint(args.review_index_out),
+            "draft_label_dir": directory_fingerprint(draft_dir),
+        },
         "policy": {
             "promotion_status": "diagnostic_review_only",
             "reason": "Existing cashsnap_v1 labels are draft review anchors, not protected real-transfer proof without visual quality rows and train/holdout separation.",

@@ -100,6 +100,17 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def directory_listing_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    for item in sorted(child for child in path.rglob("*") if child.is_file()):
+        rel = repo_path(item)
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\n")
+        digest.update(file_sha256(item).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
 def read_comparison_jsons(paths: list[Path]) -> list[dict[str, Any]]:
     comparisons = []
     for path in paths:
@@ -127,6 +138,15 @@ def verify_fingerprint_row(row: dict[str, Any], *, label: str, required: bool = 
     if not path.exists():
         if exists or required:
             failures.append(f"{label} path is missing: {path_text}")
+        return failures
+    if path.is_dir():
+        expected_listing = str(row.get("listing_sha256", "")).strip()
+        if not expected_listing:
+            failures.append(f"{label} is missing listing_sha256; regenerate the report with the current script")
+            return failures
+        actual_listing = directory_listing_sha256(path)
+        if actual_listing != expected_listing:
+            failures.append(f"{label} directory fingerprint is stale: {path_text}")
         return failures
     if not path.is_file():
         failures.append(f"{label} path is not a file: {path_text}")
@@ -219,6 +239,46 @@ def readiness_freshness_axis(readiness: dict[str, Any]) -> dict[str, Any]:
         blockers=failures,
         next_action="" if status == "pass" else "Regenerate synthetic pipeline readiness with the current script and --check-existing.",
     )
+
+
+def mined_review_freshness_failures(mined_review: dict[str, Any]) -> list[str]:
+    if not mined_review:
+        return []
+    failures: list[str] = []
+    if not str(mined_review.get("generated_at_utc", "")).strip():
+        failures.append("mined review summary is missing generated_at_utc; regenerate it with the current script")
+    input_fingerprints = mined_review.get("input_fingerprints", {})
+    if not isinstance(input_fingerprints, dict) or not input_fingerprints:
+        failures.append("mined review summary is missing input_fingerprints; regenerate it with the current script")
+    else:
+        failures.extend(verify_fingerprint_row(input_fingerprints.get("review_csv", {}), label="mined review input review_csv"))
+    output_fingerprints = mined_review.get("output_fingerprints", {})
+    if not isinstance(output_fingerprints, dict) or not output_fingerprints:
+        failures.append("mined review summary is missing output_fingerprints; regenerate it with the current script")
+    else:
+        for key in ["sources_out", "tasks_out", "quality_template_out", "review_index", "draft_label_dir"]:
+            failures.extend(verify_fingerprint_row(output_fingerprints.get(key, {}), label=f"mined review output {key}"))
+    return failures
+
+
+def mined_review_quality_freshness_failures(mined_review_quality: dict[str, Any]) -> list[str]:
+    if not mined_review_quality:
+        return []
+    failures: list[str] = []
+    if not str(mined_review_quality.get("generated_at_utc", "")).strip():
+        failures.append("mined review quality summary is missing generated_at_utc; regenerate it with the current script")
+    input_fingerprints = mined_review_quality.get("input_fingerprints", {})
+    if not isinstance(input_fingerprints, dict) or not input_fingerprints:
+        failures.append("mined review quality summary is missing input_fingerprints; regenerate it with the current script")
+    else:
+        for key in ["sources", "quality", "draft_label_dir"]:
+            failures.extend(
+                verify_fingerprint_row(
+                    input_fingerprints.get(key, {}),
+                    label=f"mined review quality input {key}",
+                )
+            )
+    return failures
 
 
 def axis(
@@ -857,6 +917,8 @@ def build_scorecard(
     if mined_review_total:
         edge_summary += f" A draft-only review package has {mined_review_total} selected candidate(s)."
     mined_quality_summary: dict[str, Any] = {}
+    mined_review_freshness = mined_review_freshness_failures(mined_review)
+    mined_review_quality_freshness = mined_review_quality_freshness_failures(mined_review_quality)
     if mined_review_quality:
         ready_scoreable = int(mined_review_quality.get("ready_scoreable_images", 0) or 0)
         ready_stress = int(mined_review_quality.get("ready_stress_images", 0) or 0)
@@ -872,12 +934,24 @@ def build_scorecard(
             "quality_counts": mined_review_quality.get("quality_counts", {}),
             "count_for_score_states": mined_review_quality.get("count_for_score_states", {}),
             "by_role": mined_review_quality.get("by_role", {}),
+            "freshness_failures": mined_review_quality_freshness,
         }
         edge_summary += f" Quality review has {ready_scoreable} ready scoreable image(s), {scoreable_boxes} scoreable box(es)."
+    edge_freshness_failures = [
+        *(f"mined review: {failure}" for failure in mined_review_freshness),
+        *(f"mined review quality: {failure}" for failure in mined_review_quality_freshness),
+    ]
+    edge_blockers = [
+        f"{row['condition_id']}: {row['scene_type']} {row['candidate_count']} candidates/{row['unique_origin_count']} origins"
+        for row in missing_candidate_hints
+    ]
+    edge_blockers.extend(edge_freshness_failures)
+    if not edge_blockers and not candidate_condition_count:
+        edge_blockers.append("no mined real-dataset candidate hints were loaded")
     axes.append(
         axis(
             "edge_case_inventory",
-            "blocked" if missing_candidate_hints or not candidate_condition_count else "review",
+            "blocked" if missing_candidate_hints or edge_freshness_failures or not candidate_condition_count else "review",
             edge_summary,
             evidence={
                 "unique_origin_counts": candidates,
@@ -891,15 +965,11 @@ def build_scorecard(
                     "quality_template_out": mined_review.get("quality_template_out", ""),
                     "quality_template_rows": mined_review.get("quality_template_rows", 0),
                     "policy": mined_review.get("policy", {}),
+                    "freshness_failures": mined_review_freshness,
                 },
                 "mined_review_quality": mined_quality_summary,
             },
-            blockers=[
-                f"{row['condition_id']}: {row['scene_type']} {row['candidate_count']} candidates/{row['unique_origin_count']} origins"
-                for row in missing_candidate_hints
-            ]
-            if missing_candidate_hints
-            else ([] if candidate_condition_count else ["no mined real-dataset candidate hints were loaded"]),
+            blockers=edge_blockers,
             next_action="Visually audit the mined review package, add per-box quality rows only for protected/use-safe labels, and keep true fan/hand/hard-negative gaps separate.",
         )
     )
