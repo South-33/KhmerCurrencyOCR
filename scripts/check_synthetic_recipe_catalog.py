@@ -71,7 +71,7 @@ def validate_diagnostic_gates(recipe_id: str, gates: object) -> None:
     if gates in (None, ""):
         return
     require(isinstance(gates, dict), f"{recipe_id}: diagnostic_gates must be an object")
-    allowed_gate_names = {"class_distribution", "count_stress", "note_condition_diversity"}
+    allowed_gate_names = {"class_distribution", "count_stress", "note_condition_diversity", "hard_negative_diversity"}
     unknown_gate_names = sorted(str(key) for key in gates if str(key) not in allowed_gate_names)
     require(not unknown_gate_names, f"{recipe_id}: unknown diagnostic_gates {unknown_gate_names}")
 
@@ -146,6 +146,21 @@ def validate_diagnostic_gates(recipe_id: str, gates: object) -> None:
             not expected_policy or expected_policy in NOTE_CONDITION_POLICIES,
             f"{recipe_id}: note_condition_diversity.expected_policy must be one of {sorted(NOTE_CONDITION_POLICIES)}",
         )
+
+    hard_negative_diversity = gates.get("hard_negative_diversity")
+    if hard_negative_diversity is not None:
+        require(isinstance(hard_negative_diversity, dict), f"{recipe_id}: hard_negative_diversity gate must be an object")
+        for field in ("min_images", "min_total_props", "min_prop_kinds", "min_textured_props"):
+            if field in hard_negative_diversity:
+                require_nonnegative_int(
+                    hard_negative_diversity[field],
+                    f"{recipe_id}: hard_negative_diversity.{field} must be a non-negative integer",
+                )
+        if "require_zero_assets" in hard_negative_diversity:
+            require(
+                type(hard_negative_diversity["require_zero_assets"]) is bool,
+                f"{recipe_id}: hard_negative_diversity.require_zero_assets must be boolean",
+            )
 
 
 def main() -> int:

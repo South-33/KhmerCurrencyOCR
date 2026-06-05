@@ -1008,10 +1008,18 @@ function handOcclusionOccluders(variant) {
   }));
 }
 
+const NEGATIVE_PROP_STYLES = [
+  { propKind: "receipt", textureStyle: "receipt", colors: [0xf4efe3, 0xe7dfcf], width: [0.48, 0.92], height: [0.14, 0.30] },
+  { propKind: "payment_card", textureStyle: "payment_card", colors: [0x2f5570, 0xd7e3ec, 0x5f6f61], width: [0.36, 0.62], height: [0.20, 0.34] },
+  { propKind: "wallet", textureStyle: "wallet", colors: [0x2c2520, 0x5a3d2e, 0x283241], width: [0.48, 0.86], height: [0.24, 0.42] },
+  { propKind: "blank_paper", textureStyle: "paper", colors: [0xf1ead8, 0xd8d2c4, 0xd7e3ec], width: [0.42, 0.84], height: [0.18, 0.36] },
+  { propKind: "phone", textureStyle: "phone", colors: [0x17202b, 0x263447, 0x0f141c], width: [0.26, 0.42], height: [0.54, 0.86] },
+  { propKind: "sticky_note", textureStyle: "sticky_note", colors: [0xe6d1a3, 0xb6c59a, 0xf2df8f], width: [0.20, 0.42], height: [0.18, 0.34] },
+];
+
 function negativeOccluders(variant) {
   const rng = mulberry32(26057511 + variant * 149);
-  const propCount = 2 + (variant % 3);
-  const colors = [0xf2ead8, 0xd7e3ec, 0x24384d, 0xc8bca9, 0xe6d1a3, 0x5f6f61];
+  const propCount = 3 + (variant % 3);
   const props = [];
   for (let index = 0; index < propCount; index += 1) {
     const useFinger = index === propCount - 1 && variant % 4 === 0;
@@ -1035,10 +1043,14 @@ function negativeOccluders(variant) {
       });
       continue;
     }
+    const style = NEGATIVE_PROP_STYLES[(variant + index * 3) % NEGATIVE_PROP_STYLES.length];
     props.push({
       kind: "cover_card",
+      propKind: style.propKind,
+      textureStyle: style.textureStyle,
+      seed: 26057511 + variant * 149 + index * 811,
       layer: 20 + index,
-      color: colors[randomInt(rng, colors.length)],
+      color: style.colors[randomInt(rng, style.colors.length)],
       position: [
         randomBetween(rng, -0.62, 0.62),
         randomBetween(rng, -0.42, 0.42),
@@ -1049,8 +1061,8 @@ function negativeOccluders(variant) {
         randomBetween(rng, -0.10, 0.10),
         randomBetween(rng, -1.55, 1.55),
       ],
-      width: randomBetween(rng, 0.28, 0.92),
-      height: randomBetween(rng, 0.08, 0.32),
+      width: randomBetween(rng, style.width[0], style.width[1]),
+      height: randomBetween(rng, style.height[0], style.height[1]),
     });
   }
   return props;
@@ -1382,6 +1394,95 @@ function clamp01(value) {
   return Math.max(0, Math.min(1, value || 0));
 }
 
+function numberToCssHex(value) {
+  return "#" + Math.max(0, Number(value || 0)).toString(16).padStart(6, "0").slice(-6);
+}
+
+function makeOccluderTexture(occluder) {
+  if (!occluder.textureStyle) return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const context = canvas.getContext("2d");
+  const rng = browserMulberry32(occluder.seed || 1);
+  context.fillStyle = numberToCssHex(occluder.color);
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.strokeStyle = "rgba(28,24,20,0.25)";
+  context.lineWidth = 10;
+  context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+  if (occluder.textureStyle === "receipt") {
+    context.fillStyle = "rgba(255,255,255,0.38)";
+    context.fillRect(24, 22, 464, 468);
+    context.fillStyle = "rgba(38,38,38,0.42)";
+    for (let y = 72; y < 430; y += 32 + rng() * 10) {
+      const x = 38 + rng() * 28;
+      context.fillRect(x, y, 170 + rng() * 230, 7 + rng() * 5);
+    }
+    context.fillStyle = "rgba(38,38,38,0.20)";
+    context.fillRect(56, 438, 260, 30);
+  } else if (occluder.textureStyle === "payment_card") {
+    context.fillStyle = "rgba(10,16,22,0.62)";
+    context.fillRect(0, 86, 512, 70);
+    context.fillStyle = "rgba(232,206,134,0.72)";
+    context.fillRect(62, 224, 96, 70);
+    context.fillStyle = "rgba(255,255,255,0.34)";
+    context.fillRect(56, 350, 210, 14);
+    context.fillRect(56, 386, 152, 12);
+  } else if (occluder.textureStyle === "wallet") {
+    context.fillStyle = "rgba(0,0,0,0.20)";
+    context.fillRect(28, 46, 456, 420);
+    context.strokeStyle = "rgba(230,210,170,0.24)";
+    context.lineWidth = 12;
+    context.strokeRect(52, 76, 408, 360);
+    context.beginPath();
+    context.moveTo(92, 96);
+    context.lineTo(430, 420);
+    context.stroke();
+  } else if (occluder.textureStyle === "phone") {
+    context.fillStyle = "rgba(0,0,0,0.38)";
+    context.fillRect(32, 28, 448, 456);
+    context.strokeStyle = "rgba(200,220,238,0.24)";
+    context.lineWidth = 8;
+    context.strokeRect(52, 54, 408, 408);
+    context.fillStyle = "rgba(230,245,255,0.10)";
+    context.fillRect(110, 92, 150, 34);
+  } else if (occluder.textureStyle === "sticky_note") {
+    context.fillStyle = "rgba(255,255,255,0.18)";
+    context.fillRect(22, 22, 468, 438);
+    context.fillStyle = "rgba(80,70,32,0.16)";
+    context.beginPath();
+    context.moveTo(376, 460);
+    context.lineTo(490, 460);
+    context.lineTo(490, 350);
+    context.closePath();
+    context.fill();
+  } else if (occluder.textureStyle === "paper") {
+    context.fillStyle = "rgba(255,255,255,0.26)";
+    context.fillRect(20, 18, 472, 474);
+    context.strokeStyle = "rgba(70,70,70,0.16)";
+    context.lineWidth = 7;
+    for (let y = 92; y < 410; y += 58) {
+      context.beginPath();
+      context.moveTo(60, y + (rng() - 0.5) * 10);
+      context.lineTo(442, y + (rng() - 0.5) * 10);
+      context.stroke();
+    }
+    context.fillStyle = "rgba(90,80,60,0.15)";
+    context.beginPath();
+    context.moveTo(380, 492);
+    context.lineTo(492, 492);
+    context.lineTo(492, 380);
+    context.closePath();
+    context.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function applyMaskedOverlay(baseCanvas, drawOverlay) {
   const overlay = document.createElement("canvas");
   overlay.width = baseCanvas.width;
@@ -1604,9 +1705,11 @@ async function addNotes() {
 function addOccluders() {
   for (const occluder of occluders) {
     const geometry = makeOccluderGeometry(occluder);
+    const texture = makeOccluderTexture(occluder);
     const material = new THREE.MeshStandardMaterial({
-      color: occluder.color,
-      roughness: 0.88,
+      color: texture ? 0xffffff : occluder.color,
+      map: texture || null,
+      roughness: occluder.textureStyle === "phone" ? 0.50 : 0.88,
       metalness: 0.0,
       side: THREE.DoubleSide,
       depthTest: false,

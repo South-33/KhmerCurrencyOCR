@@ -241,9 +241,19 @@
       "scene_modes": ["negative"],
       "asset_side_policy": "any",
       "camera_profile": "phone_auto",
+      "render_pool_count": 8,
+      "diagnostic_gates": {
+        "hard_negative_diversity": {
+          "min_images": 8,
+          "min_total_props": 24,
+          "min_prop_kinds": 5,
+          "min_textured_props": 20,
+          "require_zero_assets": true
+        }
+      },
       "intended_use": "Bound false positives on receipts, wallets, cards, hands, and clean backgrounds.",
       "promotion_gate": "browser guard false positives remain bounded after synthetic mix",
-      "current_blocker": "Negative mode can emit empty banknote scenes; still needs reviewed-clean non-banknote background/prop library."
+      "current_blocker": "Synthetic props are now diversity-gated, but this still needs reviewed real no-note backgrounds and non-banknote paper/prop captures before promotion."
     },
     {
       "id": "webgl_calibration_mix_v1",

@@ -301,6 +301,53 @@ def write_contact_sheet(variant_dirs: list[tuple[int, Path]], out_path: Path) ->
     return index_rows
 
 
+def write_readable_contact_sheets(
+    variant_dirs: list[tuple[int, Path]],
+    out_dir: Path,
+    items_per_page: int = 4,
+    include_id: bool = True,
+) -> list[dict[str, object]]:
+    cell_w, cell_h = 520, 390
+    header_h = 34
+    cols = 2
+    rows = 2
+    views = 2 if include_id else 1
+    page_w = cell_w * views * cols
+    page_h = (cell_h + header_h) * rows
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pages: list[dict[str, object]] = []
+
+    for page_index, start in enumerate(range(0, len(variant_dirs), items_per_page), start=1):
+        page_items = variant_dirs[start : start + items_per_page]
+        sheet = Image.new("RGB", (page_w, page_h), (24, 24, 24))
+        draw = ImageDraw.Draw(sheet)
+        variants: list[int] = []
+        for item_index, (variant, variant_dir) in enumerate(page_items):
+            grid_x = item_index % cols
+            grid_y = item_index // cols
+            x = grid_x * cell_w * views
+            y = grid_y * (cell_h + header_h)
+            visual = Image.open(variant_dir / "visual.png").convert("RGB").resize((cell_w, cell_h), Image.Resampling.LANCZOS)
+            sheet.paste(visual, (x, y + header_h))
+            draw.text((x + 8, y + 9), f"variant {variant} visual", fill=(255, 255, 255))
+            if include_id:
+                mask = Image.open(variant_dir / "id.png").convert("RGB").resize((cell_w, cell_h), Image.Resampling.NEAREST)
+                sheet.paste(mask, (x + cell_w, y + header_h))
+                draw.text((x + cell_w + 8, y + 9), f"variant {variant} id", fill=(255, 255, 255))
+            variants.append(variant)
+        path = out_dir / f"page_{page_index:03d}.png"
+        sheet.save(path)
+        pages.append(
+            {
+                "page": page_index,
+                "path": str(path.relative_to(out_dir.parent.parent)),
+                "variants": variants,
+                "layout": {"cols": cols, "rows": rows, "cell_w": cell_w, "cell_h": cell_h, "include_id": include_id},
+            }
+        )
+    return pages
+
+
 def draw_label_previews(
     image_path: Path,
     visible_boxes: list[dict[str, object]],
@@ -1537,6 +1584,7 @@ def write_recipe_metadata(
             "manifest": rel(out_root / "manifest.json"),
             "qa_summary": rel(out_root / "qa" / "summary.json"),
             "contact_sheet": rel(contact_sheet),
+            "readable_contact_sheets": rel(out_root / "qa" / "contact_sheets"),
             "contact_index": rel(out_root / "qa" / "contact_index.json"),
             "preview_dir": rel(out_root / "qa" / "previews"),
             "quarantine": rel(out_root / "qa" / "quarantine.json"),
@@ -1585,10 +1633,16 @@ def main() -> int:
         args.fragment_review_policy,
         balanced_subset_report,
     )
+    readable_pages = write_readable_contact_sheets(
+        variant_dirs,
+        out_root / "qa" / "contact_sheets",
+        include_id=args.scene_mode != "negative",
+    )
     write_json(
         out_root / "qa" / "contact_index.json",
         {
             "contact_sheet": str(contact_sheet.relative_to(out_root)),
+            "readable_contact_sheets": readable_pages,
             "rows": contact_index,
             "cell_size": {"width": 320, "height": 240, "header_height": 30},
         },

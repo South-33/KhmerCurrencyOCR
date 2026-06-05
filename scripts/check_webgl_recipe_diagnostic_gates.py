@@ -126,6 +126,22 @@ def run_note_condition_diversity_gate(root: Path, gate: dict[str, Any], recipe: 
     run(cmd)
 
 
+def run_hard_negative_diversity_gate(root: Path, gate: dict[str, Any]) -> None:
+    cmd = [
+        sys.executable,
+        "scripts/check_webgl_hard_negative_diversity.py",
+        "--root",
+        str(root),
+    ]
+    add_int_option(cmd, gate, "min_images", "--min-images")
+    add_int_option(cmd, gate, "min_total_props", "--min-total-props")
+    add_int_option(cmd, gate, "min_prop_kinds", "--min-prop-kinds")
+    add_int_option(cmd, gate, "min_textured_props", "--min-textured-props")
+    if gate.get("require_zero_assets"):
+        cmd.append("--require-zero-assets")
+    run(cmd)
+
+
 def main() -> int:
     args = parse_args()
     root = resolve(args.root)
@@ -155,6 +171,12 @@ def main() -> int:
         if not isinstance(note_condition_diversity, dict):
             raise SystemExit(f"{args.recipe_id}: note_condition_diversity gate must be an object")
         run_note_condition_diversity_gate(root, note_condition_diversity, recipe)
+
+    hard_negative_diversity = gates.get("hard_negative_diversity")
+    if hard_negative_diversity is not None:
+        if not isinstance(hard_negative_diversity, dict):
+            raise SystemExit(f"{args.recipe_id}: hard_negative_diversity gate must be an object")
+        run_hard_negative_diversity_gate(root, hard_negative_diversity)
 
     print(f"ok: {args.recipe_id} diagnostic gates passed")
     return 0
