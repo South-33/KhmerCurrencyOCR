@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import itertools
 import json
+import math
+import re
 import shutil
 import subprocess
 import sys
@@ -109,6 +112,41 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-render", action="store_true", help="Only recheck/contact-sheet existing outputs.")
     parser.add_argument("--skip-yolo-check", action="store_true", help="Do not run check_yolo_dataset.py on the packaged dataset.")
     parser.add_argument("--skip-label-view-check", action="store_true", help="Do not run check_webgl_label_views.py on packaged label views.")
+    parser.add_argument(
+        "--balanced-subset-count",
+        type=int,
+        default=0,
+        help="Package exactly this many variants selected for balanced physical-visible class counts.",
+    )
+    parser.add_argument(
+        "--balanced-subset-classes",
+        default="",
+        help="Comma/space-separated classes to balance; defaults to --class-sequence when omitted.",
+    )
+    parser.add_argument(
+        "--balanced-subset-min-per-class",
+        type=int,
+        default=0,
+        help="Fail selection unless every balanced class appears at least this many times.",
+    )
+    parser.add_argument(
+        "--balanced-subset-max-class-spread",
+        type=int,
+        default=-1,
+        help="Fail selection if max minus min balanced class count exceeds this value.",
+    )
+    parser.add_argument(
+        "--balanced-subset-max-class-ratio",
+        type=float,
+        default=0.0,
+        help="Fail selection if max/min balanced class count exceeds this value.",
+    )
+    parser.add_argument(
+        "--balanced-subset-max-combinations",
+        type=int,
+        default=2_000_000,
+        help="Safety cap for exact subset search combinations.",
+    )
     return parser.parse_args()
 
 
@@ -534,6 +572,218 @@ def count_by_class(rows: list[dict[str, object]]) -> Counter[str]:
     return Counter(str(row.get("className", "unknown")) for row in rows)
 
 
+def parse_class_list(value: str) -> list[str]:
+    return [item.strip() for item in re.split(r"[,;\s]+", value or "") if item.strip()]
+
+
+def visible_class_counts(out_dir: Path) -> Counter[str]:
+    boxes_path = out_dir / "visible_boxes.json"
+    boxes_doc = json.loads(boxes_path.read_text(encoding="utf-8"))
+    boxes = boxes_doc.get("boxes", [])
+    if not isinstance(boxes, list):
+        raise RuntimeError(f"{boxes_path}: boxes must be a list")
+    return count_by_class(boxes)
+
+
+def class_balance_metrics(counter: Counter[str], classes: list[str]) -> dict[str, object]:
+    by_class = {class_name: int(counter.get(class_name, 0)) for class_name in classes}
+    values = list(by_class.values())
+    min_count = min(values) if values else 0
+    max_count = max(values) if values else 0
+    return {
+        "source": "physical_visible_instances",
+        "total": int(sum(values)),
+        "by_class": by_class,
+        "min_per_class": int(min_count),
+        "max_per_class": int(max_count),
+        "class_spread": int(max_count - min_count),
+        "max_to_min_ratio": round(float(max_count / min_count), 6) if min_count else None,
+    }
+
+
+def balance_constraints_pass(
+    metrics: dict[str, object],
+    *,
+    min_per_class: int,
+    max_class_spread: int | None,
+    max_class_ratio: float | None,
+) -> bool:
+    if min_per_class > 0 and int(metrics["min_per_class"]) < min_per_class:
+        return False
+    if max_class_spread is not None and int(metrics["class_spread"]) > max_class_spread:
+        return False
+    if max_class_ratio is not None:
+        ratio = metrics["max_to_min_ratio"]
+        if ratio is None or float(ratio) > max_class_ratio:
+            return False
+    return True
+
+
+def balance_score(
+    metrics: dict[str, object],
+    classes: list[str],
+    *,
+    min_per_class: int,
+    max_class_spread: int | None,
+    max_class_ratio: float | None,
+) -> tuple[float, ...]:
+    by_class = metrics["by_class"]
+    assert isinstance(by_class, dict)
+    values = [int(by_class[class_name]) for class_name in classes]
+    deficit = sum(max(0, min_per_class - value) for value in values)
+    spread = int(metrics["class_spread"])
+    spread_over = max(0, spread - max_class_spread) if max_class_spread is not None else 0
+    ratio = metrics["max_to_min_ratio"]
+    ratio_value = float(ratio) if ratio is not None else 1_000_000.0
+    ratio_over = max(0.0, ratio_value - max_class_ratio) if max_class_ratio is not None else 0.0
+    mean = sum(values) / len(values) if values else 0.0
+    mean_abs_error = sum(abs(value - mean) for value in values)
+    return (
+        float(deficit),
+        float(spread_over),
+        float(ratio_over),
+        float(spread),
+        round(mean_abs_error, 6),
+        -float(metrics["min_per_class"]),
+        -float(metrics["total"]),
+    )
+
+
+def select_balanced_subset(
+    variant_dirs: list[tuple[int, Path]],
+    args: argparse.Namespace,
+) -> tuple[list[tuple[int, Path]], dict[str, object] | None]:
+    if args.balanced_subset_count <= 0:
+        return variant_dirs, None
+    target_count = int(args.balanced_subset_count)
+    if target_count > len(variant_dirs):
+        raise SystemExit(
+            f"--balanced-subset-count {target_count} exceeds rendered pool size {len(variant_dirs)}"
+        )
+    classes = parse_class_list(args.balanced_subset_classes) or parse_class_list(args.class_sequence)
+    if not classes:
+        raise SystemExit("--balanced-subset-count requires --balanced-subset-classes or --class-sequence")
+    unknown_classes = [class_name for class_name in classes if class_name not in CLASS_NAMES]
+    if unknown_classes:
+        raise SystemExit(f"unknown balanced-subset classes: {', '.join(unknown_classes)}")
+
+    max_class_spread = (
+        int(args.balanced_subset_max_class_spread)
+        if args.balanced_subset_max_class_spread >= 0
+        else None
+    )
+    max_class_ratio = (
+        float(args.balanced_subset_max_class_ratio)
+        if args.balanced_subset_max_class_ratio > 0
+        else None
+    )
+    combo_count = math.comb(len(variant_dirs), target_count)
+    if combo_count > args.balanced_subset_max_combinations:
+        raise SystemExit(
+            "balanced subset exact search would check "
+            f"{combo_count:,} combinations, above --balanced-subset-max-combinations "
+            f"{args.balanced_subset_max_combinations:,}"
+        )
+
+    indexed_rows: list[tuple[int, Path, Counter[str]]] = [
+        (variant, out_dir, visible_class_counts(out_dir))
+        for variant, out_dir in variant_dirs
+    ]
+    pool_counts: Counter[str] = Counter()
+    for _variant, _out_dir, counts in indexed_rows:
+        pool_counts.update(counts)
+
+    best_combo: tuple[tuple[int, Path, Counter[str]], ...] | None = None
+    best_metrics: dict[str, object] | None = None
+    best_score: tuple[float, ...] | None = None
+    best_strict_combo: tuple[tuple[int, Path, Counter[str]], ...] | None = None
+    best_strict_metrics: dict[str, object] | None = None
+    best_strict_score: tuple[float, ...] | None = None
+
+    for combo in itertools.combinations(indexed_rows, target_count):
+        counts: Counter[str] = Counter()
+        for _variant, _out_dir, row_counts in combo:
+            counts.update(row_counts)
+        metrics = class_balance_metrics(counts, classes)
+        score = balance_score(
+            metrics,
+            classes,
+            min_per_class=args.balanced_subset_min_per_class,
+            max_class_spread=max_class_spread,
+            max_class_ratio=max_class_ratio,
+        )
+        if best_score is None or score < best_score:
+            best_combo = combo
+            best_metrics = metrics
+            best_score = score
+        if balance_constraints_pass(
+            metrics,
+            min_per_class=args.balanced_subset_min_per_class,
+            max_class_spread=max_class_spread,
+            max_class_ratio=max_class_ratio,
+        ) and (best_strict_score is None or score < best_strict_score):
+            best_strict_combo = combo
+            best_strict_metrics = metrics
+            best_strict_score = score
+
+    selected_combo = best_strict_combo
+    selected_metrics = best_strict_metrics
+    selection_status = "passed"
+    if selected_combo is None:
+        selected_combo = best_combo
+        selected_metrics = best_metrics
+        selection_status = "failed_constraints"
+    if selected_combo is None or selected_metrics is None:
+        raise RuntimeError("balanced subset search produced no candidates")
+
+    selected_variants = [variant for variant, _out_dir, _counts in selected_combo]
+    selected_dirs = [(variant, out_dir) for variant, out_dir, _counts in selected_combo]
+    selected_set = set(selected_variants)
+    report = {
+        "enabled": True,
+        "status": selection_status,
+        "source": "visible_boxes.physical_visible_instances",
+        "target_count": target_count,
+        "pool_count": len(variant_dirs),
+        "pool_variants": [variant for variant, _out_dir in variant_dirs],
+        "selected_variants": selected_variants,
+        "omitted_variants": [variant for variant, _out_dir in variant_dirs if variant not in selected_set],
+        "classes": classes,
+        "constraints": {
+            "min_per_class": int(args.balanced_subset_min_per_class),
+            "max_class_spread": max_class_spread,
+            "max_class_ratio": max_class_ratio,
+        },
+        "search": {
+            "method": "exact_combinations",
+            "combinations_checked": int(combo_count),
+            "max_combinations": int(args.balanced_subset_max_combinations),
+        },
+        "pool_counts": class_balance_metrics(pool_counts, classes),
+        "selected_counts": selected_metrics,
+        "per_variant_counts": [
+            {
+                "variant": variant,
+                "selected": variant in selected_set,
+                "counts": class_balance_metrics(counts, classes),
+            }
+            for variant, _out_dir, counts in indexed_rows
+        ],
+    }
+    if selection_status != "passed":
+        raise SystemExit(
+            "balanced subset constraints failed; best selected counts were "
+            f"{json.dumps(selected_metrics, sort_keys=True)}"
+        )
+    print(
+        "balanced subset selected "
+        f"{len(selected_dirs)}/{len(variant_dirs)} variants: "
+        + ", ".join(f"{variant:04d}" for variant in selected_variants),
+        flush=True,
+    )
+    return selected_dirs, report
+
+
 def parent_fused_counts(fragment_rows: list[dict[str, object]]) -> Counter[str]:
     parent_keys = {
         (int(row["parentVisibleIndex"]), str(row.get("className", "unknown")))
@@ -643,6 +893,7 @@ def write_yolo_dataset(
     out_root: Path,
     fallback_scene_mode: str,
     fragment_review_policy: str,
+    balanced_subset_report: dict[str, object] | None = None,
 ) -> tuple[Path, Path, Path, Path, Path]:
     images_dir = out_root / "images" / "train"
     labels_dir = out_root / "labels" / "train"
@@ -709,6 +960,8 @@ def write_yolo_dataset(
     visual_quality_rows: list[dict[str, object]] = []
     visual_quality_status_counts: Counter[str] = Counter()
     visual_quality_failure_counts: Counter[str] = Counter()
+    if balanced_subset_report is not None:
+        write_json(qa_dir / "balanced_subset.json", balanced_subset_report)
     for variant, out_dir in variant_dirs:
         stem = f"variant_{variant:04d}"
         image_path = images_dir / f"{stem}.png"
@@ -1043,6 +1296,7 @@ def write_yolo_dataset(
             "variants": {
                 "start": min((variant for variant, _out_dir in variant_dirs), default=0),
                 "end": max((variant for variant, _out_dir in variant_dirs), default=0),
+                "selected": [variant for variant, _out_dir in variant_dirs],
             },
             "scene_modes": dict(sorted(scene_mode_counts.items())),
             "surfaces": dict(sorted(surface_counts.items())),
@@ -1096,6 +1350,7 @@ def write_yolo_dataset(
                     "max_light_fraction": VISUAL_MAX_LIGHT_FRACTION,
                 },
             },
+            "balanced_subset": balanced_subset_report or {"enabled": False},
             "label_transform_policy": {
                 "geometric_postprocess": "disallowed_until_rgb_id_and_labels_share_the_same_exact_transform",
                 "current_postprocess": "non_geometric_rgb_only",
@@ -1197,6 +1452,25 @@ def write_recipe_metadata(
         "asset_side_policy": args.asset_side_policy,
         "camera_profile": args.camera_profile,
         "class_sequence": args.class_sequence,
+        "balanced_subset": {
+            "enabled": args.balanced_subset_count > 0,
+            "count": args.balanced_subset_count,
+            "classes": parse_class_list(args.balanced_subset_classes) or parse_class_list(args.class_sequence),
+            "min_per_class": args.balanced_subset_min_per_class,
+            "max_class_spread": (
+                args.balanced_subset_max_class_spread
+                if args.balanced_subset_max_class_spread >= 0
+                else None
+            ),
+            "max_class_ratio": (
+                args.balanced_subset_max_class_ratio
+                if args.balanced_subset_max_class_ratio > 0
+                else None
+            ),
+            "selection_report": rel(out_root / "qa" / "balanced_subset.json")
+            if args.balanced_subset_count > 0
+            else "",
+        },
         "background_dir": rel(args.background_dir) if args.background_dir else "",
         "fragment_review_policy": args.fragment_review_policy,
         "label_transform_policy": {
@@ -1263,12 +1537,14 @@ def main() -> int:
         variant_dirs.append((variant, out_dir))
 
     contact_sheet = out_root / "contact_sheet.png"
+    variant_dirs, balanced_subset_report = select_balanced_subset(variant_dirs, args)
     contact_index = write_contact_sheet(variant_dirs, contact_sheet)
     data_yaml, data_obb_yaml, data_fragments_yaml, count_targets_path, count_summary_path = write_yolo_dataset(
         variant_dirs,
         out_root,
         args.scene_mode,
         args.fragment_review_policy,
+        balanced_subset_report,
     )
     write_json(
         out_root / "qa" / "contact_index.json",

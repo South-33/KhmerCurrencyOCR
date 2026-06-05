@@ -148,9 +148,32 @@ function rotate2([x, y], angle) {
   return [x * c - y * s, x * s + y * c];
 }
 
+function noteCountForSequenceMode(mode, variant) {
+  if (mode === "negative") return 0;
+  if (mode === "clean_single") return 1;
+  if (mode === "clean") return 1 + variant % 3;
+  if (mode === "qa3") return 3;
+  if (mode === "thin_edge") return 4;
+  if (mode === "hand_occlusion") return 4 + variant % 2;
+  if (mode === "fan") return 5 + variant % 3;
+  return variant === 0 ? 3 : 3 + variant % 4;
+}
+
+function classSequenceOffset(variant) {
+  let offset = 0;
+  for (let previous = 0; previous < variant; previous += 1) {
+    offset += noteCountForSequenceMode(effectiveSceneMode, previous);
+  }
+  return offset;
+}
+
+function classSequenceIndex(variant, index) {
+  return (classSequenceOffset(variant) + index) % CLASS_SEQUENCE.length;
+}
+
 function classIndexFor(variant, index) {
   if (CLASS_SEQUENCE.length > 0) {
-    const className = CLASS_SEQUENCE[(variant + index) % CLASS_SEQUENCE.length];
+    const className = CLASS_SEQUENCE[classSequenceIndex(variant, index)];
     return CLASS_NAMES.indexOf(className);
   }
   return (variant * 7 + index * 5) % CLASS_NAMES.length;
@@ -158,7 +181,7 @@ function classIndexFor(variant, index) {
 
 function classNameForSequenceOrFallback(variant, index, fallbackClasses) {
   if (CLASS_SEQUENCE.length > 0) {
-    return CLASS_SEQUENCE[(variant + index) % CLASS_SEQUENCE.length];
+    return CLASS_SEQUENCE[classSequenceIndex(variant, index)];
   }
   return fallbackClasses[(variant + index) % fallbackClasses.length];
 }

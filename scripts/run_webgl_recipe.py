@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--recipe-id", required=True)
     parser.add_argument("--out-root", type=Path, default=None)
     parser.add_argument("--start-variant", type=int, default=0)
-    parser.add_argument("--count", type=int, default=4)
+    parser.add_argument("--count", type=int, default=None, help="Rendered pool count; defaults to recipe render_pool_count or 4.")
     parser.add_argument("--scene-mode", default="", help="Override the first runnable scene mode from the catalog.")
     parser.add_argument("--width", type=int, default=1440)
     parser.add_argument("--height", type=int, default=1080)
@@ -52,6 +52,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-render", action="store_true")
     parser.add_argument("--skip-yolo-check", action="store_true")
     parser.add_argument("--skip-label-view-check", action="store_true")
+    parser.add_argument("--balanced-subset-count", type=int, default=None, help="Package this many rendered variants after balanced visible-count selection; 0 disables catalog selection.")
+    parser.add_argument("--balanced-subset-classes", default="", help="Override catalog balanced-subset classes.")
+    parser.add_argument("--balanced-subset-min-per-class", type=int, default=None)
+    parser.add_argument("--balanced-subset-max-class-spread", type=int, default=None)
+    parser.add_argument("--balanced-subset-max-class-ratio", type=float, default=None)
+    parser.add_argument("--balanced-subset-max-combinations", type=int, default=None)
     parser.add_argument("--run-diagnostic-gates", action="store_true", help="Run catalog-declared diagnostic gates after rendering.")
     parser.add_argument("--skip-smoke-gate", action="store_true")
     parser.add_argument("--skip-trainable-gate", action="store_true")
@@ -122,6 +128,18 @@ def normalize_class_sequence(value: object) -> str:
     return str(value or "").strip()
 
 
+def normalize_optional_int(value: object) -> int | None:
+    if value is None or value == "":
+        return None
+    return int(value)
+
+
+def normalize_optional_float(value: object) -> float | None:
+    if value is None or value == "":
+        return None
+    return float(value)
+
+
 def main() -> int:
     args = parse_args()
     catalog = read_json(resolve(args.catalog))
@@ -130,7 +148,45 @@ def main() -> int:
     asset_side_policy = choose_asset_side_policy(recipe, args.asset_side_policy)
     camera_profile = choose_camera_profile(recipe, args.camera_profile)
     class_sequence = args.class_sequence.strip() or normalize_class_sequence(recipe.get("class_sequence", ""))
+    count = int(args.count if args.count is not None else recipe.get("render_pool_count", 4))
+    if count < 1:
+        raise SystemExit("--count must be positive")
     artifact_status = args.artifact_status or STATUS_TO_BATCH_STATUS.get(str(recipe.get("artifact_status")), "diagnostic")
+    balanced_subset = recipe.get("balanced_subset", {})
+    if not isinstance(balanced_subset, dict):
+        balanced_subset = {}
+    balanced_subset_count = (
+        args.balanced_subset_count
+        if args.balanced_subset_count is not None
+        else normalize_optional_int(balanced_subset.get("count"))
+    )
+    balanced_subset_count = int(balanced_subset_count or 0)
+    if balanced_subset_count > count:
+        raise SystemExit(f"--balanced-subset-count {balanced_subset_count} exceeds --count {count}")
+    balanced_subset_classes = (
+        args.balanced_subset_classes.strip()
+        or normalize_class_sequence(balanced_subset.get("classes", ""))
+    )
+    balanced_subset_min_per_class = (
+        args.balanced_subset_min_per_class
+        if args.balanced_subset_min_per_class is not None
+        else normalize_optional_int(balanced_subset.get("min_per_class"))
+    )
+    balanced_subset_max_class_spread = (
+        args.balanced_subset_max_class_spread
+        if args.balanced_subset_max_class_spread is not None
+        else normalize_optional_int(balanced_subset.get("max_class_spread"))
+    )
+    balanced_subset_max_class_ratio = (
+        args.balanced_subset_max_class_ratio
+        if args.balanced_subset_max_class_ratio is not None
+        else normalize_optional_float(balanced_subset.get("max_class_ratio"))
+    )
+    balanced_subset_max_combinations = (
+        args.balanced_subset_max_combinations
+        if args.balanced_subset_max_combinations is not None
+        else normalize_optional_int(balanced_subset.get("max_combinations"))
+    )
     fragment_review_policy = args.fragment_review_policy
     if fragment_review_policy == "auto":
         train_views = parse_train_views(args.train_views)
@@ -139,7 +195,7 @@ def main() -> int:
             if artifact_status == "trainable-candidate" and "fragment" in train_views
             else "diagnostic"
         )
-    out_root = args.out_root or Path("data") / "synthetic" / f"{slug(args.recipe_id)}_v{args.start_variant}_{args.start_variant + args.count - 1}"
+    out_root = args.out_root or Path("data") / "synthetic" / f"{slug(args.recipe_id)}_v{args.start_variant}_{args.start_variant + count - 1}"
 
     cmd = [
         sys.executable,
@@ -149,7 +205,7 @@ def main() -> int:
         "--start-variant",
         str(args.start_variant),
         "--count",
-        str(args.count),
+        str(count),
         "--scene-mode",
         scene_mode,
         "--width",
@@ -187,6 +243,18 @@ def main() -> int:
     ]
     if class_sequence:
         cmd.extend(["--class-sequence", class_sequence])
+    if balanced_subset_count > 0:
+        cmd.extend(["--balanced-subset-count", str(balanced_subset_count)])
+        if balanced_subset_classes:
+            cmd.extend(["--balanced-subset-classes", balanced_subset_classes])
+        if balanced_subset_min_per_class is not None:
+            cmd.extend(["--balanced-subset-min-per-class", str(balanced_subset_min_per_class)])
+        if balanced_subset_max_class_spread is not None:
+            cmd.extend(["--balanced-subset-max-class-spread", str(balanced_subset_max_class_spread)])
+        if balanced_subset_max_class_ratio is not None:
+            cmd.extend(["--balanced-subset-max-class-ratio", str(balanced_subset_max_class_ratio)])
+        if balanced_subset_max_combinations is not None:
+            cmd.extend(["--balanced-subset-max-combinations", str(balanced_subset_max_combinations)])
     if args.background_dir:
         cmd.extend(["--background-dir", str(args.background_dir)])
     if args.browser_executable:
