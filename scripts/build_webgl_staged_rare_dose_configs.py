@@ -69,6 +69,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Class name/id to duplicate when --control-source class.",
     )
+    parser.add_argument(
+        "--fail-on-inexact-real-class-mix-control",
+        action="store_true",
+        help="Fail if --control-source real_class_mix cannot exactly match every selected synthetic row.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -633,6 +638,16 @@ def main() -> int:
                     "check class_mix_match_report before interpreting it as an exact real-control."
                 )
             exact_matches = sum(1 for row in control_match_report if row.get("exact"))
+            if (
+                args.fail_on_inexact_real_class_mix_control
+                and args.control_source == "real_class_mix"
+                and control_match_report
+                and exact_matches != len(control_match_report)
+            ):
+                raise SystemExit(
+                    "real_class_mix row-count control is not exact "
+                    f"for dose {dose}: {exact_matches}/{len(control_match_report)} exact matches"
+                )
             match_suffix = (
                 f" class_mix_exact={exact_matches}/{len(control_match_report)}"
                 if control_match_report
