@@ -8,9 +8,10 @@ echo ==========================================================
 echo.
 echo Starting local web server at: %CD%
 echo.
-echo Please open the following URL in your web browser:
+echo Launching default browser at:
+echo      http://127.0.0.1:8000/demo/browser/index.html
 echo.
-echo      http://127.0.0.1:8000/demo/browser/
+start "" "http://127.0.0.1:8000/demo/browser/index.html"
 echo.
 echo Press Ctrl+C in this terminal to stop the server.
 echo.
