@@ -60,6 +60,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--json-out", type=Path, default=DEFAULT_JSON_OUT)
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when any axis is blocked or missing.")
+    parser.add_argument("--require-pass", action="store_true", help="Exit non-zero unless every scorecard axis passes.")
     return parser.parse_args()
 
 
@@ -660,6 +661,8 @@ def main() -> int:
         if row["next_action"] and row["status"] != "pass":
             print(f"  next: {row['next_action']}")
     print(f"wrote_json={repo_path(out)}")
+    if args.require_pass and scorecard["overall_status"] != "pass":
+        raise SystemExit(1)
     if args.strict and any(row["status"] in {"blocked", "missing"} for row in scorecard["axes"]):
         raise SystemExit(1)
     return 0
