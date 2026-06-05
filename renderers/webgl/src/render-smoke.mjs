@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 const THREE_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "build", "three.module.js")).href;
+const RGBE_LOADER_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "examples", "jsm", "loaders", "RGBELoader.js")).href;
 
 function argValue(name, defaultValue) {
   const index = process.argv.indexOf(name);
@@ -22,6 +23,7 @@ const OUT_DIR = path.resolve(ROOT, argValue("--out-dir", path.join("data", "synt
 const VARIANT = Number.parseInt(argValue("--variant", "0"), 10);
 const SCENE_MODE = argValue("--scene-mode", "auto");
 const BACKGROUND_DIR = argValue("--background-dir", "");
+const ENVIRONMENT_DIR = argValue("--environment-dir", "");
 const ASSET_SIDE_POLICY = argValue("--asset-side-policy", "any");
 const CAMERA_PROFILE = argValue("--camera-profile", "generic_phone_jitter");
 const CLASS_SEQUENCE_RAW = argValue("--class-sequence", "");
@@ -200,6 +202,16 @@ function listImageFiles(directory) {
     .sort();
 }
 
+function listEnvironmentFiles(directory) {
+  if (!directory) return [];
+  const resolved = path.resolve(ROOT, directory);
+  if (!fs.existsSync(resolved)) return [];
+  return fs.readdirSync(resolved)
+    .filter((name) => /\.(hdr|png|jpe?g|webp)$/i.test(name))
+    .map((name) => path.join(resolved, name))
+    .sort();
+}
+
 const CAMERA_PROFILES = {
   generic_phone_jitter: {
     source: "legacy_webgl_default",
@@ -350,7 +362,7 @@ function cameraViewAngles(position, lookAt) {
   };
 }
 
-function sceneConfig(variant, mode, backgroundPath) {
+function sceneConfig(variant, mode, backgroundPath, environmentPath) {
   const modeOffset = mode === "fan" ? 1009 : mode === "clean" ? 2003 : mode === "clean_single" ? 2309 : mode === "qa3" ? 3001 : mode === "negative" ? 4001 : mode === "thin_edge" ? 5003 : mode === "hand_occlusion" ? 6007 : 0;
   const rng = mulberry32(26058003 + variant * 191 + modeOffset);
   const cameraProfile = chooseCameraProfile(rng, CAMERA_PROFILE);
@@ -381,6 +393,7 @@ function sceneConfig(variant, mode, backgroundPath) {
   const surfaces = mode === "clean_single" ? cleanSingleSurfaces : defaultSurfaces;
   const surface = surfaces[randomInt(rng, surfaces.length)];
   const cleanSingle = mode === "clean_single";
+  const environmentExtension = environmentPath ? path.extname(environmentPath).toLowerCase() : "";
   return {
     surface: {
       ...surface,
@@ -393,6 +406,13 @@ function sceneConfig(variant, mode, backgroundPath) {
         textureUrl: pathToFileURL(backgroundPath).href,
       } : null,
     },
+    environment: environmentPath ? {
+      path: environmentPath,
+      textureUrl: pathToFileURL(environmentPath).href,
+      format: environmentExtension === ".hdr" ? "hdr_equirectangular" : "ldr_equirectangular",
+      mapping: "EquirectangularReflectionMapping",
+      role: "visual_lighting_reflection_only_id_pass_uses_black_background",
+    } : null,
     camera: {
       profileRequested: CAMERA_PROFILE,
       profile: cameraProfile.name,
@@ -1050,7 +1070,9 @@ const assets = variantAssets(VARIANT);
 const occluders = variantOccluders(VARIANT);
 const backgroundFiles = listImageFiles(BACKGROUND_DIR);
 const selectedBackgroundPath = backgroundFiles.length ? backgroundFiles[VARIANT % backgroundFiles.length] : null;
-const config = sceneConfig(VARIANT, effectiveSceneMode, selectedBackgroundPath);
+const environmentFiles = listEnvironmentFiles(ENVIRONMENT_DIR);
+const selectedEnvironmentPath = environmentFiles.length ? environmentFiles[VARIANT % environmentFiles.length] : null;
+const config = sceneConfig(VARIANT, effectiveSceneMode, selectedBackgroundPath, selectedEnvironmentPath);
 const assetSideCounts = assets.reduce((counts, asset) => {
   const side = asset.side ?? "unknown";
   counts[side] = (counts[side] ?? 0) + 1;
@@ -1074,6 +1096,7 @@ function html(textureAssets) {
 <body>
 <script type="module">
 import * as THREE from "three";
+import { RGBELoader } from "${RGBE_LOADER_MODULE}";
 
 const assets = ${JSON.stringify(textureAssets)};
 const occluders = ${JSON.stringify(occluders)};
@@ -1147,6 +1170,23 @@ key.shadow.mapSize.set(1024, 1024);
 scene.add(key);
 
 const loader = new THREE.TextureLoader();
+async function loadEnvironmentTexture() {
+  if (!sceneConfig.environment) return null;
+  const texture = sceneConfig.environment.format === "hdr_equirectangular"
+    ? await new RGBELoader().loadAsync(sceneConfig.environment.textureUrl)
+    : await loader.loadAsync(sceneConfig.environment.textureUrl);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  if (sceneConfig.environment.format === "ldr_equirectangular") {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  }
+  return texture;
+}
+
+const environmentTexture = await loadEnvironmentTexture();
+if (environmentTexture) {
+  scene.environment = environmentTexture;
+}
+
 const table = new THREE.Mesh(
   new THREE.PlaneGeometry(30.0, 20.0, 8, 8),
   new THREE.MeshStandardMaterial({ color: 0xffffff, map: makeTableTexture(), roughness: 0.88 })
@@ -1316,6 +1356,7 @@ addOccluders();
 window.renderPass = (mode) => {
   if (mode === "id") {
     scene.background = new THREE.Color(0x000000);
+    scene.environment = null;
     table.visible = false;
     hemi.visible = false;
     key.visible = false;
@@ -1338,6 +1379,7 @@ window.renderPass = (mode) => {
     }
   } else {
     scene.background = new THREE.Color(sceneConfig.surface.scene);
+    scene.environment = environmentTexture;
     table.visible = true;
     hemi.visible = true;
     key.visible = true;

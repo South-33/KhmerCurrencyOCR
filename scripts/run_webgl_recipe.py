@@ -43,6 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--class-sequence", default="", help="Override catalog class sequence for supported scene modes.")
     parser.add_argument("--artifact-status", choices=["smoke", "diagnostic", "trainable-candidate"], default="")
     parser.add_argument("--background-dir", type=Path, default=None)
+    parser.add_argument("--environment-dir", type=Path, default=None, help="Optional equirectangular environment map directory for visual lighting/reflections.")
     parser.add_argument("--headroom-max-percent", default="90")
     parser.add_argument("--headroom-resume-percent", default="82")
     parser.add_argument("--headroom-max-ram-percent", default="90")
@@ -257,6 +258,8 @@ def main() -> int:
             cmd.extend(["--balanced-subset-max-combinations", str(balanced_subset_max_combinations)])
     if args.background_dir:
         cmd.extend(["--background-dir", str(args.background_dir)])
+    if args.environment_dir:
+        cmd.extend(["--environment-dir", str(args.environment_dir)])
     if args.browser_executable:
         cmd.extend(["--browser-executable", str(args.browser_executable)])
     if args.skip_render:

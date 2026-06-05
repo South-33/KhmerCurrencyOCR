@@ -65,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--visual-scale", default="2", help="Visual WebGL supersampling scale passed to render-smoke.mjs.")
     parser.add_argument("--browser-executable", type=Path, default=None, help="Optional Chromium/Edge executable override for render-smoke.mjs.")
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
+    parser.add_argument("--environment-dir", type=Path, help="Optional equirectangular environment map directory for visual lighting/reflections.")
     parser.add_argument(
         "--background-bank-config",
         type=Path,
@@ -214,6 +215,8 @@ def render_variant(variant: int, out_dir: Path, scene_mode: str, background_dir:
         cmd.extend(["--class-sequence", args.class_sequence])
     if background_dir is not None:
         cmd.extend(["--background-dir", str(background_dir)])
+    if args.environment_dir is not None:
+        cmd.extend(["--environment-dir", str(args.environment_dir)])
     if args.browser_executable is not None:
         cmd.extend(["--browser-executable", str(args.browser_executable)])
     run(cmd)
