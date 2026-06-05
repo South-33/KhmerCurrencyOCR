@@ -38,6 +38,7 @@ VALID_RECIPE_STATUSES = {
     "promoted",
     "rejected_probe",
 }
+NOTE_CONDITION_POLICIES = {"mixed", "pristine_only", "heavy_wear", "wet_stress"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,7 +71,7 @@ def validate_diagnostic_gates(recipe_id: str, gates: object) -> None:
     if gates in (None, ""):
         return
     require(isinstance(gates, dict), f"{recipe_id}: diagnostic_gates must be an object")
-    allowed_gate_names = {"class_distribution", "count_stress"}
+    allowed_gate_names = {"class_distribution", "count_stress", "note_condition_diversity"}
     unknown_gate_names = sorted(str(key) for key in gates if str(key) not in allowed_gate_names)
     require(not unknown_gate_names, f"{recipe_id}: unknown diagnostic_gates {unknown_gate_names}")
 
@@ -124,6 +125,28 @@ def validate_diagnostic_gates(recipe_id: str, gates: object) -> None:
                     f"{recipe_id}: count_stress.{field} must be a non-negative integer",
                 )
 
+    note_condition_diversity = gates.get("note_condition_diversity")
+    if note_condition_diversity is not None:
+        require(isinstance(note_condition_diversity, dict), f"{recipe_id}: note_condition_diversity gate must be an object")
+        for field in ("min_notes", "min_profiles", "min_dirty_notes", "min_pristine_notes", "min_wet_notes"):
+            if field in note_condition_diversity:
+                require_nonnegative_int(
+                    note_condition_diversity[field],
+                    f"{recipe_id}: note_condition_diversity.{field} must be a non-negative integer",
+                )
+        for field in ("min_dirtiness_range", "min_crinkle_range", "min_wetness_range"):
+            if field in note_condition_diversity:
+                value = note_condition_diversity[field]
+                require(
+                    isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0,
+                    f"{recipe_id}: note_condition_diversity.{field} must be a non-negative number",
+                )
+        expected_policy = str(note_condition_diversity.get("expected_policy", "")).strip()
+        require(
+            not expected_policy or expected_policy in NOTE_CONDITION_POLICIES,
+            f"{recipe_id}: note_condition_diversity.expected_policy must be one of {sorted(NOTE_CONDITION_POLICIES)}",
+        )
+
 
 def main() -> int:
     args = parse_args()
@@ -170,6 +193,11 @@ def main() -> int:
         require(asset_side_policy in WEBGL_ASSET_SIDE_POLICIES, f"{recipe_id}: invalid asset_side_policy {asset_side_policy!r}")
         camera_profile = str(row.get("camera_profile", ""))
         require(camera_profile in WEBGL_CAMERA_PROFILES, f"{recipe_id}: invalid camera_profile {camera_profile!r}")
+        note_condition_policy = str(row.get("note_condition_policy", "mixed"))
+        require(
+            note_condition_policy in NOTE_CONDITION_POLICIES,
+            f"{recipe_id}: invalid note_condition_policy {note_condition_policy!r}",
+        )
         validate_diagnostic_gates(recipe_id, row.get("diagnostic_gates"))
         for target_id in target_ids:
             coverage[str(target_id)].append(recipe_id)

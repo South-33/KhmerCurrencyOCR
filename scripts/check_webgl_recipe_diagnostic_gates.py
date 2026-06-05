@@ -13,6 +13,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "configs" / "synthetic_recipes" / "cashsnap_webgl_recipe_catalog_v1.json"
+NOTE_CONDITION_POLICIES = {"mixed", "pristine_only", "heavy_wear", "wet_stress"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -58,7 +59,9 @@ def add_float_option(cmd: list[str], gate: dict[str, Any], key: str, option: str
 
 def run(cmd: list[str]) -> None:
     print(" ".join(cmd), flush=True)
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    completed = subprocess.run(cmd, cwd=ROOT)
+    if completed.returncode != 0:
+        raise SystemExit(f"diagnostic gate command failed with exit code {completed.returncode}")
 
 
 def run_class_distribution_gate(root: Path, gate: dict[str, Any]) -> None:
@@ -100,6 +103,29 @@ def run_count_stress_gate(root: Path, gate: dict[str, Any]) -> None:
     run(cmd)
 
 
+def run_note_condition_diversity_gate(root: Path, gate: dict[str, Any], recipe: dict[str, Any]) -> None:
+    cmd = [
+        sys.executable,
+        "scripts/check_webgl_note_condition_diversity.py",
+        "--root",
+        str(root),
+    ]
+    expected_policy = str(gate.get("expected_policy", recipe.get("note_condition_policy", ""))).strip()
+    if expected_policy:
+        if expected_policy not in NOTE_CONDITION_POLICIES:
+            raise SystemExit(f"note_condition_diversity.expected_policy must be one of {sorted(NOTE_CONDITION_POLICIES)}")
+        cmd.extend(["--expected-policy", expected_policy])
+    add_int_option(cmd, gate, "min_notes", "--min-notes")
+    add_int_option(cmd, gate, "min_profiles", "--min-profiles")
+    add_float_option(cmd, gate, "min_dirtiness_range", "--min-dirtiness-range")
+    add_float_option(cmd, gate, "min_crinkle_range", "--min-crinkle-range")
+    add_float_option(cmd, gate, "min_wetness_range", "--min-wetness-range")
+    add_int_option(cmd, gate, "min_dirty_notes", "--min-dirty-notes")
+    add_int_option(cmd, gate, "min_pristine_notes", "--min-pristine-notes")
+    add_int_option(cmd, gate, "min_wet_notes", "--min-wet-notes")
+    run(cmd)
+
+
 def main() -> int:
     args = parse_args()
     root = resolve(args.root)
@@ -123,6 +149,12 @@ def main() -> int:
         if not isinstance(count_stress, dict):
             raise SystemExit(f"{args.recipe_id}: count_stress gate must be an object")
         run_count_stress_gate(root, count_stress)
+
+    note_condition_diversity = gates.get("note_condition_diversity")
+    if note_condition_diversity is not None:
+        if not isinstance(note_condition_diversity, dict):
+            raise SystemExit(f"{args.recipe_id}: note_condition_diversity gate must be an object")
+        run_note_condition_diversity_gate(root, note_condition_diversity, recipe)
 
     print(f"ok: {args.recipe_id} diagnostic gates passed")
     return 0

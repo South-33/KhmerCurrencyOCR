@@ -1440,7 +1440,7 @@ function makeConditionedNoteTexture(sourceTexture, condition) {
     overlay.fillStyle = "rgba(117,82,38," + (dirt * 0.10) + ")";
     overlay.fillRect(0, 0, w, h);
     if (wet > 0) {
-      overlay.fillStyle = "rgba(31,45,48," + (wet * 0.10) + ")";
+      overlay.fillStyle = "rgba(29,43,47," + (wet * 0.16) + ")";
       overlay.fillRect(0, 0, w, h);
     }
   });
@@ -1482,6 +1482,49 @@ function makeConditionedNoteTexture(sourceTexture, condition) {
         overlay.fillRect(x - radius, y - radius, radius * 2, radius * 2);
       }
     }
+    if (wet > 0.05) {
+      const wetPatches = Math.min(6, Math.max(1, Math.round(1 + wet * 5)));
+      for (let i = 0; i < wetPatches; i += 1) {
+        const x = rng() * w;
+        const y = rng() * h;
+        const radiusX = (0.055 + rng() * 0.15) * w;
+        const radiusY = (0.045 + rng() * 0.13) * h;
+        const gradient = overlay.createRadialGradient(x, y, Math.min(radiusX, radiusY) * 0.08, x, y, Math.max(radiusX, radiusY));
+        gradient.addColorStop(0, "rgba(18,29,31," + (wet * (0.10 + rng() * 0.08)) + ")");
+        gradient.addColorStop(0.62, "rgba(46,64,64," + (wet * 0.07) + ")");
+        gradient.addColorStop(1, "rgba(46,64,64,0)");
+        overlay.save();
+        overlay.translate(x, y);
+        overlay.rotate(rng() * Math.PI);
+        overlay.fillStyle = gradient;
+        overlay.beginPath();
+        overlay.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        overlay.fill();
+        overlay.restore();
+      }
+      const glints = Math.min(5, Math.max(1, Math.round(wet * 4)));
+      overlay.save();
+      overlay.globalCompositeOperation = "screen";
+      for (let i = 0; i < glints; i += 1) {
+        const x = rng() * w;
+        const y = rng() * h;
+        overlay.strokeStyle = "rgba(220,234,225," + (wet * (0.08 + rng() * 0.08)) + ")";
+        overlay.lineWidth = Math.max(1, Math.min(w, h) * (0.002 + rng() * 0.004));
+        overlay.lineCap = "round";
+        overlay.beginPath();
+        overlay.moveTo(x, y);
+        overlay.bezierCurveTo(
+          x + (rng() - 0.5) * w * 0.14,
+          y + (rng() - 0.5) * h * 0.05,
+          x + (rng() - 0.5) * w * 0.24,
+          y + (rng() - 0.5) * h * 0.10,
+          x + (rng() - 0.5) * w * 0.30,
+          y + (rng() - 0.5) * h * 0.12
+        );
+        overlay.stroke();
+      }
+      overlay.restore();
+    }
     drawConditionedLines(overlay, w, h, rng, condition);
     if (edgeWear > 0) {
       overlay.lineWidth = Math.max(1, Math.min(w, h) * (0.004 + edgeWear * 0.010));
@@ -1518,12 +1561,12 @@ async function addNotes() {
     bendGeometry(geometry, asset.curl ?? 0.075, asset.ripple ?? 0.0, asset.condition);
     const condition = asset.condition || {};
     const materialRoughness = Math.max(
-      0.38,
-      Math.min(0.96, (asset.roughness ?? 0.82) + (condition.dirtiness || 0) * 0.04 - (condition.wetness || 0) * 0.32)
+      0.24,
+      Math.min(0.96, (asset.roughness ?? 0.82) + (condition.dirtiness || 0) * 0.04 - (condition.wetness || 0) * 0.52)
     );
     const backingMaterial = new THREE.MeshStandardMaterial({
       color: 0xf2ead7,
-      roughness: Math.max(0.48, 0.92 - (condition.wetness || 0) * 0.18),
+      roughness: Math.max(0.34, 0.92 - (condition.wetness || 0) * 0.32),
       metalness: 0.0,
       side: THREE.DoubleSide,
       depthTest: false,

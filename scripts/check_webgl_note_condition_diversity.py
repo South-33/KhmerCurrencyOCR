@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-dirty-notes", type=int, default=None)
     parser.add_argument("--min-pristine-notes", type=int, default=None)
     parser.add_argument("--min-wet-notes", type=int, default=None)
+    parser.add_argument("--expected-policy", choices=["mixed", "pristine_only", "heavy_wear", "wet_stress"], default="")
     return parser.parse_args()
 
 
@@ -128,6 +129,11 @@ def main() -> int:
     pristine_notes = int(profiles.get("pristine", 0))
     wet_notes = sum(1 for value in values["wetness"] if value >= 0.10)
     policy = next(iter(policies)) if len(policies) == 1 else "mixed"
+    if args.expected_policy:
+        require(
+            len(policies) == 1 and args.expected_policy in policies,
+            f"expected note condition policy {args.expected_policy}, got policies={dict(sorted(policies.items()))}",
+        )
     stats = {
         "dirtiness_range": numeric_range(values["dirtiness"]),
         "crinkle_range": numeric_range(values["crinkle"]),

@@ -120,6 +120,70 @@
       "current_blocker": "Hand-occlusion smoke exists with broader primitive finger variation; still needs real hand-occlusion validation."
     },
     {
+      "id": "webgl_wet_note_condition_stress_v1",
+      "target_condition_ids": ["loose_counter_stack_overlap", "dense_shop_overlap"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["stack"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_auto",
+      "render_pool_count": 8,
+      "note_condition_policy": "wet_stress",
+      "diagnostic_gates": {
+        "note_condition_diversity": {
+          "expected_policy": "wet_stress",
+          "min_notes": 16,
+          "min_wet_notes": 14,
+          "min_dirtiness_range": 0.18,
+          "min_crinkle_range": 0.18,
+          "min_wetness_range": 0.25
+        }
+      },
+      "intended_use": "Bound damp/wet banknote appearance without letting wet sheen destroy visible-denomination evidence.",
+      "promotion_gate": "wet-note stress improves or preserves real damp/handled note recognition while clean and dry overlap guardrails hold",
+      "current_blocker": "Diagnostic policy smoke passed visually, but needs catalog-driven repeatability and real damp/handled-note validation before trainable-candidate use."
+    },
+    {
+      "id": "webgl_heavy_wear_note_condition_stress_v1",
+      "target_condition_ids": ["loose_counter_stack_overlap", "dense_shop_overlap", "front_back_and_old_common_confusion"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["stack"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_auto",
+      "render_pool_count": 8,
+      "note_condition_policy": "heavy_wear",
+      "diagnostic_gates": {
+        "note_condition_diversity": {
+          "expected_policy": "heavy_wear",
+          "min_notes": 16,
+          "min_dirty_notes": 12,
+          "min_dirtiness_range": 0.15,
+          "min_crinkle_range": 0.20
+        }
+      },
+      "intended_use": "Stress old, dirty, creased, and edge-worn note appearances while keeping exact visible labels.",
+      "promotion_gate": "heavy-wear stress improves real handled/old-note robustness without increasing old/common KHR confusion",
+      "current_blocker": "Needs catalog-driven repeatability plus real worn-note validation before trainable-candidate use."
+    },
+    {
+      "id": "webgl_pristine_note_condition_control_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["clean_single"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_closeup_clean_like",
+      "render_pool_count": 8,
+      "note_condition_policy": "pristine_only",
+      "diagnostic_gates": {
+        "note_condition_diversity": {
+          "expected_policy": "pristine_only",
+          "min_notes": 8
+        }
+      },
+      "intended_use": "Clean-condition control batch for separating geometry/camera effects from dirt, crinkle, and wetness effects.",
+      "promotion_gate": "used only as an ablation/control unless it preserves clean real validation and explains condition-policy deltas",
+      "current_blocker": "Clean close-up synthetic previously regressed real-only ablation; this control is diagnostic until a bounded model probe proves value."
+    },
+    {
       "id": "webgl_thin_edge_partial_v1",
       "target_condition_ids": ["thin_edge_partial_fragments"],
       "artifact_status": "smoke_ready",
