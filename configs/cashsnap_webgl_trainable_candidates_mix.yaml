@@ -5,7 +5,7 @@ train:
 - data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train
 - data/synthetic/cashsnap_webgl_hand_occlusion_candidate_v1/images/train
 - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/images/train
-- data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/images/train
+- data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1/images/train
 - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/images/train
 val:
 - data/synthetic/cashsnap_webgl_clean_base_candidate_v1/images/train
@@ -13,7 +13,7 @@ val:
 - data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train
 - data/synthetic/cashsnap_webgl_hand_occlusion_candidate_v1/images/train
 - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/images/train
-- data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/images/train
+- data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1/images/train
 - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/images/train
 names:
   0: USD_1
@@ -80,8 +80,8 @@ cashsnap_sources:
   - detect
 - recipe_id: webgl_hard_negative_replay_v1
   scene_mode: negative
-  root: data/synthetic/cashsnap_webgl_hard_negative_candidate_v1
-  data_yaml: data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/data.yaml
+  root: data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1
+  data_yaml: data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1/data.yaml
   gate_kind: trainable-candidate
   asset_side_policy: any
   camera_profile: phone_auto

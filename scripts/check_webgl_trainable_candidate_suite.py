@@ -290,6 +290,20 @@ def main() -> int:
 
         if args.check_existing:
             check_existing(row, out_root, train_views)
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/check_webgl_recipe_diagnostic_gates.py",
+                    "--root",
+                    str(out_root),
+                    "--recipe-id",
+                    recipe_id,
+                    "--catalog",
+                    str(resolve(args.catalog)),
+                ],
+                cwd=ROOT,
+                check=True,
+            )
 
     print(
         f"ok: {suite.get('name')} declares {len(rows)} trainable-candidate recipe(s), "
