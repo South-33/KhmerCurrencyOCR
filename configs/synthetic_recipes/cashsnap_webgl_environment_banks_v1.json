@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_webgl_environment_banks_v1",
+  "description": "Review registry for WebGL equirectangular environment-map banks. Environment maps may add visual lighting/reflection variation, but trainable renders require reviewed CC0 source/license metadata.",
+  "min_trainable_images": 8,
+  "banks": [
+    {
+      "id": "polyhaven_cashsnap_environment_v1",
+      "path": "data/environment_maps/polyhaven_cashsnap_environment_v1",
+      "review_status": "planned",
+      "allowed_artifact_statuses": [],
+      "assets": [],
+      "source_policy": "CC0 equirectangular HDR/LDR environment maps only; record source_url, license, license_url, and credit per asset before use.",
+      "blocker": "No environment maps have been downloaded, reviewed, or registered yet."
+    }
+  ]
+}

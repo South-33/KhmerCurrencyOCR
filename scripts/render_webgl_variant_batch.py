@@ -67,6 +67,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--background-dir", type=Path, help="Optional reviewed-clean background image directory.")
     parser.add_argument("--environment-dir", type=Path, help="Optional equirectangular environment map directory for visual lighting/reflections.")
     parser.add_argument(
+        "--environment-bank-config",
+        type=Path,
+        default=Path("configs/synthetic_recipes/cashsnap_webgl_environment_banks_v1.json"),
+        help="Review registry used to gate --environment-dir usage.",
+    )
+    parser.add_argument(
         "--background-bank-config",
         type=Path,
         default=Path("configs/synthetic_recipes/cashsnap_webgl_background_banks_v1.json"),
@@ -166,6 +172,25 @@ def check_background_bank(background_dir: Path | None, artifact_status: str, con
         str(config),
         "--require-path",
         str(background_dir),
+        "--artifact-status",
+        artifact_status,
+    ]
+    print(" ".join(cmd), flush=True)
+    result = subprocess.run(cmd, cwd=ROOT, check=False)
+    if result.returncode != 0:
+        raise SystemExit(result.returncode)
+
+
+def check_environment_bank(environment_dir: Path | None, artifact_status: str, config: Path) -> None:
+    if environment_dir is None:
+        return
+    cmd = [
+        sys.executable,
+        "scripts/check_webgl_environment_banks.py",
+        "--config",
+        str(config),
+        "--require-path",
+        str(environment_dir),
         "--artifact-status",
         artifact_status,
     ]
@@ -1475,6 +1500,7 @@ def write_recipe_metadata(
             else "",
         },
         "background_dir": rel(args.background_dir) if args.background_dir else "",
+        "environment_dir": rel(args.environment_dir) if args.environment_dir else "",
         "fragment_review_policy": args.fragment_review_policy,
         "label_transform_policy": {
             "geometric_postprocess": "disallowed_until_rgb_id_and_labels_share_the_same_exact_transform",
@@ -1525,6 +1551,7 @@ def main() -> int:
     out_root = args.out_root if args.out_root.is_absolute() else ROOT / args.out_root
     out_root.mkdir(parents=True, exist_ok=True)
     check_background_bank(args.background_dir, args.artifact_status, args.background_bank_config)
+    check_environment_bank(args.environment_dir, args.artifact_status, args.environment_bank_config)
     variant_dirs: list[tuple[int, Path]] = []
 
     for variant in range(args.start_variant, args.start_variant + args.count):

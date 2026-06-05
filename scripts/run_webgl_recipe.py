@@ -44,6 +44,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--artifact-status", choices=["smoke", "diagnostic", "trainable-candidate"], default="")
     parser.add_argument("--background-dir", type=Path, default=None)
     parser.add_argument("--environment-dir", type=Path, default=None, help="Optional equirectangular environment map directory for visual lighting/reflections.")
+    parser.add_argument(
+        "--environment-bank-config",
+        type=Path,
+        default=Path("configs/synthetic_recipes/cashsnap_webgl_environment_banks_v1.json"),
+        help="Review registry forwarded when --environment-dir is used.",
+    )
     parser.add_argument("--headroom-max-percent", default="90")
     parser.add_argument("--headroom-resume-percent", default="82")
     parser.add_argument("--headroom-max-ram-percent", default="90")
@@ -260,6 +266,7 @@ def main() -> int:
         cmd.extend(["--background-dir", str(args.background_dir)])
     if args.environment_dir:
         cmd.extend(["--environment-dir", str(args.environment_dir)])
+        cmd.extend(["--environment-bank-config", str(args.environment_bank_config)])
     if args.browser_executable:
         cmd.extend(["--browser-executable", str(args.browser_executable)])
     if args.skip_render:
