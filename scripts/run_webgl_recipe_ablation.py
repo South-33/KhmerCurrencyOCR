@@ -44,6 +44,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-epochs", type=float, default=0.0)
     parser.add_argument("--warmup-bias-lr", type=float, default=None)
     parser.add_argument("--warmup-momentum", type=float, default=0.937)
+    parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--amp", action="store_true", help="Enable AMP. Default keeps AMP disabled.")
     parser.add_argument("--device", default="0")
     parser.add_argument("--min-free-ram-gb", type=float, default=1.2)
@@ -97,6 +98,10 @@ def run_label_tag(args: argparse.Namespace) -> str:
     return f"_{label}" if label else ""
 
 
+def seed_tag(args: argparse.Namespace) -> str:
+    return f"_seed{args.seed}" if args.seed is not None else ""
+
+
 def read_json(path: Path) -> dict[str, Any]:
     document = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(document, dict):
@@ -132,13 +137,13 @@ def train_run_name(kind: str, args: argparse.Namespace) -> str:
     warmup_tag = "nowarmup" if float(args.warmup_epochs) == 0.0 else f"warmup{args.warmup_epochs:g}"
     return (
         f"webgl_ablation_{kind}_from_clean_e{args.epochs}_i{args.imgsz}_"
-        f"{args.optimizer.lower()}_{lr_tag(args.lr0)}_{warmup_tag}_{amp_tag}{run_label_tag(args)}"
+        f"{args.optimizer.lower()}_{lr_tag(args.lr0)}_{warmup_tag}_{amp_tag}{seed_tag(args)}{run_label_tag(args)}"
     )
 
 
 def test_run_name(kind: str, args: argparse.Namespace) -> str:
     warmup_tag = "nowarmup" if float(args.warmup_epochs) == 0.0 else f"warmup{args.warmup_epochs:g}"
-    return f"webgl_ablation_{kind}_{warmup_tag}_test_i{args.imgsz}{run_label_tag(args)}"
+    return f"webgl_ablation_{kind}_{warmup_tag}_test_i{args.imgsz}{seed_tag(args)}{run_label_tag(args)}"
 
 
 def config_path(kind: str, recipe_id: str | None, config_dir: Path) -> Path:
@@ -196,6 +201,8 @@ def train_if_needed(kind: str, data_yaml: Path, args: argparse.Namespace) -> Pat
     ]
     if not args.amp:
         command.append("--no-amp")
+    if args.seed is not None:
+        command.extend(["--seed", str(args.seed)])
     run(command, args.dry_run)
     return best
 
@@ -479,6 +486,7 @@ def main() -> int:
                 "warmup_epochs": args.warmup_epochs,
                 "warmup_bias_lr": args.warmup_bias_lr,
                 "warmup_momentum": args.warmup_momentum,
+                "seed": args.seed,
                 "amp": args.amp,
                 "run_label": args.run_label,
             },

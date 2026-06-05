@@ -48,6 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-epochs", type=float, default=None)
     parser.add_argument("--warmup-bias-lr", type=float, default=None)
     parser.add_argument("--warmup-momentum", type=float, default=None)
+    parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--fraction", type=float, default=None)
     parser.add_argument("--max-train-batches", type=int, default=None)
     parser.add_argument("--no-amp", action="store_true", help="Pass --no-amp to train_yolo.py.")
@@ -197,6 +198,7 @@ def build_command(
     append_optional(train_command, "--warmup-epochs", args.warmup_epochs)
     append_optional(train_command, "--warmup-bias-lr", args.warmup_bias_lr)
     append_optional(train_command, "--warmup-momentum", args.warmup_momentum)
+    append_optional(train_command, "--seed", args.seed)
     append_optional(train_command, "--fraction", args.fraction)
     append_optional(train_command, "--max-train-batches", args.max_train_batches)
     if args.no_amp:

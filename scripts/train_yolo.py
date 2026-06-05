@@ -50,6 +50,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup-epochs", type=float, default=None, help="Warmup epochs override.")
     parser.add_argument("--warmup-bias-lr", type=float, default=None, help="Warmup bias learning rate override.")
     parser.add_argument("--warmup-momentum", type=float, default=None, help="Warmup momentum override.")
+    parser.add_argument("--seed", type=int, default=None, help="Ultralytics training seed override.")
     parser.add_argument("--fraction", type=float, default=1.0, help="Fraction of training data to use.")
     parser.add_argument("--max-train-batches", type=int, default=None, help="Stop after this many train batches.")
     parser.add_argument("--no-amp", action="store_true", help="Disable Ultralytics AMP checks/training.")
@@ -98,6 +99,8 @@ def main() -> None:
         train_args["warmup_bias_lr"] = args.warmup_bias_lr
     if args.warmup_momentum is not None:
         train_args["warmup_momentum"] = args.warmup_momentum
+    if args.seed is not None:
+        train_args["seed"] = args.seed
 
     model = YOLO(resolve_local_model(args.model))
     if args.max_train_batches is not None:
