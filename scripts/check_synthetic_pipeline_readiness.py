@@ -589,6 +589,11 @@ def main() -> int:
         "real_dataset_candidates": {
             "path": repo_path(args.real_dataset_candidates),
             "loaded": bool(real_dataset_candidates),
+            "generated_at_utc": real_dataset_candidates.get("generated_at_utc", ""),
+            "data": real_dataset_candidates.get("data", ""),
+            "data_config_sha256": real_dataset_candidates.get("data_config_sha256", ""),
+            "splits": real_dataset_candidates.get("splits", []),
+            "split_fingerprints": real_dataset_candidates.get("split_fingerprints", {}),
             "scene_candidate_counts": real_dataset_candidates.get("scene_candidate_counts", {}),
             "scene_unique_origin_counts": real_dataset_candidates.get("scene_unique_origin_counts", {}),
         },

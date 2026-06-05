@@ -10,9 +10,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 from collections import Counter, defaultdict
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -70,6 +72,14 @@ def repo_path(path: Path) -> str:
         return resolve(path).resolve().relative_to(ROOT).as_posix()
     except ValueError:
         return str(path)
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def read_yaml(path: Path) -> dict[str, Any]:
@@ -367,6 +377,38 @@ def iter_split_images(data_yaml: dict[str, Any], root: Path, splits: Iterable[st
             yield split, image_path
 
 
+def split_fingerprints(image_rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    by_split: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in image_rows:
+        by_split[str(row["split"])].append(row)
+    fingerprints: dict[str, dict[str, Any]] = {}
+    for split, rows in sorted(by_split.items()):
+        image_digest = hashlib.sha256()
+        label_digest = hashlib.sha256()
+        missing_labels = 0
+        for row in sorted(rows, key=lambda item: str(item["image"])):
+            image_path = str(row["image"])
+            label_path = str(row["label"])
+            image_digest.update(image_path.encode("utf-8"))
+            image_digest.update(b"\n")
+            label_digest.update(label_path.encode("utf-8"))
+            label_digest.update(b"\0")
+            resolved_label = resolve(Path(label_path))
+            if resolved_label.exists() and resolved_label.is_file():
+                label_digest.update(file_sha256(resolved_label).encode("utf-8"))
+            else:
+                label_digest.update(b"MISSING")
+                missing_labels += 1
+            label_digest.update(b"\n")
+        fingerprints[split] = {
+            "image_count": len(rows),
+            "image_listing_sha256": image_digest.hexdigest(),
+            "label_content_sha256": label_digest.hexdigest(),
+            "missing_label_count": missing_labels,
+        }
+    return fingerprints
+
+
 def main() -> int:
     args = parse_args()
     data_path = resolve(args.data)
@@ -473,9 +515,12 @@ def main() -> int:
                 contact_sheets[scene_type] = repo_path(sheet)
 
     summary = {
+        "generated_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "data": repo_path(data_path),
+        "data_config_sha256": file_sha256(data_path),
         "dataset_root": repo_path(root),
         "splits": args.splits,
+        "split_fingerprints": split_fingerprints(image_rows),
         "images_scanned": scanned,
         "candidate_images": sum(1 for row in image_rows if int(row["candidate_count"]) > 0),
         "scene_candidate_counts": {

@@ -15,6 +15,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from check_synthetic_governance import DEFAULT_MANIFEST as DEFAULT_GOVERNANCE
 from check_synthetic_governance import check_manifest as check_governance_manifest
 
@@ -34,6 +36,7 @@ DEFAULT_JSON_OUT = ROOT / "runs" / "cashsnap" / "synthetic_dataset_scorecard_lat
 
 STATUS_ORDER = {"pass": 0, "review": 1, "missing": 2, "blocked": 3}
 RUBRIC_SOURCE = "docs/research/What Makes a Dataset Perfect for Synthetic Data Pipelines.pdf"
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -161,6 +164,135 @@ def verify_fingerprint_row(row: dict[str, Any], *, label: str, required: bool = 
     return failures
 
 
+def read_yaml(path: Path) -> dict[str, Any]:
+    resolved = resolve(path)
+    data = yaml.safe_load(resolved.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit(f"{repo_path(resolved)}: expected YAML object")
+    return data
+
+
+def dataset_root(data_yaml: dict[str, Any], data_path: Path) -> Path:
+    raw = data_yaml.get("path")
+    if raw:
+        path = Path(str(raw))
+        return path if path.is_absolute() else resolve(data_path).parent / path
+    return resolve(data_path).parent
+
+
+def image_paths_from_value(root: Path, raw_value: Any) -> list[Path]:
+    if isinstance(raw_value, list):
+        rows: list[Path] = []
+        for item in raw_value:
+            rows.extend(image_paths_from_value(root, item))
+        return rows
+    if raw_value is None:
+        return []
+    value = Path(str(raw_value))
+    path = value if value.is_absolute() else root / value
+    if path.is_dir():
+        return sorted(
+            image
+            for image in path.rglob("*")
+            if image.is_file() and image.suffix.lower() in IMAGE_EXTENSIONS
+        )
+    if path.is_file() and path.suffix.lower() == ".txt":
+        rows = []
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            candidate = Path(line)
+            rows.append(candidate if candidate.is_absolute() else ROOT / candidate)
+        return rows
+    if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS:
+        return [path]
+    return []
+
+
+def label_path_for_image(root: Path, image_path: Path) -> Path:
+    try:
+        rel = image_path.relative_to(root)
+        parts = list(rel.parts)
+        if "images" in parts:
+            parts[parts.index("images")] = "labels"
+            return root / Path(*parts).with_suffix(".txt")
+    except ValueError:
+        pass
+    return image_path.with_suffix(".txt").parent.parent / "labels" / image_path.with_suffix(".txt").name
+
+
+def current_real_candidate_split_fingerprints(data_path: Path, splits: list[str]) -> dict[str, dict[str, Any]]:
+    data_yaml = read_yaml(data_path)
+    root = dataset_root(data_yaml, data_path)
+    fingerprints: dict[str, dict[str, Any]] = {}
+    for split in splits:
+        image_paths = image_paths_from_value(root, data_yaml.get(split))
+        image_digest = hashlib.sha256()
+        label_digest = hashlib.sha256()
+        missing_labels = 0
+        for image_path in sorted(image_paths, key=repo_path):
+            image_text = repo_path(image_path)
+            label_path = label_path_for_image(root, image_path)
+            label_text = repo_path(label_path)
+            image_digest.update(image_text.encode("utf-8"))
+            image_digest.update(b"\n")
+            label_digest.update(label_text.encode("utf-8"))
+            label_digest.update(b"\0")
+            if label_path.exists() and label_path.is_file():
+                label_digest.update(file_sha256(label_path).encode("utf-8"))
+            else:
+                label_digest.update(b"MISSING")
+                missing_labels += 1
+            label_digest.update(b"\n")
+        fingerprints[str(split)] = {
+            "image_count": len(image_paths),
+            "image_listing_sha256": image_digest.hexdigest(),
+            "label_content_sha256": label_digest.hexdigest(),
+            "missing_label_count": missing_labels,
+        }
+    return fingerprints
+
+
+def real_dataset_candidate_summary_freshness_failures(summary: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    if not str(summary.get("generated_at_utc", "")).strip():
+        failures.append("real dataset candidate summary is missing generated_at_utc; regenerate it with the current miner")
+    data = str(summary.get("data", "")).strip()
+    expected_data_sha = str(summary.get("data_config_sha256", "")).strip()
+    if not data:
+        failures.append("real dataset candidate summary is missing data config path")
+        return failures
+    data_path = resolve(Path(data))
+    if not data_path.exists():
+        failures.append(f"real dataset candidate data config is missing: {data}")
+        return failures
+    if not expected_data_sha:
+        failures.append("real dataset candidate summary is missing data_config_sha256; regenerate it with the current miner")
+    elif file_sha256(data_path) != expected_data_sha:
+        failures.append(f"real dataset candidate data config fingerprint is stale: {data}")
+
+    splits = summary.get("splits", [])
+    if not isinstance(splits, list) or not splits:
+        failures.append("real dataset candidate summary is missing scanned splits")
+        return failures
+    expected_fingerprints = summary.get("split_fingerprints", {})
+    if not isinstance(expected_fingerprints, dict) or not expected_fingerprints:
+        failures.append("real dataset candidate summary is missing split_fingerprints; regenerate it with the current miner")
+        return failures
+    current_fingerprints = current_real_candidate_split_fingerprints(data_path, [str(split) for split in splits])
+    for split in [str(item) for item in splits]:
+        expected = expected_fingerprints.get(split)
+        current = current_fingerprints.get(split)
+        if not isinstance(expected, dict) or not isinstance(current, dict):
+            failures.append(f"real dataset candidate split fingerprint is malformed: {split}")
+            continue
+        for key in ["image_count", "image_listing_sha256", "label_content_sha256", "missing_label_count"]:
+            if expected.get(key) != current.get(key):
+                failures.append(f"real dataset candidate split {split} {key} fingerprint is stale")
+    return failures
+
+
 def readiness_freshness_failures(readiness: dict[str, Any]) -> list[str]:
     failures: list[str] = []
     if not str(readiness.get("generated_at_utc", "")).strip():
@@ -189,6 +321,8 @@ def readiness_freshness_failures(readiness: dict[str, Any]) -> list[str]:
             required=real_candidates_loaded,
         )
     )
+    if real_candidates_loaded and isinstance(real_dataset_candidates, dict):
+        failures.extend(real_dataset_candidate_summary_freshness_failures(real_dataset_candidates))
 
     if bool(readiness.get("check_existing")):
         reports = readiness.get("suite_package_reports", {})
