@@ -441,7 +441,9 @@ def build_scorecard(
                 "missing_trainable_conditions": missing_trainable_conditions,
             },
             blockers=[] if trainable == required else missing_trainable_conditions or ["not every required condition has trainable-candidate coverage"],
-            next_action="" if trainable == required else "Add or promote missing synthetic recipe coverage.",
+            next_action=""
+            if trainable == required
+            else "Add trainable coverage only after each missing condition's real bridge and controls are ready; keep diagnostic recipes diagnostic until then.",
         )
     )
 
