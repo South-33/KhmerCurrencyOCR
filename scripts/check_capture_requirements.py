@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INVENTORY = ROOT / "manifests" / "real_partial_capture_inventory.csv"
 DEFAULT_REQUIREMENTS = ROOT / "manifests" / "real_partial_capture_requirements.csv"
 DEFAULT_INBOX = ROOT / "data" / "inbox" / "real_partial_photos"
+DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_latest.json"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 
 
@@ -20,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--inventory", type=Path, default=DEFAULT_INVENTORY)
     parser.add_argument("--requirements", type=Path, default=DEFAULT_REQUIREMENTS)
     parser.add_argument("--inbox", type=Path, default=DEFAULT_INBOX, help="Inbox folder to scan for unregistered images.")
+    parser.add_argument("--readiness", type=Path, default=DEFAULT_READINESS, help="Optional readiness JSON used to annotate mined-candidate gaps.")
     parser.add_argument("--json-out", type=Path, help="Optional machine-readable gap report path.")
     parser.add_argument("--shot-list-out", type=Path, help="Optional Markdown shot list for the missing capture set.")
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when requirements are not met.")
@@ -40,6 +42,16 @@ def repo_path(path: Path) -> str:
 def read_csv(path: Path) -> list[dict[str, str]]:
     with resolve(path).open("r", newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
+
+
+def read_optional_json(path: Path) -> dict[str, object]:
+    resolved = resolve(path)
+    if not resolved.exists():
+        return {}
+    data = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit(f"{repo_path(resolved)}: expected JSON object")
+    return data
 
 
 def split_values(value: str) -> set[str]:
@@ -68,6 +80,29 @@ def priority_value(req: dict[str, str]) -> int:
         return int(req.get("priority", "5") or "5")
     except ValueError:
         return 5
+
+
+def mined_candidate_gap_scenes(readiness: dict[str, object]) -> dict[str, list[str]]:
+    gaps = readiness.get("real_dataset_candidate_hint_gaps", [])
+    if not isinstance(gaps, list):
+        return {}
+    by_scene: dict[str, list[str]] = {}
+    for row in gaps:
+        if not isinstance(row, dict):
+            continue
+        scene_type = str(row.get("scene_type", "")).strip()
+        condition_id = str(row.get("condition_id", "")).strip()
+        if not scene_type:
+            continue
+        by_scene.setdefault(scene_type, [])
+        if condition_id and condition_id not in by_scene[scene_type]:
+            by_scene[scene_type].append(condition_id)
+    return {scene_type: sorted(condition_ids) for scene_type, condition_ids in sorted(by_scene.items())}
+
+
+def append_note(notes: str, extra: str) -> str:
+    notes = notes.strip()
+    return f"{notes} {extra}" if notes else extra
 
 
 def image_ok(row: dict[str, str]) -> tuple[bool, str]:
@@ -143,6 +178,8 @@ def main() -> None:
     args = parse_args()
     rows = read_csv(args.inventory)
     requirements = read_csv(args.requirements)
+    readiness = read_optional_json(args.readiness)
+    mined_gap_scenes = mined_candidate_gap_scenes(readiness)
     registered_paths = {row.get("local_path", "").strip() for row in rows}
     unregistered_inbox = [path for path in inbox_images(args.inbox) if path not in registered_paths]
     usable_rows: list[dict[str, str]] = []
@@ -168,6 +205,15 @@ def main() -> None:
             gaps.append((priority_value(req), minimum - count, req, count))
         hint = hint_for_requirement(req, args.inbox)
         drop_folder = drop_folder_for_requirement(req, args.inbox)
+        mined_gap_conditions = (
+            mined_gap_scenes.get(req["match_value"].strip(), []) if req.get("match_column", "").strip() == "scene_type" else []
+        )
+        notes = req.get("notes", "")
+        if mined_gap_conditions and count < minimum:
+            notes = append_note(
+                notes,
+                "Current mined real scan has zero candidate hints for this scene; fresh phone capture is mandatory for the bridge.",
+            )
         suffix = f" ({hint})" if hint and count < minimum else ""
         priority = req.get("priority", "").strip()
         priority_text = f" priority={priority}" if priority else ""
@@ -186,7 +232,9 @@ def main() -> None:
                 "status": status,
                 "hint": hint,
                 "drop_folder": drop_folder,
-                "notes": req.get("notes", ""),
+                "notes": notes,
+                "mined_candidate_hint_gap": bool(mined_gap_conditions),
+                "mined_candidate_gap_conditions": mined_gap_conditions,
             }
         )
     if gaps:
