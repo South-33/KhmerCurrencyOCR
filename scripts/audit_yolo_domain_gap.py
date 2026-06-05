@@ -18,6 +18,40 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+IMAGE_STAT_KEYS = [
+    "width",
+    "height",
+    "aspect",
+    "luma_mean",
+    "luma_std",
+    "luma_p05",
+    "luma_p95",
+    "saturation_mean",
+    "saturation_std",
+    "sharpness_grad_var",
+]
+BOX_STAT_KEYS = ["box_width", "box_height", "box_area", "box_aspect"]
+DOMAIN_GAP_PRESETS = {
+    "accepted_blend_v1": {
+        "image": {
+            "luma_mean": 0.18,
+            "luma_std": 0.16,
+            "luma_p05": 0.25,
+            "luma_p95": 0.25,
+            "saturation_mean": 0.08,
+            "saturation_std": 0.13,
+            "sharpness_grad_var": 0.04,
+        },
+        "box": {
+            "box_area": 0.45,
+            "box_width": 0.50,
+            "box_height": 0.45,
+            "box_aspect": 0.15,
+        },
+        "max_synthetic_image_ratio": 0.60,
+        "max_synthetic_box_ratio": 1.25,
+    }
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,6 +62,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image-csv-out", type=Path, default=None)
     parser.add_argument("--box-csv-out", type=Path, default=None)
     parser.add_argument("--max-images", type=int, default=None)
+    parser.add_argument(
+        "--fail-on-gap",
+        action="store_true",
+        help="Exit non-zero if requested real/synthetic domain-gap limits fail.",
+    )
+    parser.add_argument(
+        "--gate-preset",
+        default="",
+        choices=["", *sorted(DOMAIN_GAP_PRESETS)],
+        help="Named domain-gap limit set. Explicit threshold flags override preset values.",
+    )
+    parser.add_argument(
+        "--max-abs-image-delta",
+        action="append",
+        default=[],
+        metavar="METRIC=VALUE",
+        help="Limit abs(synthetic-real) image-stat mean delta, e.g. luma_mean=0.18. Repeatable.",
+    )
+    parser.add_argument(
+        "--max-abs-box-delta",
+        action="append",
+        default=[],
+        metavar="METRIC=VALUE",
+        help="Limit abs(synthetic-real) box-stat mean delta, e.g. box_area=0.45. Repeatable.",
+    )
+    parser.add_argument("--max-synthetic-image-ratio", type=float, default=None)
+    parser.add_argument("--max-synthetic-box-ratio", type=float, default=None)
+    parser.add_argument("--min-real-images", type=int, default=1)
+    parser.add_argument("--min-synthetic-images", type=int, default=1)
     return parser.parse_args()
 
 
@@ -222,19 +285,6 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
 
 
 def summarize(image_rows: list[dict[str, Any]], box_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    image_keys = [
-        "width",
-        "height",
-        "aspect",
-        "luma_mean",
-        "luma_std",
-        "luma_p05",
-        "luma_p95",
-        "saturation_mean",
-        "saturation_std",
-        "sharpness_grad_var",
-    ]
-    box_keys = ["box_width", "box_height", "box_area", "box_aspect"]
     groups = sorted({row["source_group"] for row in image_rows})
     families = sorted({row["source_family"] for row in image_rows})
 
@@ -247,8 +297,8 @@ def summarize(image_rows: list[dict[str, Any]], box_rows: list[dict[str, Any]]) 
             "backgrounds": sum(1 for row in group_images if int(row["box_count"]) == 0),
             "boxes": len(group_boxes),
             "class_counts": dict(sorted(class_counts.items())),
-            "image_stats": summarize_numeric(group_images, image_keys),
-            "box_stats": summarize_numeric(group_boxes, box_keys),
+            "image_stats": summarize_numeric(group_images, IMAGE_STAT_KEYS),
+            "box_stats": summarize_numeric(group_boxes, BOX_STAT_KEYS),
         }
 
     by_group = {group: group_summary("source_group", group) for group in groups}
@@ -269,6 +319,130 @@ def summarize(image_rows: list[dict[str, Any]], box_rows: list[dict[str, Any]]) 
         "by_family": by_family,
         "by_group": by_group,
         "deltas": deltas,
+    }
+
+
+def parse_metric_limits(specs: list[str], valid_keys: list[str], label: str) -> dict[str, float]:
+    limits: dict[str, float] = {}
+    valid = set(valid_keys)
+    for spec in specs:
+        if "=" not in spec:
+            raise SystemExit(f"{label} limit must be METRIC=VALUE, got {spec!r}")
+        metric, raw_value = (part.strip() for part in spec.split("=", 1))
+        if metric not in valid:
+            raise SystemExit(f"unknown {label} metric {metric!r}; expected one of {sorted(valid)}")
+        try:
+            value = float(raw_value)
+        except ValueError as exc:
+            raise SystemExit(f"{label} limit for {metric!r} must be numeric, got {raw_value!r}") from exc
+        if value < 0:
+            raise SystemExit(f"{label} limit for {metric!r} must be non-negative")
+        limits[metric] = value
+    return limits
+
+
+def ratio(numerator: int, denominator: int) -> float | None:
+    if denominator <= 0:
+        return None
+    return numerator / denominator
+
+
+def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
+    preset = DOMAIN_GAP_PRESETS.get(args.gate_preset, {})
+    image_limits = dict(preset.get("image", {}))
+    image_limits.update(parse_metric_limits(args.max_abs_image_delta, IMAGE_STAT_KEYS, "image"))
+    box_limits = dict(preset.get("box", {}))
+    box_limits.update(parse_metric_limits(args.max_abs_box_delta, BOX_STAT_KEYS, "box"))
+    max_synthetic_image_ratio = (
+        args.max_synthetic_image_ratio
+        if args.max_synthetic_image_ratio is not None
+        else preset.get("max_synthetic_image_ratio")
+    )
+    max_synthetic_box_ratio = (
+        args.max_synthetic_box_ratio
+        if args.max_synthetic_box_ratio is not None
+        else preset.get("max_synthetic_box_ratio")
+    )
+    gate_requested = bool(
+        args.fail_on_gap
+        or args.gate_preset
+        or image_limits
+        or box_limits
+        or max_synthetic_image_ratio is not None
+        or max_synthetic_box_ratio is not None
+    )
+    failures: list[str] = []
+    by_family = payload.get("by_family", {})
+    real = by_family.get("real")
+    synthetic = by_family.get("synthetic")
+
+    if gate_requested:
+        if not isinstance(real, dict):
+            failures.append("missing real image family")
+        if not isinstance(synthetic, dict):
+            failures.append("missing synthetic image family")
+    if not isinstance(real, dict) or not isinstance(synthetic, dict):
+        return {
+            "requested": gate_requested,
+            "passed": not failures,
+            "failures": failures,
+            "limits": {"image": image_limits, "box": box_limits},
+        }
+
+    real_images = int(real.get("images", 0) or 0)
+    synthetic_images = int(synthetic.get("images", 0) or 0)
+    real_boxes = int(real.get("boxes", 0) or 0)
+    synthetic_boxes = int(synthetic.get("boxes", 0) or 0)
+    if gate_requested and real_images < args.min_real_images:
+        failures.append(f"real image count {real_images} below minimum {args.min_real_images}")
+    if gate_requested and synthetic_images < args.min_synthetic_images:
+        failures.append(f"synthetic image count {synthetic_images} below minimum {args.min_synthetic_images}")
+
+    image_ratio = ratio(synthetic_images, real_images)
+    box_ratio = ratio(synthetic_boxes, real_boxes)
+    if max_synthetic_image_ratio is not None:
+        if image_ratio is None:
+            failures.append("cannot compute synthetic/real image ratio with zero real images")
+        elif image_ratio > max_synthetic_image_ratio:
+            failures.append(f"synthetic/real image ratio {image_ratio:.4f} exceeds {max_synthetic_image_ratio:.4f}")
+    if max_synthetic_box_ratio is not None:
+        if box_ratio is None:
+            failures.append("cannot compute synthetic/real box ratio with zero real boxes")
+        elif box_ratio > max_synthetic_box_ratio:
+            failures.append(f"synthetic/real box ratio {box_ratio:.4f} exceeds {max_synthetic_box_ratio:.4f}")
+
+    deltas = payload.get("deltas", {}).get("synthetic_minus_real", {})
+    for section_name, limits in (("image_stats", image_limits), ("box_stats", box_limits)):
+        section = deltas.get(section_name, {})
+        for metric, limit in limits.items():
+            delta = section.get(metric)
+            if delta is None:
+                failures.append(f"missing synthetic-real delta for {section_name}.{metric}")
+                continue
+            if abs(float(delta)) > limit:
+                failures.append(f"{section_name}.{metric} delta {float(delta):.6f} exceeds abs limit {limit:.6f}")
+
+    return {
+        "requested": gate_requested,
+        "passed": not failures,
+        "failures": failures,
+        "limits": {
+            "image": image_limits,
+            "box": box_limits,
+            "preset": args.gate_preset,
+            "max_synthetic_image_ratio": max_synthetic_image_ratio,
+            "max_synthetic_box_ratio": max_synthetic_box_ratio,
+            "min_real_images": args.min_real_images,
+            "min_synthetic_images": args.min_synthetic_images,
+        },
+        "observed": {
+            "real_images": real_images,
+            "synthetic_images": synthetic_images,
+            "real_boxes": real_boxes,
+            "synthetic_boxes": synthetic_boxes,
+            "synthetic_image_ratio": image_ratio,
+            "synthetic_box_ratio": box_ratio,
+        },
     }
 
 
@@ -315,6 +489,7 @@ def main() -> int:
         "boxes": len(box_rows),
         **summarize(image_rows, box_rows),
     }
+    payload["domain_gap_gate"] = gate_domain_gap(payload, args)
     if args.json_out:
         write_json(resolve(args.json_out), payload)
     if args.image_csv_out:
@@ -329,6 +504,13 @@ def main() -> int:
     )
     if args.json_out:
         print(f"wrote_json={repo_rel(resolve(args.json_out))}")
+    gate = payload["domain_gap_gate"]
+    if gate["requested"]:
+        print("domain_gap_gate=" + ("passed" if gate["passed"] else "failed"))
+        for failure in gate["failures"]:
+            print(f"- {failure}")
+    if args.fail_on_gap and not gate["passed"]:
+        raise SystemExit(1)
     return 0
 
 
