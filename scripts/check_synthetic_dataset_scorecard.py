@@ -32,6 +32,7 @@ DEFAULT_MINED_REAL_UTILITY_COMPARISONS = [
     ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed0_i416_present_classes.json",
     ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed1_i416_present_classes.json",
 ]
+DEFAULT_BROWSER_SYNTHETIC_STRESS = ROOT / "runs" / "cashsnap" / "browser_synthetic_stress_cases_v1.json"
 DEFAULT_JSON_OUT = ROOT / "runs" / "cashsnap" / "synthetic_dataset_scorecard_latest.json"
 
 STATUS_ORDER = {"pass": 0, "review": 1, "missing": 2, "blocked": 3}
@@ -66,6 +67,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Do not load the default accepted-WebGL-vs-p24 mined held-out comparisons.",
     )
+    parser.add_argument("--browser-synthetic-stress", type=Path, default=DEFAULT_BROWSER_SYNTHETIC_STRESS)
     parser.add_argument("--json-out", type=Path, default=DEFAULT_JSON_OUT)
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when any axis is blocked or missing.")
     parser.add_argument("--require-pass", action="store_true", help="Exit non-zero unless every scorecard axis passes.")
@@ -125,6 +127,18 @@ def read_comparison_jsons(paths: list[Path]) -> list[dict[str, Any]]:
         data["_source"] = repo_path(resolved)
         comparisons.append(data)
     return comparisons
+
+
+def read_json_array(path: Path, *, required: bool = True) -> list[Any]:
+    resolved = resolve(path)
+    if not resolved.exists():
+        if required:
+            raise SystemExit(f"missing JSON file: {repo_path(resolved)}")
+        return []
+    data = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(data, list):
+        raise SystemExit(f"{repo_path(resolved)}: expected JSON array")
+    return data
 
 
 def verify_fingerprint_row(row: dict[str, Any], *, label: str, required: bool = True) -> list[str]:
@@ -786,6 +800,92 @@ def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]
     )
 
 
+def browser_synthetic_stress_axis(rows: list[Any]) -> dict[str, Any]:
+    if not rows:
+        return axis(
+            "browser_synthetic_stress",
+            "missing",
+            "No browser synthetic stress JSON was supplied.",
+            next_action="Run the browser synthetic stress manifest through smoke_browser_demo_cdp.cjs before any deploy/count claim.",
+        )
+
+    required_contract_flags = [
+        "uiTotalMatchesFinal",
+        "predClassTotalMatchesFinal",
+        "debugFinalMatchesFinal",
+        "finalNotMoreThanClassified",
+        "fragmentClassifiedNotMoreThanClassified",
+    ]
+    evidence_rows: list[dict[str, Any]] = []
+    blockers: list[str] = []
+    pass_count = 0
+    for index, item in enumerate(rows, start=1):
+        if not isinstance(item, dict):
+            blockers.append(f"browser stress row {index} is malformed")
+            continue
+        case_id = str(item.get("caseId") or f"row_{index}")
+        contract = item.get("countContract", {})
+        if not isinstance(contract, dict):
+            contract = {}
+        evaluation = item.get("evaluation", {})
+        if not isinstance(evaluation, dict):
+            evaluation = {}
+
+        contract_failures = [flag for flag in required_contract_flags if not bool(contract.get(flag))]
+        if contract.get("mode") != contract.get("expectedMode"):
+            contract_failures.append("mode")
+        if contract.get("countSource") != contract.get("expectedCountSource"):
+            contract_failures.append("countSource")
+
+        gt_count = int(evaluation.get("gtCount", 0) or 0)
+        count_error = int(evaluation.get("countError", 0) or 0)
+        khr_error = int(evaluation.get("khrValueError", 0) or 0)
+        usd_error = int(evaluation.get("usdValueError", 0) or 0)
+        recall_same = float(evaluation.get("recallSameClass", 0.0) or 0.0)
+        class_pass = recall_same >= 0.999 if gt_count > 0 else True
+        passed = not contract_failures and count_error == 0 and khr_error == 0 and usd_error == 0 and class_pass
+        if passed:
+            pass_count += 1
+        else:
+            failure_bits: list[str] = []
+            if contract_failures:
+                failure_bits.append(f"contract {','.join(contract_failures)}")
+            if count_error:
+                failure_bits.append(f"count_error {count_error:+d}")
+            if khr_error:
+                failure_bits.append(f"khr_error {khr_error:+d}")
+            if usd_error:
+                failure_bits.append(f"usd_error {usd_error:+d}")
+            if not class_pass:
+                failure_bits.append(f"recall_same_class {recall_same:.3f}")
+            blockers.append(f"{case_id}: {'; '.join(failure_bits)}")
+        evidence_rows.append(
+            {
+                "case_id": case_id,
+                "passed": passed,
+                "gt_count": gt_count,
+                "pred_count": evaluation.get("predCount"),
+                "count_error": count_error,
+                "khr_value_error": khr_error,
+                "usd_value_error": usd_error,
+                "recall_same_class": recall_same,
+                "contract_failures": contract_failures,
+            }
+        )
+
+    status = "pass" if pass_count == len(rows) and not blockers else "blocked"
+    return axis(
+        "browser_synthetic_stress",
+        status,
+        f"{pass_count}/{len(rows)} browser synthetic stress case(s) pass strict count/value/class deploy guard.",
+        evidence={"cases": evidence_rows},
+        blockers=blockers,
+        next_action=(
+            "Use browser stress failures as deploy/curriculum probes; count-contract pass alone is not enough while count, value, or class recall fails."
+        ),
+    )
+
+
 def split_coverage_freshness_failures(split_coverage: dict[str, Any]) -> list[str]:
     failures: list[str] = []
     data = str(split_coverage.get("data", "")).strip()
@@ -972,6 +1072,7 @@ def build_scorecard(
     min_real_train_class_images: int,
     mined_real_utility_comparisons: list[dict[str, Any]],
     governance_report: dict[str, Any],
+    browser_synthetic_stress: list[Any],
 ) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
     trainable = int(readiness.get("required_with_trainable_candidate", 0) or 0)
@@ -1141,6 +1242,7 @@ def build_scorecard(
         )
     )
     axes.append(mined_real_utility_axis(mined_real_utility_comparisons))
+    axes.append(browser_synthetic_stress_axis(browser_synthetic_stress))
 
     axes.append(
         axis(
@@ -1187,6 +1289,7 @@ def main() -> int:
     comparison_paths = [] if args.no_default_mined_real_utility else list(DEFAULT_MINED_REAL_UTILITY_COMPARISONS)
     comparison_paths.extend(args.mined_real_utility_comparison)
     mined_real_utility_comparisons = read_comparison_jsons(comparison_paths)
+    browser_synthetic_stress = read_json_array(args.browser_synthetic_stress, required=False)
     scorecard = build_scorecard(
         readiness,
         domain_gap,
@@ -1197,6 +1300,7 @@ def main() -> int:
         args.min_real_train_class_images,
         mined_real_utility_comparisons,
         governance_report,
+        browser_synthetic_stress,
     )
     out = resolve(args.json_out)
     out.parent.mkdir(parents=True, exist_ok=True)
