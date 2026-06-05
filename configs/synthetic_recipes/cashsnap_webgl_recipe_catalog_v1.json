@@ -131,7 +131,7 @@
       },
       "intended_use": "Diagnostic close-up stack replay with class-conditioned in-plane pose bands tuned from real-vs-WebGL visible-box aspect gaps.",
       "promotion_gate": "per-class visible-box aspect and aggregate real-vs-synthetic geometry pass before any trainable-candidate use",
-      "current_blocker": "Raw final-code pools still fail strict per-class geometry: pool80 confirms KHR_10000 aspect -0.575, KHR_20000 aspect -0.311, and USD_50 area -0.332. A selected v1+v2 diagnostic config can pass accepted_blend_geometry_v1, but this remains diagnostic until materialized package QA, bounded model probes, and real transfer are proven."
+      "current_blocker": "Selected current-code v1/v2/oblique packaging now passes strict geometry, package QA, appearance diversity, note-condition diversity, and count-contract gates, but bounded model probes reject it: full 40-image dose fails accepted_blend_v1 before training, and fixed-step seed0 doses 1/2/4 all lose to matched background row-controls with KHR_50000 as the worst drop. Next blocker is KHR_50000 transfer/curriculum diagnosis, not more package mechanics."
     },
     {
       "id": "webgl_overlap_stack_v1",
