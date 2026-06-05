@@ -20,6 +20,7 @@ DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_l
 DEFAULT_DOMAIN_GAP = ROOT / "runs" / "cashsnap" / "domain_gap_accepted_nowarmup_train.json"
 DEFAULT_MINED_REVIEW = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_latest.json"
 DEFAULT_MINED_REVIEW_QUALITY = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_quality_summary_latest.json"
+DEFAULT_SPLIT_COVERAGE = ROOT / "runs" / "cashsnap" / "cashsnap_v1_split_coverage_latest.json"
 DEFAULT_MINED_REAL_UTILITY_COMPARISONS = [
     ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed0_i416_present_classes.json",
     ROOT / "runs" / "cashsnap" / "mined_real_holdout_scoreboard_accepted_vs_p24_seed1_i416_present_classes.json",
@@ -36,6 +37,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--domain-gap", type=Path, default=DEFAULT_DOMAIN_GAP)
     parser.add_argument("--mined-review", type=Path, default=DEFAULT_MINED_REVIEW)
     parser.add_argument("--mined-review-quality", type=Path, default=DEFAULT_MINED_REVIEW_QUALITY)
+    parser.add_argument("--split-coverage", type=Path, default=DEFAULT_SPLIT_COVERAGE)
+    parser.add_argument(
+        "--min-real-train-class-images",
+        type=int,
+        default=48,
+        help="Minimum unique clean-real train images per class for the split-coverage scorecard axis.",
+    )
     parser.add_argument(
         "--mined-real-utility-comparison",
         type=Path,
@@ -264,11 +272,67 @@ def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]
     )
 
 
+def real_train_class_coverage_axis(split_coverage: dict[str, Any], min_unique_images: int) -> dict[str, Any]:
+    if not split_coverage:
+        return axis(
+            "real_train_class_coverage",
+            "missing",
+            "No clean-real split coverage report was supplied.",
+            next_action="Run check_yolo_dataset.py with --json-out for configs/cashsnap_v1.yaml.",
+        )
+    train = split_coverage.get("splits", {}).get("train", {})
+    classes = train.get("classes", {}) if isinstance(train, dict) else {}
+    if not isinstance(classes, dict) or not classes:
+        return axis(
+            "real_train_class_coverage",
+            "missing",
+            "Clean-real split coverage report has no train class summary.",
+            evidence={"data": split_coverage.get("data", "")},
+            next_action="Regenerate split coverage with the current check_yolo_dataset.py.",
+        )
+
+    class_counts: dict[str, int] = {}
+    failing: dict[str, int] = {}
+    for class_name, row in sorted(classes.items()):
+        if not isinstance(row, dict):
+            continue
+        unique_images = int(row.get("unique_images", 0) or 0)
+        class_counts[str(class_name)] = unique_images
+        if unique_images < min_unique_images:
+            failing[str(class_name)] = unique_images
+
+    status = "pass" if not failing else "blocked"
+    summary = (
+        f"Clean-real train split has at least {min_unique_images} unique image(s) for every class."
+        if status == "pass"
+        else f"Clean-real train split has {len(failing)} class(es) below {min_unique_images} unique train image(s)."
+    )
+    blockers = [f"{name}: {count}/{min_unique_images} unique train images" for name, count in failing.items()]
+    return axis(
+        "real_train_class_coverage",
+        status,
+        summary,
+        evidence={
+            "data": split_coverage.get("data", ""),
+            "train_images": train.get("images"),
+            "train_background_images": train.get("background_images"),
+            "min_unique_images": min_unique_images,
+            "class_unique_images": class_counts,
+        },
+        blockers=blockers,
+        next_action=(
+            "Add or promote genuinely unique rare-class real examples before treating synthetic rare support as scale-ready."
+        ),
+    )
+
+
 def build_scorecard(
     readiness: dict[str, Any],
     domain_gap: dict[str, Any],
     mined_review: dict[str, Any],
     mined_review_quality: dict[str, Any],
+    split_coverage: dict[str, Any],
+    min_real_train_class_images: int,
     mined_real_utility_comparisons: list[dict[str, Any]],
 ) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
@@ -367,6 +431,7 @@ def build_scorecard(
             next_action="Visually audit the mined review package, add per-box quality rows only for protected/use-safe labels, and keep true fan/hand/hard-negative gaps separate.",
         )
     )
+    axes.append(real_train_class_coverage_axis(split_coverage, min_real_train_class_images))
 
     hard_negative_blockers = condition_blockers(readiness, "hard_negatives_and_non_banknote_paper")
     axes.append(
@@ -435,6 +500,7 @@ def main() -> int:
     domain_gap = read_json(args.domain_gap, required=False)
     mined_review = read_json(args.mined_review, required=False)
     mined_review_quality = read_json(args.mined_review_quality, required=False)
+    split_coverage = read_json(args.split_coverage, required=False)
     comparison_paths = [] if args.no_default_mined_real_utility else list(DEFAULT_MINED_REAL_UTILITY_COMPARISONS)
     comparison_paths.extend(args.mined_real_utility_comparison)
     mined_real_utility_comparisons = read_comparison_jsons(comparison_paths)
@@ -443,6 +509,8 @@ def main() -> int:
         domain_gap,
         mined_review,
         mined_review_quality,
+        split_coverage,
+        args.min_real_train_class_images,
         mined_real_utility_comparisons,
     )
     out = resolve(args.json_out)
