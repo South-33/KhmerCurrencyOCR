@@ -43,6 +43,11 @@ def parse_args() -> argparse.Namespace:
         help="Require at least this many candidate metric files.",
     )
     parser.add_argument(
+        "--paired",
+        action="store_true",
+        help="Compare each candidate to the baseline at the same argument position.",
+    )
+    parser.add_argument(
         "--max-worst-drop",
         type=float,
         default=0.0,
@@ -155,6 +160,43 @@ def compare_per_class_replicates(
     return rows
 
 
+def compare_per_class_paired(
+    baseline_documents: list[tuple[Path, dict[str, Any]]],
+    candidate_documents: list[tuple[Path, dict[str, Any]]],
+    metric_name: str,
+) -> list[dict[str, Any]]:
+    baseline_by_class = class_metric_values(baseline_documents, metric_name)
+    candidate_by_class = class_metric_values(candidate_documents, metric_name)
+    rows: list[dict[str, Any]] = []
+    for class_name in sorted(set(baseline_by_class) | set(candidate_by_class)):
+        baseline_values = baseline_by_class.get(class_name, [])
+        candidate_values = candidate_by_class.get(class_name, [])
+        pair_deltas: list[float | None] = []
+        for baseline_value, candidate_value in zip(baseline_values, candidate_values):
+            if baseline_value is None or candidate_value is None:
+                pair_deltas.append(None)
+            else:
+                pair_deltas.append(float(candidate_value) - float(baseline_value))
+        numeric_deltas = [delta for delta in pair_deltas if delta is not None]
+        baseline_numeric = [value for value in baseline_values if value is not None]
+        candidate_numeric = [value for value in candidate_values if value is not None]
+        row = {
+            "class_name": class_name,
+            "baseline_values": baseline_values,
+            "candidate_values": candidate_values,
+            "pair_deltas": pair_deltas,
+            "baseline_mean": statistics.fmean(baseline_numeric) if baseline_numeric else None,
+            "candidate_mean": statistics.fmean(candidate_numeric) if candidate_numeric else None,
+            "candidate_min": min(candidate_numeric) if candidate_numeric else None,
+            "mean_delta": statistics.fmean(numeric_deltas) if numeric_deltas else None,
+            "min_delta": min(numeric_deltas) if numeric_deltas else None,
+            "missing_baseline_values": len(baseline_values) - len(baseline_numeric),
+            "missing_candidate_values": len(candidate_values) - len(candidate_numeric),
+        }
+        rows.append(row)
+    return rows
+
+
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -173,14 +215,24 @@ def main() -> int:
 
     baseline_documents = read_metric_documents(args.baseline)
     candidate_documents = read_metric_documents(args.candidate)
+    if args.paired and len(baseline_documents) != len(candidate_documents):
+        raise ValueError("--paired requires the same number of --baseline and --candidate files")
     baseline_summary = summarize(result_values(baseline_documents, args.metric))
     candidate_summary = summarize(result_values(candidate_documents, args.metric))
 
     baseline_mean = float(baseline_summary["mean"])
     candidate_mean = float(candidate_summary["mean"])
     candidate_min = float(candidate_summary["min"])
-    mean_delta = candidate_mean - baseline_mean
-    worst_delta = candidate_min - baseline_mean
+    if args.paired:
+        baseline_values = result_values(baseline_documents, args.metric)
+        candidate_values = result_values(candidate_documents, args.metric)
+        pair_deltas = [candidate - baseline for baseline, candidate in zip(baseline_values, candidate_values)]
+        mean_delta = statistics.fmean(pair_deltas)
+        worst_delta = min(pair_deltas)
+    else:
+        pair_deltas = []
+        mean_delta = candidate_mean - baseline_mean
+        worst_delta = candidate_min - baseline_mean
 
     checks: list[dict[str, Any]] = [
         {
@@ -219,11 +271,18 @@ def main() -> int:
     per_class_rows: list[dict[str, Any]] = []
     per_class_failures: list[dict[str, Any]] = []
     if args.max_per_class_drop is not None:
-        per_class_rows = compare_per_class_replicates(
-            baseline_documents,
-            candidate_documents,
-            args.per_class_metric,
-        )
+        if args.paired:
+            per_class_rows = compare_per_class_paired(
+                baseline_documents,
+                candidate_documents,
+                args.per_class_metric,
+            )
+        else:
+            per_class_rows = compare_per_class_replicates(
+                baseline_documents,
+                candidate_documents,
+                args.per_class_metric,
+            )
         threshold = -args.max_per_class_drop
         for row in per_class_rows:
             if (
@@ -255,8 +314,10 @@ def main() -> int:
         "metric": args.metric,
         "baseline_paths": [repo_rel(path) for path, _ in baseline_documents],
         "candidate_paths": [repo_rel(path) for path, _ in candidate_documents],
+        "comparison_mode": "paired" if args.paired else "baseline_mean",
         "baseline": baseline_summary,
         "candidate": candidate_summary,
+        "pair_deltas": pair_deltas,
         "mean_delta": mean_delta,
         "worst_delta": worst_delta,
         "checks": checks,
@@ -273,7 +334,7 @@ def main() -> int:
         f"{verdict}: {args.metric} baseline_mean={baseline_mean:.6f} "
         f"candidate_mean={candidate_mean:.6f} candidate_min={candidate_min:.6f} "
         f"mean_delta={mean_delta:+.6f} worst_delta={worst_delta:+.6f} "
-        f"runs={len(candidate_documents)}"
+        f"runs={len(candidate_documents)} mode={payload['comparison_mode']}"
     )
     if args.max_per_class_drop is not None:
         per_class_check = next(check for check in checks if check["name"] == "max_per_class_drop")
