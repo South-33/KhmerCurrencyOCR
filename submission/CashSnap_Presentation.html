@@ -222,7 +222,7 @@
     <!-- SLIDE 1: COVER -->
     <div class="slide cover-slide active">
         <h1 class="cover-title">CashSnap</h1>
-        <div class="cover-subtitle">Phase 1 Project Documentation</div>
+        <div class="cover-subtitle">Phase 1 Project Documentation &amp; Benchmarking</div>
         <div class="cover-meta" style="font-size: 14px; color: #777777; border-top: 1px solid var(--border-color); padding-top: 20px; width: 80%; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
             <div><strong>Student:</strong> Kong Sophanith</div>
             <div><strong>Teacher:</strong> Sou Sovichea</div>
@@ -551,7 +551,22 @@
         </div>
     </div>
 
-    <!-- SLIDE 11: CLEAN VS OVERLAPPING MODEL OUTPUT -->
+    <!-- SLIDE 11: BENCHMARKING AND COMPARISON -->
+    <div class="slide">
+        <h2 class="slide-title">Ecosystem Benchmarking &amp; Evaluation Protocol</h2>
+        <div class="slide-body">
+            <div class="slide-content-full">
+                <ul>
+                    <li><strong>Ecosystem Roster</strong>: CashSnap is compared against <strong>Google Cloud Vision OCR</strong>, <strong>Tesseract</strong>, <strong>KhmerST</strong> baselines, <strong>UKTR</strong>, and <strong>BankNote-Net</strong>.</li>
+                    <li><strong>Three Benchmark Groups</strong>: Evaluated across <strong>KHR</strong> (Riel detection), <strong>USD</strong> (Dollar detection), and <strong>Overlap</strong> (occlusion stress testing under six fanned/covered layouts).</li>
+                    <li><strong>Multi-Tier Metrics</strong>: Uses IoU/mAP (detection), CER/WER/Exact-Match (OCR), Macro-F1 (classification), and <strong>Exact Cash-Total Accuracy / AWAPE</strong> (end-to-end value error).</li>
+                    <li><strong>Statistical Rigor</strong>: Evaluated on in-distribution, series holdout, and cross-currency overlap splits, with paired bootstrap confidence intervals.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: CLEAN VS OVERLAPPING MODEL OUTPUT -->
     <div class="slide">
         <h2 class="slide-title">Model Output: Clean vs. Overlapping Cash</h2>
         <div class="slide-body">
