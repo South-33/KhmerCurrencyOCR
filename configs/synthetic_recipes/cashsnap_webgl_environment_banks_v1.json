@@ -11,7 +11,8 @@
       "allowed_artifact_statuses": [],
       "assets": [],
       "source_policy": "CC0 equirectangular HDR/LDR environment maps only; record source_url, license, license_url, and credit per asset before use.",
-      "blocker": "No environment maps have been downloaded, reviewed, or registered yet."
+      "bootstrap_command": "python scripts/download_polyhaven_environment_bank.py --review-status proof_only",
+      "blocker": "No environment maps have been downloaded, reviewed, or registered into this project config yet."
     }
   ]
 }

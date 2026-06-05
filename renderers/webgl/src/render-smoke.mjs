@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const EDGE = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
 const THREE_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "build", "three.module.js")).href;
-const RGBE_LOADER_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "examples", "jsm", "loaders", "RGBELoader.js")).href;
+const HDR_LOADER_MODULE = pathToFileURL(path.join(ROOT, "renderers", "webgl", "node_modules", "three", "examples", "jsm", "loaders", "HDRLoader.js")).href;
 
 function argValue(name, defaultValue) {
   const index = process.argv.indexOf(name);
@@ -1096,7 +1096,7 @@ function html(textureAssets) {
 <body>
 <script type="module">
 import * as THREE from "three";
-import { RGBELoader } from "${RGBE_LOADER_MODULE}";
+import { HDRLoader } from "${HDR_LOADER_MODULE}";
 
 const assets = ${JSON.stringify(textureAssets)};
 const occluders = ${JSON.stringify(occluders)};
@@ -1173,7 +1173,7 @@ const loader = new THREE.TextureLoader();
 async function loadEnvironmentTexture() {
   if (!sceneConfig.environment) return null;
   const texture = sceneConfig.environment.format === "hdr_equirectangular"
-    ? await new RGBELoader().loadAsync(sceneConfig.environment.textureUrl)
+    ? await new HDRLoader().loadAsync(sceneConfig.environment.textureUrl)
     : await loader.loadAsync(sceneConfig.environment.textureUrl);
   texture.mapping = THREE.EquirectangularReflectionMapping;
   if (sceneConfig.environment.format === "ldr_equirectangular") {
