@@ -8,7 +8,7 @@ train:
   - data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train
   - data/synthetic/cashsnap_webgl_hand_occlusion_candidate_v1/images/train
   - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/images/train
-  - data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1/images/train
   - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/images/train
 val: data/cashsnap_v1/images/val
 test: data/cashsnap_v1/images/test
