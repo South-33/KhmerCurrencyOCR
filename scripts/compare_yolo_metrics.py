@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -64,6 +66,14 @@ def read_json(path: Path) -> dict:
     if not isinstance(document, dict):
         raise ValueError(f"expected JSON object: {path}")
     return document
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def result_metric(document: dict, metric: str) -> float:
@@ -152,14 +162,15 @@ def main() -> int:
     args = parse_args()
     baseline_path = resolve(args.baseline)
     candidate_path = resolve(args.candidate)
+    classes_from_summary_path = resolve(args.classes_from_summary) if args.classes_from_summary else None
     baseline = read_json(baseline_path)
     candidate = read_json(candidate_path)
     baseline_value = result_metric(baseline, args.metric)
     candidate_value = result_metric(candidate, args.metric)
     delta = candidate_value - baseline_value
     only_classes = parse_class_filter(args.only_classes)
-    if args.classes_from_summary:
-        only_classes.update(summary_classes(resolve(args.classes_from_summary)))
+    if classes_from_summary_path:
+        only_classes.update(summary_classes(classes_from_summary_path))
     per_class_rows = compare_per_class(
         baseline,
         candidate,
@@ -196,9 +207,14 @@ def main() -> int:
     passed = all(check["passed"] for check in checks)
     payload = {
         "passed": passed,
+        "generated_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "metric": args.metric,
         "baseline_path": repo_rel(baseline_path),
+        "baseline_sha256": file_sha256(baseline_path),
         "candidate_path": repo_rel(candidate_path),
+        "candidate_sha256": file_sha256(candidate_path),
+        "classes_from_summary_path": repo_rel(classes_from_summary_path) if classes_from_summary_path else "",
+        "classes_from_summary_sha256": file_sha256(classes_from_summary_path) if classes_from_summary_path else "",
         "baseline": baseline_value,
         "candidate": candidate_value,
         "delta": delta,

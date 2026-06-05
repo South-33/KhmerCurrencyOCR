@@ -365,6 +365,43 @@ def domain_gap_axis(
     )
 
 
+def comparison_freshness_failures(comparison: dict[str, Any]) -> list[str]:
+    failures: list[str] = []
+    for key, label in (("baseline", "baseline"), ("candidate", "candidate")):
+        path_text = str(comparison.get(f"{key}_path", "")).strip()
+        expected = str(comparison.get(f"{key}_sha256", "")).strip()
+        if not path_text:
+            failures.append(f"comparison report is missing {label}_path")
+            continue
+        if not expected:
+            failures.append(f"comparison report is missing {label}_sha256; regenerate it with the current compare_yolo_metrics.py")
+            continue
+        path = resolve(Path(path_text))
+        if not path.exists():
+            failures.append(f"comparison {label} metrics file is missing: {path_text}")
+            continue
+        actual = file_sha256(path)
+        if actual != expected:
+            failures.append(f"comparison {label} metrics fingerprint is stale: {path_text}")
+
+    summary_path = str(comparison.get("classes_from_summary_path", "")).strip()
+    expected_summary = str(comparison.get("classes_from_summary_sha256", "")).strip()
+    if summary_path or expected_summary:
+        if not summary_path:
+            failures.append("comparison report has classes_from_summary_sha256 but no path")
+        elif not expected_summary:
+            failures.append("comparison report is missing classes_from_summary_sha256; regenerate it with the current compare_yolo_metrics.py")
+        else:
+            path = resolve(Path(summary_path))
+            if not path.exists():
+                failures.append(f"comparison classes summary is missing: {summary_path}")
+            else:
+                actual = file_sha256(path)
+                if actual != expected_summary:
+                    failures.append(f"comparison classes summary fingerprint is stale: {summary_path}")
+    return failures
+
+
 def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]:
     if not comparisons:
         return axis(
@@ -382,7 +419,8 @@ def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]
             evidence_rows.append({"source": source, "passed": False, "missing": True})
             blockers.append(f"{source}: comparison JSON missing")
             continue
-        passed = bool(comparison.get("passed"))
+        freshness_failures = comparison_freshness_failures(comparison)
+        passed = bool(comparison.get("passed")) and not freshness_failures
         delta = float(comparison.get("delta", 0.0) or 0.0)
         per_class_failures = comparison.get("per_class_failures", [])
         if not isinstance(per_class_failures, list):
@@ -405,15 +443,21 @@ def mined_real_utility_axis(comparisons: list[dict[str, Any]]) -> dict[str, Any]
                 "source": source,
                 "passed": passed,
                 "baseline_path": comparison.get("baseline_path", ""),
+                "baseline_sha256": comparison.get("baseline_sha256", ""),
                 "candidate_path": comparison.get("candidate_path", ""),
+                "candidate_sha256": comparison.get("candidate_sha256", ""),
+                "classes_from_summary_path": comparison.get("classes_from_summary_path", ""),
                 "baseline": comparison.get("baseline"),
                 "candidate": comparison.get("candidate"),
                 "delta": comparison.get("delta"),
                 "failed_checks": failed_checks,
                 "failed_classes": failed_classes,
+                "freshness_failures": freshness_failures,
             }
         )
-        if not passed:
+        if freshness_failures:
+            blockers.extend(f"{source or 'comparison'}: {failure}" for failure in freshness_failures)
+        if not passed and not freshness_failures:
             reason = f"{source or comparison.get('candidate_path', 'candidate')}: delta {delta:+.6f}"
             if failed_checks:
                 reason += f"; failed checks {', '.join(failed_checks)}"
