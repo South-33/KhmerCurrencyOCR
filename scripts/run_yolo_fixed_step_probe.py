@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
@@ -36,6 +37,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL)
     parser.add_argument("--project", type=Path, default=DEFAULT_PROJECT)
     parser.add_argument("--summary-json", type=Path, default=None)
+    parser.add_argument("--preflight-json", type=Path, default=None)
+    parser.add_argument("--preflight-only", action="store_true", help="Write/print the fixed-step probe preflight without training.")
     parser.add_argument("--reuse-existing", action="store_true", default=True)
     parser.add_argument("--rerun-existing", action="store_false", dest="reuse_existing")
     parser.add_argument("--epochs", type=int, default=1)
@@ -58,6 +61,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-ram-percent", type=float, default=94.0)
     parser.add_argument("--max-gpu-mem-percent", type=float, default=90.0)
     parser.add_argument("--max-per-class-drop", type=float, default=0.05)
+    parser.add_argument("--fail-on-row-count-mismatch", action="store_true")
+    parser.add_argument("--fail-on-step-reference-mismatch", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
 
@@ -101,27 +106,53 @@ def split_path(config_path: Path, config: dict[str, Any], value: str) -> Path:
     return data_root(config_path, config) / path
 
 
-def count_split_images(config_path: Path, split_value: str | list[str]) -> int:
+def split_image_rows(config_path: Path, split_value: str | list[str]) -> list[str]:
     config = read_yaml(config_path)
     values = split_value if isinstance(split_value, list) else [split_value]
-    total = 0
+    rows: list[str] = []
     for value in values:
         path = split_path(config_path, config, str(value))
         if path.suffix.lower() == ".txt":
-            total += sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+            rows.extend(line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
         elif path.is_dir():
-            total += sum(1 for item in path.iterdir() if item.is_file() and item.suffix.lower() in IMAGE_EXTS)
+            rows.extend(str(item) for item in sorted(path.iterdir()) if item.is_file() and item.suffix.lower() in IMAGE_EXTS)
         else:
             raise FileNotFoundError(f"cannot count train split {value!r} resolved to {path}")
-    return total
+    return rows
 
 
 def train_row_count(config_path: Path) -> int:
+    return len(train_rows(config_path))
+
+
+def train_rows(config_path: Path) -> list[str]:
     config = read_yaml(config_path)
     train = config.get("train")
     if not isinstance(train, (str, list)):
         raise ValueError(f"config train split must be a string or list: {config_path}")
-    return count_split_images(config_path, train)
+    return split_image_rows(config_path, train)
+
+
+def row_fingerprint(rows: list[str]) -> str:
+    digest = hashlib.sha256()
+    for row in rows:
+        digest.update(row.replace("\\", "/").encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def train_row_summary(config_path: Path) -> dict[str, Any]:
+    rows = train_rows(config_path)
+    unique_rows = set(rows)
+    return {
+        "data": repo_rel(config_path),
+        "rows": len(rows),
+        "unique_rows": len(unique_rows),
+        "duplicate_rows": len(rows) - len(unique_rows),
+        "fingerprint": row_fingerprint(rows),
+        "first_rows": rows[:5],
+        "last_rows": rows[-5:] if rows else [],
+    }
 
 
 def default_label(data_path: Path) -> str:
@@ -315,9 +346,59 @@ def main() -> int:
 
     baseline_label = slug(args.baseline_label or default_label(args.baseline_data))
     candidate_label = slug(args.candidate_label or default_label(args.candidate_data))
-    reference_rows = train_row_count(args.step_reference_data)
+    baseline_rows = train_row_summary(args.baseline_data)
+    candidate_rows = train_row_summary(args.candidate_data)
+    reference_rows_summary = train_row_summary(args.step_reference_data)
+    reference_rows = int(reference_rows_summary["rows"])
     steps = args.max_train_batches or math.ceil(reference_rows / args.batch)
     args.project.mkdir(parents=True, exist_ok=True)
+
+    preflight = {
+        "baseline_data": repo_rel(args.baseline_data),
+        "candidate_data": repo_rel(args.candidate_data),
+        "step_reference_data": repo_rel(args.step_reference_data),
+        "baseline_label": baseline_label,
+        "candidate_label": candidate_label,
+        "seed": args.seed,
+        "batch": args.batch,
+        "reference_train_rows": reference_rows,
+        "max_train_batches": steps,
+        "row_summaries": {
+            "baseline": baseline_rows,
+            "candidate": candidate_rows,
+            "step_reference": reference_rows_summary,
+        },
+        "row_count_delta_candidate_minus_baseline": int(candidate_rows["rows"]) - int(baseline_rows["rows"]),
+        "row_count_delta_reference_minus_baseline": reference_rows - int(baseline_rows["rows"]),
+        "guards": {
+            "fail_on_row_count_mismatch": args.fail_on_row_count_mismatch,
+            "fail_on_step_reference_mismatch": args.fail_on_step_reference_mismatch,
+        },
+    }
+    if args.preflight_json is not None:
+        args.preflight_json = resolve(args.preflight_json)
+        write_json(args.preflight_json, preflight)
+        print(f"wrote_preflight={repo_rel(args.preflight_json)}", flush=True)
+    if args.fail_on_row_count_mismatch and baseline_rows["rows"] != candidate_rows["rows"]:
+        raise SystemExit(
+            "baseline/candidate train row counts differ "
+            f"({baseline_rows['rows']} vs {candidate_rows['rows']}); rerun without --fail-on-row-count-mismatch for deliberate unequal-dose probes"
+        )
+    if args.fail_on_step_reference_mismatch and reference_rows != baseline_rows["rows"]:
+        raise SystemExit(
+            "step-reference train row count differs from baseline "
+            f"({reference_rows} vs {baseline_rows['rows']}); rerun without --fail-on-step-reference-mismatch if deliberate"
+        )
+    if args.preflight_only:
+        print(
+            "preflight_ok "
+            f"baseline_rows={baseline_rows['rows']} "
+            f"candidate_rows={candidate_rows['rows']} "
+            f"reference_rows={reference_rows} "
+            f"max_train_batches={steps}",
+            flush=True,
+        )
+        return 0
 
     baseline_weights = train_if_needed(baseline_label, args.baseline_data, args, steps)
     candidate_weights = train_if_needed(candidate_label, args.candidate_data, args, steps)
@@ -342,6 +423,7 @@ def main() -> int:
                 "reference_train_rows": reference_rows,
                 "batch": args.batch,
                 "max_train_batches": steps,
+                "preflight": preflight,
                 "baseline_train_run": train_name(baseline_label, args, steps),
                 "candidate_train_run": train_name(candidate_label, args, steps),
                 "baseline_metrics": repo_rel(baseline_metrics),
