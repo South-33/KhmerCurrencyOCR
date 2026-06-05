@@ -49,6 +49,7 @@ class CaseSpec:
     selector: str
     description: str
     guard_zero: bool = False
+    required_prop_kinds: tuple[str, ...] = ()
 
 
 CASE_SPECS = [
@@ -89,11 +90,28 @@ CASE_SPECS = [
         description="Diagnostic thin-edge WebGL case; stresses sliver/partial evidence.",
     ),
     CaseSpec(
-        case_id="synthetic_hard_negative",
-        root_name="cashsnap_webgl_hard_negative_candidate_v1",
+        case_id="synthetic_hard_negative_receipt_paper",
+        root_name="cashsnap_webgl_hard_negative_diversity_catalog_gate_v1",
         selector="first_zero",
-        description="Guard hard-negative WebGL case; must stay at 0 final detections and 0 value.",
+        description="Guard hard-negative WebGL case with receipt/paper props; must stay at 0 final detections and 0 value.",
         guard_zero=True,
+        required_prop_kinds=("blank_paper", "receipt"),
+    ),
+    CaseSpec(
+        case_id="synthetic_hard_negative_card_phone",
+        root_name="cashsnap_webgl_hard_negative_diversity_catalog_gate_v1",
+        selector="first_zero",
+        description="Guard hard-negative WebGL case with payment-card/phone props; must stay at 0 final detections and 0 value.",
+        guard_zero=True,
+        required_prop_kinds=("payment_card", "phone"),
+    ),
+    CaseSpec(
+        case_id="synthetic_hard_negative_wallet_sticky",
+        root_name="cashsnap_webgl_hard_negative_diversity_catalog_gate_v1",
+        selector="first_zero",
+        description="Guard hard-negative WebGL case with wallet/sticky-note props; must stay at 0 final detections and 0 value.",
+        guard_zero=True,
+        required_prop_kinds=("sticky_note", "wallet"),
     ),
 ]
 
@@ -145,6 +163,23 @@ def class_counts(label_path: Path) -> Counter[str]:
     return counts
 
 
+def prop_kinds(root: Path, row: dict) -> Counter[str]:
+    metadata_path = root / str(row.get("source_metadata", ""))
+    if not metadata_path.exists():
+        return Counter()
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    if not isinstance(metadata, dict):
+        return Counter()
+    counts: Counter[str] = Counter()
+    for occluder in metadata.get("occluders", []):
+        if not isinstance(occluder, dict):
+            continue
+        prop_kind = str(occluder.get("propKind") or occluder.get("kind") or "").strip()
+        if prop_kind:
+            counts[prop_kind] += 1
+    return counts
+
+
 def score_for(selector: str, variant: int, counts: Counter[str]) -> tuple:
     box_count = sum(counts.values())
     max_same = max(counts.values(), default=0)
@@ -168,19 +203,23 @@ def selected_row(spec: CaseSpec, synthetic_root: Path) -> tuple[dict, Counter[st
         variant = int(row.get("variant"))
         label_path = root / str(row.get("label", ""))
         counts = class_counts(label_path)
+        props = prop_kinds(root, row)
+        if spec.required_prop_kinds and not set(spec.required_prop_kinds).issubset(props):
+            continue
         score = score_for(spec.selector, variant, counts)
         if best_score is None or score > best_score:
             best_row = row
             best_counts = counts
             best_score = score
     if best_row is None:
-        raise SystemExit(f"{spec.root_name}: no selectable rows")
+        suffix = f" matching props {','.join(spec.required_prop_kinds)}" if spec.required_prop_kinds else ""
+        raise SystemExit(f"{spec.root_name}: no selectable rows{suffix}")
     return best_row, best_counts
 
 
-def counts_text(counts: Counter[str]) -> str:
+def counts_text(counts: Counter[str], *, empty: str = "0 targets") -> str:
     if not counts:
-        return "0 targets"
+        return empty
     return ", ".join(f"{name}={counts[name]}" for name in sorted(counts))
 
 
@@ -202,7 +241,10 @@ def build_rows(synthetic_root: Path) -> list[dict[str, str]]:
                 "min_same_class": "",
                 "min_any_class": "",
                 **thresholds,
-                "notes": f"{spec.description} Selected by {spec.selector}; labels: {counts_text(counts)}.",
+                "notes": (
+                    f"{spec.description} Selected by {spec.selector}; "
+                    f"props: {counts_text(prop_kinds(root, row), empty='none')}; labels: {counts_text(counts)}."
+                ),
             }
         )
     return rows

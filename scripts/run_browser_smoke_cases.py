@@ -234,20 +234,18 @@ def main() -> None:
         case_id = case["case_id"]
         command = command_for_case(case, args, index)
         result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, check=False)
-        if result.returncode:
-            print(result.stdout, end="")
-            print(result.stderr, end="")
-            failures.append(f"{case_id}: exit {result.returncode}")
-            continue
         try:
             summary = parse_summary(result.stdout)
         except ValueError as exc:
             print(result.stdout, end="")
             print(result.stderr, end="")
-            failures.append(f"{case_id}: {exc}")
+            failures.append(f"{case_id}: exit {result.returncode}" if result.returncode else f"{case_id}: {exc}")
             continue
         summary["caseId"] = case_id
         summary["notes"] = case.get("notes", "")
+        summary["smokeExitCode"] = result.returncode
+        if result.stderr.strip():
+            summary["smokeError"] = result.stderr.strip()
         summaries.append(summary)
         evaluation = summary.get("evaluation") or {}
         print(
@@ -258,6 +256,11 @@ def main() -> None:
             f"count_error={evaluation.get('countError')} "
             f"khr_error={evaluation.get('khrValueError')} usd_error={evaluation.get('usdValueError')}"
         )
+        if result.returncode:
+            if result.stderr:
+                print(result.stderr, end="")
+            failures.append(f"{case_id}: exit {result.returncode}")
+            continue
     summary_json = args.summary_json
     if summary_json is None and not args.no_artifacts:
         summary_json = resolve(args.out_dir) / "summary.json"
