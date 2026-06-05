@@ -81,7 +81,7 @@
       },
       "intended_use": "Diagnostic multi-note stack framing that matches real visible-note scale before any accepted-blend retraining.",
       "promotion_gate": "aggregate real-vs-synthetic visible-note geometry passes, then per-class aspect and real stress utility must pass before trainable-candidate use",
-      "current_blocker": "Small probe fixes aggregate scale but still shows per-class aspect drift; diagnostic only until class-shape diversity and real transfer are proven."
+      "current_blocker": "Probe fixes aggregate scale, and a 40-image pool confirms per-class aspect drift is led by USD_20, USD_10, and KHR_10000 while KHR_50000 aspect is no longer the geometry blocker; diagnostic only until class-shape diversity and real transfer are proven."
     },
     {
       "id": "webgl_overlap_stack_v1",
