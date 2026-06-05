@@ -135,6 +135,48 @@ def condition_blockers(readiness: dict[str, Any], condition_id: str) -> list[str
     return [str(item) for item in blockers]
 
 
+def condition_axis(
+    readiness: dict[str, Any],
+    *,
+    name: str,
+    condition_id: str,
+    label: str,
+    next_action: str,
+) -> dict[str, Any]:
+    condition = conditions_by_id(readiness).get(condition_id)
+    if not condition:
+        return axis(
+            name,
+            "missing",
+            f"{label} condition is missing from readiness.",
+            blockers=[f"missing readiness condition {condition_id}"],
+            next_action=next_action,
+        )
+    blockers = condition.get("blockers", [])
+    if not isinstance(blockers, list):
+        blockers = ["condition blockers are malformed"]
+    status = "pass" if not blockers else "blocked"
+    state = str(condition.get("state", ""))
+    summary = f"{label} is ready." if status == "pass" else f"{label} is blocked ({state or 'unknown state'})."
+    return axis(
+        name,
+        status,
+        summary,
+        evidence={
+            "condition_id": condition_id,
+            "state": state,
+            "priority": condition.get("priority", ""),
+            "target_status": condition.get("target_status", ""),
+            "catalog_recipe_ids": condition.get("catalog_recipe_ids", []),
+            "active_suite_recipe_ids": condition.get("active_suite_recipe_ids", []),
+            "capture_requirements": condition.get("capture_requirements", []),
+            "real_dataset_review_candidates": condition.get("real_dataset_review_candidates", []),
+        },
+        blockers=[str(item) for item in blockers],
+        next_action=next_action,
+    )
+
+
 def package_blockers(readiness: dict[str, Any]) -> list[str]:
     reports = readiness.get("suite_package_reports", {})
     if not isinstance(reports, dict):
@@ -452,6 +494,15 @@ def build_scorecard(
             evidence={"condition_id": "hard_negatives_and_non_banknote_paper"},
             blockers=hard_negative_blockers,
             next_action="Use reviewed no-note and non-banknote prop captures; blank-label banknote images do not count.",
+        )
+    )
+    axes.append(
+        condition_axis(
+            readiness,
+            name="mixed_cross_currency_bridge",
+            condition_id="mixed_rare_common_cross_currency_stack",
+            label="Mixed rare/common USD+KHR validation bridge",
+            next_action="Capture or promote rights-clear mixed USD+KHR scenes containing KHR_50000 plus common KHR, then rerun matched row-count/class-mix probes.",
         )
     )
 
