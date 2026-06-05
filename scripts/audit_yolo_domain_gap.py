@@ -51,6 +51,32 @@ DOMAIN_GAP_PRESETS = {
         "max_synthetic_image_ratio": 0.60,
         "max_synthetic_box_ratio": 1.25,
         "max_synthetic_class_box_ratio": 3.00,
+    },
+    "accepted_blend_geometry_v1": {
+        "image": {
+            "luma_mean": 0.18,
+            "luma_std": 0.16,
+            "luma_p05": 0.25,
+            "luma_p95": 0.25,
+            "saturation_mean": 0.08,
+            "saturation_std": 0.13,
+            "sharpness_grad_var": 0.04,
+        },
+        "box": {
+            "box_area": 0.25,
+            "box_width": 0.35,
+            "box_height": 0.35,
+            "box_aspect": 0.20,
+        },
+        "class_box": {
+            "box_area": 0.30,
+            "box_width": 0.40,
+            "box_height": 0.40,
+            "box_aspect": 0.25,
+        },
+        "max_synthetic_image_ratio": 0.60,
+        "max_synthetic_box_ratio": 1.25,
+        "max_synthetic_class_box_ratio": 3.00,
     }
 }
 
@@ -87,6 +113,23 @@ def parse_args() -> argparse.Namespace:
         default=[],
         metavar="METRIC=VALUE",
         help="Limit abs(synthetic-real) box-stat mean delta, e.g. box_area=0.45. Repeatable.",
+    )
+    parser.add_argument(
+        "--max-abs-class-box-delta",
+        action="append",
+        default=[],
+        metavar="METRIC=VALUE",
+        help=(
+            "Limit abs(synthetic-real) per-class box-stat mean delta for classes present in both families, "
+            "e.g. box_area=0.30. Repeatable."
+        ),
+    )
+    parser.add_argument(
+        "--class-box-delta-class",
+        action="append",
+        default=[],
+        metavar="CLASS[,CLASS...]",
+        help="Restrict --max-abs-class-box-delta checks to specific class names. Repeatable or comma-separated.",
     )
     parser.add_argument("--max-synthetic-image-ratio", type=float, default=None)
     parser.add_argument("--max-synthetic-box-ratio", type=float, default=None)
@@ -270,6 +313,14 @@ def summarize_numeric(rows: list[dict[str, Any]], keys: list[str]) -> dict[str, 
     return summary
 
 
+def summarize_class_box_stats(box_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    class_names = sorted({str(row["class_name"]) for row in box_rows})
+    return {
+        class_name: summarize_numeric([row for row in box_rows if str(row["class_name"]) == class_name], BOX_STAT_KEYS)
+        for class_name in class_names
+    }
+
+
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -301,6 +352,7 @@ def summarize(image_rows: list[dict[str, Any]], box_rows: list[dict[str, Any]]) 
             "class_counts": dict(sorted(class_counts.items())),
             "image_stats": summarize_numeric(group_images, IMAGE_STAT_KEYS),
             "box_stats": summarize_numeric(group_boxes, BOX_STAT_KEYS),
+            "class_box_stats": summarize_class_box_stats(group_boxes),
         }
 
     by_group = {group: group_summary("source_group", group) for group in groups}
@@ -315,6 +367,18 @@ def summarize(image_rows: list[dict[str, Any]], box_rows: list[dict[str, Any]]) 
                 real_mean = real_stats.get("mean")
                 synth_mean = synth_stats.get("mean")
                 deltas["synthetic_minus_real"][section][metric] = (
+                    None if real_mean is None or synth_mean is None else synth_mean - real_mean
+                )
+        deltas["synthetic_minus_real"]["class_box_stats"] = {}
+        real_class_stats = by_family["real"].get("class_box_stats", {})
+        synthetic_class_stats = by_family["synthetic"].get("class_box_stats", {})
+        for class_name in sorted(set(real_class_stats) | set(synthetic_class_stats)):
+            deltas["synthetic_minus_real"]["class_box_stats"][class_name] = {}
+            for metric, real_stats in real_class_stats.get(class_name, {}).items():
+                synth_stats = synthetic_class_stats.get(class_name, {}).get(metric, {})
+                real_mean = real_stats.get("mean")
+                synth_mean = synth_stats.get("mean")
+                deltas["synthetic_minus_real"]["class_box_stats"][class_name][metric] = (
                     None if real_mean is None or synth_mean is None else synth_mean - real_mean
                 )
     return {
@@ -343,6 +407,18 @@ def parse_metric_limits(specs: list[str], valid_keys: list[str], label: str) -> 
     return limits
 
 
+def parse_class_names(values: list[str]) -> list[str]:
+    class_names: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        for raw_class in value.split(","):
+            class_name = raw_class.strip()
+            if class_name and class_name not in seen:
+                class_names.append(class_name)
+                seen.add(class_name)
+    return class_names
+
+
 def ratio(numerator: int, denominator: int) -> float | None:
     if denominator <= 0:
         return None
@@ -355,6 +431,10 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
     image_limits.update(parse_metric_limits(args.max_abs_image_delta, IMAGE_STAT_KEYS, "image"))
     box_limits = dict(preset.get("box", {}))
     box_limits.update(parse_metric_limits(args.max_abs_box_delta, BOX_STAT_KEYS, "box"))
+    class_box_limits = dict(preset.get("class_box", {}))
+    class_box_limits.update(parse_metric_limits(args.max_abs_class_box_delta, BOX_STAT_KEYS, "class box"))
+    preset_class_box_classes = [str(item) for item in preset.get("class_box_classes", [])]
+    class_box_classes = parse_class_names(preset_class_box_classes + args.class_box_delta_class)
     max_synthetic_image_ratio = (
         args.max_synthetic_image_ratio
         if args.max_synthetic_image_ratio is not None
@@ -375,6 +455,7 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
         or args.gate_preset
         or image_limits
         or box_limits
+        or class_box_limits
         or max_synthetic_image_ratio is not None
         or max_synthetic_box_ratio is not None
         or max_synthetic_class_box_ratio is not None
@@ -394,7 +475,7 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
             "requested": gate_requested,
             "passed": not failures,
             "failures": failures,
-            "limits": {"image": image_limits, "box": box_limits},
+            "limits": {"image": image_limits, "box": box_limits, "class_box": class_box_limits},
         }
 
     real_images = int(real.get("images", 0) or 0)
@@ -450,6 +531,35 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
             if abs(float(delta)) > limit:
                 failures.append(f"{section_name}.{metric} delta {float(delta):.6f} exceeds abs limit {limit:.6f}")
 
+    checked_class_box_deltas: dict[str, dict[str, float | None]] = {}
+    if class_box_limits:
+        class_deltas = deltas.get("class_box_stats", {})
+        real_classes = real.get("class_counts", {})
+        synthetic_classes = synthetic.get("class_counts", {})
+        if not isinstance(real_classes, dict) or not isinstance(synthetic_classes, dict):
+            failures.append("cannot compute per-class box deltas from malformed class_counts")
+        elif not isinstance(class_deltas, dict):
+            failures.append("cannot compute per-class box deltas from malformed class_box_stats")
+        else:
+            checked_classes = class_box_classes or sorted(set(real_classes) & set(synthetic_classes))
+            for class_name in checked_classes:
+                class_delta = class_deltas.get(class_name)
+                checked_class_box_deltas[class_name] = {}
+                if not isinstance(class_delta, dict):
+                    failures.append(f"missing synthetic-real class box delta for {class_name}")
+                    continue
+                for metric, limit in class_box_limits.items():
+                    delta = class_delta.get(metric)
+                    checked_class_box_deltas[class_name][metric] = delta
+                    if delta is None:
+                        failures.append(f"missing synthetic-real delta for class_box_stats.{class_name}.{metric}")
+                        continue
+                    if abs(float(delta)) > limit:
+                        failures.append(
+                            f"class_box_stats.{class_name}.{metric} delta {float(delta):.6f} exceeds "
+                            f"abs limit {limit:.6f}"
+                        )
+
     return {
         "requested": gate_requested,
         "passed": not failures,
@@ -457,6 +567,8 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
         "limits": {
             "image": image_limits,
             "box": box_limits,
+            "class_box": class_box_limits,
+            "class_box_classes": class_box_classes,
             "preset": args.gate_preset,
             "max_synthetic_image_ratio": max_synthetic_image_ratio,
             "max_synthetic_box_ratio": max_synthetic_box_ratio,
@@ -472,6 +584,7 @@ def gate_domain_gap(payload: dict[str, Any], args: argparse.Namespace) -> dict[s
             "synthetic_image_ratio": image_ratio,
             "synthetic_box_ratio": box_ratio,
             "synthetic_class_box_ratios": class_box_ratios,
+            "checked_class_box_deltas": checked_class_box_deltas,
         },
     }
 

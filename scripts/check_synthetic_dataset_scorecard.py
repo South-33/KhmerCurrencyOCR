@@ -18,6 +18,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_latest.json"
 DEFAULT_DOMAIN_GAP = ROOT / "runs" / "cashsnap" / "domain_gap_accepted_nowarmup_train.json"
+DEFAULT_GEOMETRY_DOMAIN_GAP = ROOT / "runs" / "cashsnap" / "domain_gap_accepted_nowarmup_train_geometry.json"
 DEFAULT_MINED_REVIEW = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_latest.json"
 DEFAULT_MINED_REVIEW_QUALITY = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_quality_summary_latest.json"
 DEFAULT_SPLIT_COVERAGE = ROOT / "runs" / "cashsnap" / "cashsnap_v1_split_coverage_latest.json"
@@ -35,6 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--readiness", type=Path, default=DEFAULT_READINESS)
     parser.add_argument("--domain-gap", type=Path, default=DEFAULT_DOMAIN_GAP)
+    parser.add_argument("--geometry-domain-gap", type=Path, default=DEFAULT_GEOMETRY_DOMAIN_GAP)
     parser.add_argument("--mined-review", type=Path, default=DEFAULT_MINED_REVIEW)
     parser.add_argument("--mined-review-quality", type=Path, default=DEFAULT_MINED_REVIEW_QUALITY)
     parser.add_argument("--split-coverage", type=Path, default=DEFAULT_SPLIT_COVERAGE)
@@ -166,28 +168,35 @@ def review_candidate_condition_count(readiness: dict[str, Any]) -> int:
     return total
 
 
-def domain_gap_axis(domain_gap: dict[str, Any]) -> dict[str, Any]:
+def domain_gap_axis(
+    domain_gap: dict[str, Any],
+    *,
+    name: str = "fidelity_domain_gap",
+    label: str = "Accepted-blend domain-gap",
+    expected_preset: str = "accepted_blend_v1",
+    blocked_next_action: str = "Repair synthetic/real dose or distribution drift before model spend.",
+) -> dict[str, Any]:
     if not domain_gap:
         return axis(
-            "fidelity_domain_gap",
+            name,
             "missing",
-            "No accepted-blend domain-gap report was supplied.",
-            next_action="Run audit_yolo_domain_gap.py with the accepted_blend_v1 preset.",
+            f"No {label.lower()} report was supplied.",
+            next_action=f"Run audit_yolo_domain_gap.py with the {expected_preset} preset.",
         )
     gate = domain_gap.get("domain_gap_gate", {})
     if not isinstance(gate, dict) or not gate.get("requested"):
         return axis(
-            "fidelity_domain_gap",
+            name,
             "review",
-            "Domain-gap report exists but no gate was requested.",
+            f"{label} report exists but no gate was requested.",
             evidence={"data": domain_gap.get("data", ""), "split": domain_gap.get("split", "")},
-            next_action="Regenerate the report with --gate-preset accepted_blend_v1 --fail-on-gap.",
+            next_action=f"Regenerate the report with --gate-preset {expected_preset} --fail-on-gap.",
         )
     failures = [str(item) for item in gate.get("failures", [])]
     status = "pass" if gate.get("passed") else "blocked"
-    summary = "Accepted-blend domain-gap gate passed." if status == "pass" else "Accepted-blend domain-gap gate failed."
+    summary = f"{label} gate passed." if status == "pass" else f"{label} gate failed."
     return axis(
-        "fidelity_domain_gap",
+        name,
         status,
         summary,
         evidence={
@@ -197,7 +206,7 @@ def domain_gap_axis(domain_gap: dict[str, Any]) -> dict[str, Any]:
             "limits": gate.get("limits", {}),
         },
         blockers=failures,
-        next_action="" if status == "pass" else "Repair synthetic/real dose or distribution drift before model spend.",
+        next_action="" if status == "pass" else blocked_next_action,
     )
 
 
@@ -329,6 +338,7 @@ def real_train_class_coverage_axis(split_coverage: dict[str, Any], min_unique_im
 def build_scorecard(
     readiness: dict[str, Any],
     domain_gap: dict[str, Any],
+    geometry_domain_gap: dict[str, Any],
     mined_review: dict[str, Any],
     mined_review_quality: dict[str, Any],
     split_coverage: dict[str, Any],
@@ -446,6 +456,15 @@ def build_scorecard(
     )
 
     axes.append(domain_gap_axis(domain_gap))
+    axes.append(
+        domain_gap_axis(
+            geometry_domain_gap,
+            name="visible_note_geometry_gap",
+            label="Accepted-blend visible-note geometry domain-gap",
+            expected_preset="accepted_blend_geometry_v1",
+            blocked_next_action="Repair synthetic visible-note scale and per-class geometry before more training spend.",
+        )
+    )
     axes.append(mined_real_utility_axis(mined_real_utility_comparisons))
 
     axes.append(
@@ -498,6 +517,7 @@ def main() -> int:
     args = parse_args()
     readiness = read_json(args.readiness)
     domain_gap = read_json(args.domain_gap, required=False)
+    geometry_domain_gap = read_json(args.geometry_domain_gap, required=False)
     mined_review = read_json(args.mined_review, required=False)
     mined_review_quality = read_json(args.mined_review_quality, required=False)
     split_coverage = read_json(args.split_coverage, required=False)
@@ -507,6 +527,7 @@ def main() -> int:
     scorecard = build_scorecard(
         readiness,
         domain_gap,
+        geometry_domain_gap,
         mined_review,
         mined_review_quality,
         split_coverage,
