@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_READINESS = ROOT / "runs" / "cashsnap" / "synthetic_pipeline_readiness_latest.json"
 DEFAULT_DOMAIN_GAP = ROOT / "runs" / "cashsnap" / "domain_gap_accepted_nowarmup_train.json"
 DEFAULT_MINED_REVIEW = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_latest.json"
+DEFAULT_MINED_REVIEW_QUALITY = ROOT / "runs" / "cashsnap" / "mined_real_benchmark_review_quality_summary_latest.json"
 DEFAULT_JSON_OUT = ROOT / "runs" / "cashsnap" / "synthetic_dataset_scorecard_latest.json"
 
 STATUS_ORDER = {"pass": 0, "review": 1, "missing": 2, "blocked": 3}
@@ -30,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--readiness", type=Path, default=DEFAULT_READINESS)
     parser.add_argument("--domain-gap", type=Path, default=DEFAULT_DOMAIN_GAP)
     parser.add_argument("--mined-review", type=Path, default=DEFAULT_MINED_REVIEW)
+    parser.add_argument("--mined-review-quality", type=Path, default=DEFAULT_MINED_REVIEW_QUALITY)
     parser.add_argument("--json-out", type=Path, default=DEFAULT_JSON_OUT)
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when any axis is blocked or missing.")
     return parser.parse_args()
@@ -162,7 +164,12 @@ def domain_gap_axis(domain_gap: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def build_scorecard(readiness: dict[str, Any], domain_gap: dict[str, Any], mined_review: dict[str, Any]) -> dict[str, Any]:
+def build_scorecard(
+    readiness: dict[str, Any],
+    domain_gap: dict[str, Any],
+    mined_review: dict[str, Any],
+    mined_review_quality: dict[str, Any],
+) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
     trainable = int(readiness.get("required_with_trainable_candidate", 0) or 0)
     real_ready = int(readiness.get("required_with_real_role_labels", 0) or 0)
@@ -220,6 +227,24 @@ def build_scorecard(readiness: dict[str, Any], domain_gap: dict[str, Any], mined
     edge_summary = f"Mined real-dataset review candidates exist for {candidate_condition_count} required condition(s)."
     if mined_review_total:
         edge_summary += f" A draft-only review package has {mined_review_total} selected candidate(s)."
+    mined_quality_summary: dict[str, Any] = {}
+    if mined_review_quality:
+        ready_scoreable = int(mined_review_quality.get("ready_scoreable_images", 0) or 0)
+        ready_stress = int(mined_review_quality.get("ready_stress_images", 0) or 0)
+        scoreable_boxes = int(mined_review_quality.get("scoreable_boxes", 0) or 0)
+        mined_quality_summary = {
+            "images": mined_review_quality.get("images", 0),
+            "draft_boxes": mined_review_quality.get("draft_boxes", 0),
+            "quality_rows": mined_review_quality.get("quality_rows", 0),
+            "ready_scoreable_images": ready_scoreable,
+            "ready_stress_images": ready_stress,
+            "scoreable_boxes": scoreable_boxes,
+            "status_counts": mined_review_quality.get("status_counts", {}),
+            "quality_counts": mined_review_quality.get("quality_counts", {}),
+            "count_for_score_states": mined_review_quality.get("count_for_score_states", {}),
+            "by_role": mined_review_quality.get("by_role", {}),
+        }
+        edge_summary += f" Quality review has {ready_scoreable} ready scoreable image(s), {scoreable_boxes} scoreable box(es)."
     axes.append(
         axis(
             "edge_case_inventory",
@@ -235,6 +260,7 @@ def build_scorecard(readiness: dict[str, Any], domain_gap: dict[str, Any], mined
                     "quality_template_rows": mined_review.get("quality_template_rows", 0),
                     "policy": mined_review.get("policy", {}),
                 },
+                "mined_review_quality": mined_quality_summary,
             },
             blockers=[] if candidate_condition_count else ["no mined real-dataset candidate hints were loaded"],
             next_action="Visually audit the mined review package, add per-box quality rows only for protected/use-safe labels, and keep true fan/hand/hard-negative gaps separate.",
@@ -306,7 +332,8 @@ def main() -> int:
     readiness = read_json(args.readiness)
     domain_gap = read_json(args.domain_gap, required=False)
     mined_review = read_json(args.mined_review, required=False)
-    scorecard = build_scorecard(readiness, domain_gap, mined_review)
+    mined_review_quality = read_json(args.mined_review_quality, required=False)
+    scorecard = build_scorecard(readiness, domain_gap, mined_review, mined_review_quality)
     out = resolve(args.json_out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(scorecard, indent=2, sort_keys=True) + "\n", encoding="utf-8")
