@@ -33,6 +33,8 @@ def parse_args() -> argparse.Namespace:
         help="Allowed recipe artifact_status. Defaults to trainable-candidate; repeat for tests.",
     )
     parser.add_argument("--allow-zero-visible", action="store_true", help="Allow zero visible banknotes, e.g. reviewed hard negatives.")
+    parser.add_argument("--min-trainable-width", type=int, default=1280, help="Minimum visual width for trainable-candidate packages.")
+    parser.add_argument("--min-trainable-height", type=int, default=960, help="Minimum visual height for trainable-candidate packages.")
     parser.add_argument(
         "--skip-count-contract",
         action="store_true",
@@ -186,6 +188,23 @@ def main() -> int:
     allowed_statuses = set(args.allow_artifact_status or ["trainable-candidate"])
     artifact_status = str(recipe.get("artifact_status", ""))
     require(artifact_status in allowed_statuses, f"artifact_status {artifact_status!r} not in allowed statuses {sorted(allowed_statuses)}")
+    render = recipe.get("render", {})
+    require(isinstance(render, dict), "recipe.render must be an object")
+    try:
+        render_width = int(float(render.get("width", 0)))
+        render_height = int(float(render.get("height", 0)))
+        render_visual_scale = float(render.get("visual_scale", 0))
+    except (TypeError, ValueError) as exc:
+        raise SystemExit("recipe.render width, height, and visual_scale must be numeric") from exc
+    if artifact_status == "trainable-candidate":
+        require(
+            render_width >= args.min_trainable_width and render_height >= args.min_trainable_height,
+            (
+                f"trainable-candidate render size {render_width}x{render_height} is below "
+                f"{args.min_trainable_width}x{args.min_trainable_height}"
+            ),
+        )
+        require(render_visual_scale >= 1.0, f"trainable-candidate visual_scale must be >= 1, got {render_visual_scale}")
     recipe_name = str(recipe.get("recipe_name", ""))
     if args.require_recipe:
         require(recipe_name == args.require_recipe, f"expected recipe {args.require_recipe!r}, got {recipe_name!r}")
