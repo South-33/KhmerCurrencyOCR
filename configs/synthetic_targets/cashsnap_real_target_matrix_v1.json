@@ -80,6 +80,15 @@
       "success_gate": "reduce old/common KHR class swaps without harming clean validation"
     },
     {
+      "id": "mixed_rare_common_cross_currency_stack",
+      "required_for_v1": true,
+      "priority": "p1",
+      "real_benchmark": "reviewed phone captures containing USD plus KHR_50000 and common KHR in one stack/overlap scene",
+      "synthetic_recipe_needed": "mixed_usd_khr_rare_common_stack",
+      "status": "real_anchor_missing",
+      "success_gate": "mixed USD+KHR rare/common stack probes improve or preserve protected real validation versus matched class-mix and row-count controls"
+    },
+    {
       "id": "repeated_same_denomination",
       "required_for_v1": true,
       "priority": "p1",

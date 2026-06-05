@@ -12,4 +12,4 @@ weak_khr_20000,"At least one reviewed scene containing KHR_20000",1,denomination
 weak_khr_50000,"At least one reviewed scene containing KHR_50000",1,denominations,KHR_50000,yes,2,"Weak class; include real phone-photo coverage."
 no_note_background,"No-banknote shop/table/counter backgrounds",5,scene_type,no_note_background,yes,1,"Use the real app capture path; include varied lighting, table colors, blur, crop, and empty retail surfaces."
 non_banknote_paper_props,"Receipts, wallets, cards, envelopes, hands, and shop clutter without banknotes",5,scene_type,non_banknote_paper_props,yes,1,"Hard-negative props likely to trigger false positives; keep scenes banknote-free."
-mixed_usd_khr_optional,"Optional mixed USD + KHR scenes",2,scene_type,mixed_usd_khr,no,9,"Do after KHR-only capture is usable."
+mixed_usd_khr_rare_common_stack,"Mixed USD + KHR stack/overlap scenes with rare and common denominations",5,scene_type,mixed_usd_khr_rare_common,yes,1,"Include USD plus KHR_50000 and at least one common KHR note in the same human-countable scene; targets synthetic class-mix/curriculum validation."

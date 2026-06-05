@@ -54,6 +54,7 @@ CONDITION_CAPTURE_REQUIREMENTS = {
     "finger_or_hand_split_occlusion": {"hand_occlusion"},
     "thin_edge_partial_fragments": {"thin_slice_khr_5000", "thin_slice_khr_20000"},
     "front_back_and_old_common_confusion": {"weak_khr_20000", "weak_khr_50000"},
+    "mixed_rare_common_cross_currency_stack": {"mixed_usd_khr_rare_common_stack"},
     "repeated_same_denomination": {"same_denomination_fan"},
     "hard_negatives_and_non_banknote_paper": {"no_note_background", "non_banknote_paper_props"},
 }
@@ -65,6 +66,7 @@ CONDITION_REAL_DATASET_CANDIDATES = {
     "finger_or_hand_split_occlusion": set(),
     "thin_edge_partial_fragments": {"thin_slice_khr_5000", "thin_slice_khr_20000", "partial_off_frame"},
     "front_back_and_old_common_confusion": {"weak_khr_20000", "weak_khr_50000"},
+    "mixed_rare_common_cross_currency_stack": set(),
     "repeated_same_denomination": {"same_denomination_fan"},
     "hard_negatives_and_non_banknote_paper": set(),
 }
@@ -75,6 +77,7 @@ BLOCKING_TARGET_STATUSES = {
     "known_failure_mode",
     "metadata_support_needed_for_fusion",
     "background_qa_needed",
+    "real_anchor_missing",
 }
 
 USABLE_RIGHTS = {"own_photo", "rights_clear", "public_domain", "cc0"}

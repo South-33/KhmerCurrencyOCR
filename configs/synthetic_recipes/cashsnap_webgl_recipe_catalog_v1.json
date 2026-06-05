@@ -374,6 +374,45 @@
       "current_blocker": "Balanced physical-visible subset selection packages 16 fan images from a 20-image render pool for the class audit; still needs real rare-class validation before trainable-candidate use."
     },
     {
+      "id": "webgl_mixed_rare_common_cross_currency_stack_v1",
+      "target_condition_ids": ["mixed_rare_common_cross_currency_stack"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["stack"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_closeup_clean_like",
+      "stack_pose_policy": "real_aspect_v1",
+      "note_print_tone_policy": "local_dynamic_range_v1",
+      "render_pool_count": 24,
+      "class_sequence": ["USD_50", "KHR_1000", "KHR_50000", "USD_20", "KHR_5000", "KHR_20000"],
+      "balanced_subset": {
+        "count": 12,
+        "classes": ["USD_50", "KHR_1000", "KHR_50000", "USD_20", "KHR_5000", "KHR_20000"],
+        "min_per_class": 6,
+        "max_class_spread": 2,
+        "max_class_ratio": 1.35,
+        "max_combinations": 4000000
+      },
+      "diagnostic_gates": {
+        "class_distribution": {
+          "expected_classes": ["USD_50", "KHR_1000", "KHR_50000", "USD_20", "KHR_5000", "KHR_20000"],
+          "min_images": 12,
+          "min_per_class": 6,
+          "max_class_spread": 2,
+          "max_class_ratio": 1.35
+        },
+        "note_print_tone": {
+          "expected_policy": "local_dynamic_range_v1",
+          "min_notes": 36,
+          "min_mean_contrast": 1.45,
+          "max_mean_contrast": 2.10,
+          "min_contrast_range": 0.20
+        }
+      },
+      "intended_use": "Diagnostic mixed USD+KHR stack probe that forces rare/common class co-occurrence after class-mix controls showed no real anchor for USD_50 + KHR_1000 + KHR_50000 scenes.",
+      "promotion_gate": "only enters trainable-candidate mixes after reviewed real mixed USD+KHR rare/common captures exist and bounded probes beat matched row-count plus class-mix controls",
+      "current_blocker": "No usable real phone captures or protected labels cover the rare/common cross-currency stack mix; keep diagnostic and use this condition as a validation-bridge blocker."
+    },
+    {
       "id": "webgl_hard_negative_replay_v1",
       "target_condition_ids": ["hard_negatives_and_non_banknote_paper"],
       "artifact_status": "smoke_ready",
