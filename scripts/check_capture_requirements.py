@@ -21,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--requirements", type=Path, default=DEFAULT_REQUIREMENTS)
     parser.add_argument("--inbox", type=Path, default=DEFAULT_INBOX, help="Inbox folder to scan for unregistered images.")
     parser.add_argument("--json-out", type=Path, help="Optional machine-readable gap report path.")
+    parser.add_argument("--shot-list-out", type=Path, help="Optional Markdown shot list for the missing capture set.")
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when requirements are not met.")
     return parser.parse_args()
 
@@ -51,10 +52,15 @@ def row_matches(row: dict[str, str], column: str, value: str) -> bool:
     return row.get(column, "").strip() == value
 
 
-def hint_for_requirement(req: dict[str, str]) -> str:
+def drop_folder_for_requirement(req: dict[str, str], inbox: Path) -> str:
     if req["match_column"] == "scene_type":
-        return f"drop_folder={(DEFAULT_INBOX / req['match_value']).relative_to(ROOT).as_posix()}"
+        return repo_path(resolve(inbox) / req["match_value"])
     return ""
+
+
+def hint_for_requirement(req: dict[str, str], inbox: Path) -> str:
+    drop_folder = drop_folder_for_requirement(req, inbox)
+    return f"drop_folder={drop_folder}" if drop_folder else ""
 
 
 def priority_value(req: dict[str, str]) -> int:
@@ -92,6 +98,43 @@ def inbox_images(inbox: Path) -> list[str]:
     )
 
 
+def write_shot_list(path: Path, reports: list[dict[str, object]], inbox: Path) -> None:
+    rows = sorted(
+        reports,
+        key=lambda row: (
+            int(row["priority"]),
+            not bool(row["required"]),
+            int(row["missing"]) == 0,
+            str(row["requirement_id"]),
+        ),
+    )
+    out = resolve(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    inbox_path = repo_path(resolve(inbox))
+    lines = [
+        "# CashSnap Real Capture Shot List",
+        "",
+        "Drop phone photos into the listed folders, then register them with:",
+        "",
+        f"`rl python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent --dry-run`",
+        f"`rl python scripts/register_capture_photos.py --images-dir {inbox_path} --recursive --scene-type-from-parent`",
+        "",
+        "| Priority | Requirement | Need | Drop Folder | Notes |",
+        "| --- | --- | ---: | --- | --- |",
+    ]
+    for row in rows:
+        missing = int(row["missing"])
+        status = "done" if missing == 0 else f"{missing} more"
+        drop_folder = str(row.get("drop_folder", ""))
+        drop_text = f"`{drop_folder}`" if drop_folder else "any registered scene; set `denominations`"
+        notes = str(row.get("notes", "")).replace("|", "/")
+        lines.append(
+            f"| P{row['priority']} | `{row['requirement_id']}` | {status} | {drop_text} | {notes} |"
+        )
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"wrote_shot_list={repo_path(out)}")
+
+
 def main() -> None:
     args = parse_args()
     rows = read_csv(args.inventory)
@@ -119,7 +162,8 @@ def main() -> None:
         unmet = unmet or (required and count < minimum)
         if count < minimum:
             gaps.append((priority_value(req), minimum - count, req, count))
-        hint = hint_for_requirement(req)
+        hint = hint_for_requirement(req, args.inbox)
+        drop_folder = drop_folder_for_requirement(req, args.inbox)
         suffix = f" ({hint})" if hint and count < minimum else ""
         priority = req.get("priority", "").strip()
         priority_text = f" priority={priority}" if priority else ""
@@ -137,12 +181,14 @@ def main() -> None:
                 "missing": max(0, minimum - count),
                 "status": status,
                 "hint": hint,
+                "drop_folder": drop_folder,
+                "notes": req.get("notes", ""),
             }
         )
     if gaps:
         print("Next capture priorities:")
         for priority, missing, req, count in sorted(gaps, key=lambda item: (item[0], item[2]["required"] != "yes", -item[1], item[2]["requirement_id"]))[:6]:
-            hint = hint_for_requirement(req)
+            hint = hint_for_requirement(req, args.inbox)
             suffix = f" ({hint})" if hint else ""
             print(f"- P{priority} {req['requirement_id']}: need {missing} more, have {count}{suffix}")
     if errors:
@@ -172,7 +218,8 @@ def main() -> None:
                     "description": req["description"],
                     "missing": missing,
                     "count": count,
-                    "hint": hint_for_requirement(req),
+                    "hint": hint_for_requirement(req, args.inbox),
+                    "drop_folder": drop_folder_for_requirement(req, args.inbox),
                 }
                 for priority, missing, req, count in sorted(gaps, key=lambda item: (item[0], item[2]["required"] != "yes", -item[1], item[2]["requirement_id"]))[:6]
             ],
@@ -182,6 +229,8 @@ def main() -> None:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(f"wrote_json={repo_path(out_path)}")
+    if args.shot_list_out:
+        write_shot_list(args.shot_list_out, requirement_reports, args.inbox)
     if args.strict and (unmet or errors or unregistered_inbox):
         raise SystemExit(1)
 
