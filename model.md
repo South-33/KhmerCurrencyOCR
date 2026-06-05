@@ -55,6 +55,7 @@ Done and trusted:
 - `check_webgl_appearance_diversity.py` is wired into the trainable-candidate gate so accepted packages must keep meaningful camera-profile, surface, luma, and non-geometric RGB postprocess spread instead of collapsing into one synthetic look.
 - `check_synthetic_pipeline_readiness.py` is the mission-level scale audit: it joins target-matrix conditions, recipe catalog rows, the active trainable-candidate suite, rendered package metadata, real benchmark roles, and real capture inventory so synthetic scale decisions fail on explicit condition/validation gaps instead of vibes.
 - `audit_yolo_domain_gap.py` now has opt-in domain-gap gates for real-vs-synthetic image statistics, box geometry, and synthetic dose ratios; `build_webgl_accepted_blend_config.py` runs the `accepted_blend_v1` preset by default after building the accepted blend so bad blends fail before training spend.
+- `build_webgl_accepted_blend_variant_configs.py` builds leave-one-out accepted-blend configs/lists and annotates each with domain-gate pass/fail so interaction probes are reproducible and not hand-edited.
 - `configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml` is the current bounded accepted-blend ablation: global clean-test transfer passes matched real-only by `+0.000994` mAP50-95, but its `KHR_2000` per-class drop blocks blind scale.
 - `scripts/build_yolo_balanced_subset.py --always-max-per-class` can cap labeled always-included synthetic dose per class; this is useful tooling, but the capped full-real accepted seed is also rejected and should not be promoted.
 - `configs/cashsnap_v1_full_real_only_seed.yaml` proves the all-target real curriculum is itself unsafe: 1 epoch from the clean checkpoint tests at `0.783482` mAP50-95 vs `0.883801` clean checkpoint, nearly identical to the capped accepted-synthetic failure.
@@ -105,6 +106,7 @@ Current useful checks:
 - P1 readiness: `rl python scripts\check_webgl_p1_readiness.py --smoke-mix configs\cashsnap_webgl_trainable_candidates_mix.yaml`
 - Mission-level synthetic scale readiness: `rl python scripts\check_synthetic_pipeline_readiness.py --check-existing --json-out runs\cashsnap\synthetic_pipeline_readiness_latest.json`
 - Accepted-blend domain gap gate: `rl python scripts\audit_yolo_domain_gap.py --data configs\cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml --split train --json-out runs\cashsnap\domain_gap_accepted_nowarmup_train.json --gate-preset accepted_blend_v1 --fail-on-gap`
+- Accepted-blend leave-one-out variants: `rl python scripts\build_webgl_accepted_blend_variant_configs.py`
 - Trainable-candidate dry run: `rl python scripts\run_webgl_trainable_candidate_pipeline.py --dry-run --train-smoke`
 - Targeted class-dose gate: `rl python scripts\check_webgl_class_distribution.py --root <webgl_root> --expected-classes '<CSV>' --min-images <n> --min-per-class <n> --max-class-spread <n>`
 - Count-stress gate: `rl python scripts\check_webgl_count_stress.py --root <webgl_root> --min-repeat-images <n> --min-max-same-class <n>`
@@ -163,6 +165,7 @@ Keep this table curated. Add rows only for results that change what a future age
 | 2026-06-05 | validation | keep | Real capture requirements now include explicit `same_denomination_fan` scenes. `check_synthetic_pipeline_readiness.py` maps `repeated_same_denomination` to that bucket instead of generic `hand_fan`, so same-class count/fusion validation cannot be accidentally satisfied by ordinary fan photos. |
 | 2026-06-05 | synthetic | keep | `build_webgl_accepted_blend_config.py` now runs `audit_yolo_domain_gap.py --gate-preset accepted_blend_v1 --fail-on-gap` after writing the accepted blend and annotates `cashsnap_domain_gap_gate` on success. The current accepted blend was rebuilt and passed, so future accepted-blend generation cannot skip the domain/dose guard by accident. |
 | 2026-06-05 | evaluation | note | Existing recipe-isolated per-class metrics do not identify one bad selected recipe for the accepted-blend `KHR_2000` failure: `clean_base`, `thin_edge`, `hard_negative`, and `back_side` each improve `KHR_2000` versus matched real-only individually. Treat the blend failure as an interaction/dose problem; the next bounded model probe should be leave-one-out or staged-dose accepted blends. |
+| 2026-06-05 | evaluation | keep | `build_webgl_accepted_blend_variant_configs.py` generated four leave-one-out accepted-blend configs under `configs/webgl_blend_variants/` with train lists under `configs/generated_lists/webgl_blend_variants/`; all passed YOLO dataset checks. Domain-gate status is a training priority signal: minus `hard_negative` passes, while minus `clean_base`, minus `thin_edge`, and minus `back_side` are valid but domain-flagged. |
 
 ## Trainable Candidate Artifacts
 
