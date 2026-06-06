@@ -12,6 +12,7 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 CONDITION_FIELDS = ("dirtiness", "crinkle", "wetness", "edgeWear")
+CLEAN_SCENE_MODES = {"clean", "clean_single"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -87,6 +88,7 @@ def main() -> int:
     total_notes = 0
     missing_conditions = 0
     policies: Counter[str] = Counter()
+    scene_modes: Counter[str] = Counter()
     profiles: Counter[str] = Counter()
     values: dict[str, list[float]] = {field: [] for field in CONDITION_FIELDS}
 
@@ -97,6 +99,9 @@ def main() -> int:
         scene_config = meta.get("sceneConfig", {})
         require(isinstance(scene_config, dict), f"{row.get('source_metadata')}: sceneConfig must be an object")
         policies[str(scene_config.get("noteConditionPolicy", "mixed"))] += 1
+        scene_mode = str(meta.get("sceneMode", scene_config.get("sceneMode", ""))).strip()
+        if scene_mode:
+            scene_modes[scene_mode] += 1
         assets = meta.get("assets", [])
         require(isinstance(assets, list), f"{row.get('source_metadata')}: metadata.assets must be a list")
         for asset in assets:
@@ -129,6 +134,7 @@ def main() -> int:
     pristine_notes = int(profiles.get("pristine", 0))
     wet_notes = sum(1 for value in values["wetness"] if value >= 0.10)
     policy = next(iter(policies)) if len(policies) == 1 else "mixed"
+    clean_condition_mix = bool(scene_modes) and set(scene_modes).issubset(CLEAN_SCENE_MODES)
     if args.expected_policy:
         require(
             len(policies) == 1 and args.expected_policy in policies,
@@ -165,6 +171,14 @@ def main() -> int:
         default_min_dirty_notes = 0
         default_min_pristine_notes = 0
         default_min_wet_notes = max(1, int(total_notes * 0.85))
+    elif clean_condition_mix:
+        default_min_profiles = min(2, auto_unique_threshold(total_notes))
+        default_min_dirtiness_range = auto_range_threshold(total_notes, 0.08, 0.25)
+        default_min_crinkle_range = auto_range_threshold(total_notes, 0.08, 0.22)
+        default_min_wetness_range = 0.0
+        default_min_dirty_notes = 0
+        default_min_pristine_notes = 1 if total_notes >= 16 else 0
+        default_min_wet_notes = 0
     else:
         default_min_profiles = auto_unique_threshold(total_notes)
         default_min_dirtiness_range = auto_range_threshold(total_notes, 0.20, 0.45)
@@ -192,7 +206,8 @@ def main() -> int:
 
     print(
         "ok: WebGL note condition diversity passed "
-        f"({total_notes} notes, policy={policy}, profiles={dict(sorted(profiles.items()))}, dirty={dirty_notes}, "
+        f"({total_notes} notes, policy={policy}, scene_modes={dict(sorted(scene_modes.items()))}, "
+        f"profiles={dict(sorted(profiles.items()))}, dirty={dirty_notes}, "
         f"pristine={pristine_notes}, wet={wet_notes}, dirtiness_range={stats['dirtiness_range']:.2f}, "
         f"crinkle_range={stats['crinkle_range']:.2f}, wetness_range={stats['wetness_range']:.2f})"
     )

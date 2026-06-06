@@ -1,0 +1,28 @@
+# CashSnap clean real data plus the 512-image WebGL clean-curriculum probe root.
+# Bounded model-ablation input only; this is not a promoted training mix.
+path: ..
+train:
+  - data/cashsnap_v1/images/train
+  - data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  clean_real: data/cashsnap_v1
+  webgl_clean_curriculum_probe: data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1
+cashsnap_policy:
+  intended_use: bounded clean-checkpoint ablation only
+  promotion_rule: reject if clean real holdout or rare/high-value classes regress materially

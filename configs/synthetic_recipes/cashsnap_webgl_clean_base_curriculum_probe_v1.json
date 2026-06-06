@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "name": "cashsnap_webgl_clean_base_curriculum_probe_v1",
+  "description": "One-recipe ablation suite for the 512-image clean WebGL curriculum root. Local model probe only; does not promote the root into the main trainable-candidate suite.",
+  "artifact_status": "trainable-candidate",
+  "mix_output": "",
+  "recipes": [
+    {
+      "recipe_id": "webgl_clean_base_curriculum_probe_v1",
+      "scene_mode": "clean",
+      "asset_side_policy": "any",
+      "camera_profile": "phone_auto",
+      "visual_scale": 1,
+      "out_root": "data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1",
+      "start_variant": 6000,
+      "count": 512,
+      "train_views": ["detect", "fragment", "obb"],
+      "allow_zero_visible": false,
+      "asset_manifest": "data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1/manifest.json",
+      "qa_summary": "data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1/qa/summary.json",
+      "data_yaml": "data/synthetic/cashsnap_webgl_clean_base_curriculum_probe_v1/data.yaml",
+      "intended_use": "Clean all-class replay/curriculum probe before overlap, fan, or hand stress is staged.",
+      "promotion_gate": "clean real holdout and rare/high-value classes do not regress versus matched p24 real-only control",
+      "promotion_blocker": "Needs one-seed clean-checkpoint ablation, then seed stability before any broader use."
+    }
+  ]
+}
