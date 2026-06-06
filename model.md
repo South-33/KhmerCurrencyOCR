@@ -47,6 +47,10 @@ Counterfeit detection and authenticity classification are out of scope.
 - Older stack selected-geometry roots were confounded by synthetic finger
   occluders. Treat stack overlap and hand/finger occlusion as separate recipe
   variables; no-hand stack probes now require explicit occluder-policy gates.
+- No-hand stack dose1 has a tiny positive detector signal but fails deploy
+  usefulness: seed0 exact class-mix control probe improved test mAP50-95 by
+  `+0.002033` and `KHR_50000` by `+0.022303`, but browser mined-real stress
+  regressed on dense overlap, thin edge, and weak-class value behavior.
 
 ## North Star
 
@@ -72,8 +76,9 @@ matched controls and seed stability.
 2. Do not promote the 512 clean root. Use its ablation result as signal that
    synthetic exposure can help p24-style scarcity, while `KHR_50000` and
    `KHR_20000` still need a better real/synthetic bridge.
-3. Use no-hand real-scale stack probes to isolate overlap/print-tone transfer
-   before reintroducing hand/finger occlusion.
+3. Do not scale no-hand stack yet. Its first exact class-mix detector probe is
+   slightly positive, but browser stress says the signal is not deploy-useful.
+   Next work should explain detector-vs-browser mismatch before more renders.
 4. Improve render throughput before more 500+ image runs:
    the current batch path launches/checks one WebGL render at a time and took
    about 50 minutes for 512 images. That is expected from the current harness
@@ -168,9 +173,16 @@ No-hand stack diagnostic:
   from a 40-image no-hand pool.
 - Evidence: selected20 has 83 YOLO boxes, occluder policy `no_hand`, zero
   occluders, local dynamic-range print tone passing, and strict geometry pass.
+- Model result: dose1 selected variant 7 and beat an exact class-mix exposure
+  control by `+0.002033` mAP50-95 at seed0; `KHR_50000` improved `+0.022303`,
+  worst class drop was `USD_20=-0.009805`.
+- Deploy result: the same detector is not promotable. Browser synthetic stress
+  still fails hard negatives and overcounts overlap; mined-real browser stress
+  worsens dense-overlap recall/count, thin-edge count/value, and weak-class
+  value behavior versus the default detector.
 - Remaining blockers: class balance is loose, trainable-candidate appearance
-  diversity is too narrow for promotion, focus crops remain brighter/redder on
-  `USD_50`, `KHR_2000`, and `KHR_50000`, and model-transfer proof is missing.
+  diversity is too narrow for promotion, exact real class-mix controls are
+  unavailable from current repo data, and deploy behavior does not transfer.
 
 ## Current Models
 
@@ -199,6 +211,8 @@ Rejected latest base clean probe:
   rare/edge diagnostic utility. Worst issue remains `KHR_50000`.
 - Negative model probes from older selected stack roots are not pure no-hand
   overlap evidence because every stack image had synthetic finger capsules.
+- No-hand stack dose1 is a weak positive detector result, not a promotion:
+  exact class-mix mAP improved, but browser mined-real stress regressed.
 - The 512 clean WebGL root is a useful scarcity-control signal but is not
   promotable. It improves over matched p24 real-only by `+0.006006` mAP50-95
   and fails clean-checkpoint guardrails by `-0.041934`, led by `KHR_50000`.

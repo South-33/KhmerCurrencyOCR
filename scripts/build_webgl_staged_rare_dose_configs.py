@@ -187,6 +187,7 @@ def balance_metrics(counter: Counter[str], classes: list[str]) -> dict[str, Any]
     return {
         "total": int(sum(values)),
         "by_class": by_class,
+        "covered_classes": int(sum(1 for value in values if value > 0)),
         "min_per_class": int(minimum),
         "max_per_class": int(maximum),
         "class_spread": int(maximum - minimum),
@@ -200,10 +201,11 @@ def balance_score(metrics: dict[str, Any], classes: list[str]) -> tuple[float, .
     mean = sum(values) / len(values) if values else 0.0
     mean_abs_error = sum(abs(value - mean) for value in values)
     return (
+        -float(metrics["covered_classes"]),
         float(metrics["class_spread"]),
-        round(mean_abs_error, 6),
         -float(metrics["min_per_class"]),
         -float(metrics["total"]),
+        round(mean_abs_error, 6),
     )
 
 

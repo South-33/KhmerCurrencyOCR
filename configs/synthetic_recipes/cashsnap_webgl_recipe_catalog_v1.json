@@ -222,7 +222,7 @@
       },
       "intended_use": "Diagnostic no-hand real-scale stack probe that isolates note-on-note overlap and print tone from synthetic finger occlusion.",
       "promotion_gate": "Render, geometry-select, and model-probe against matched row/class-mix controls before any trainable-candidate use.",
-      "current_blocker": "No-hand pool40 passes class/print-tone/occluder gates, and selected20 passes strict geometry; still diagnostic because class balance is loose, appearance diversity is close-up narrow, focus crops remain brighter/redder on USD_50/KHR_2000/KHR_50000, and matched model-transfer proof is missing."
+      "current_blocker": "No-hand pool40 passes class/print-tone/occluder gates, selected20 passes strict geometry, and dose1 beat an exact class-mix detector control by +0.002033 mAP50-95 with KHR_50000 +0.022303; still diagnostic because exact real class-mix controls are unavailable, browser synthetic stress still fails hard negatives/overlap count, and mined-real browser stress regressed on dense-overlap, thin-edge, and weak-class value behavior."
     },
     {
       "id": "webgl_overlap_stack_v1",
