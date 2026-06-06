@@ -417,6 +417,28 @@ function nms(detections) {
   return kept.sort((a, b) => b.score - a.score);
 }
 
+function diagnosticDetection(detection) {
+  return {
+    classId: detection.classId,
+    detectorName: detection.detectorName || "",
+    detectorScore: Number(detection.detectorScore || 0),
+    fragmentName: detection.fragmentName || "",
+    fragmentScore: detection.fragmentScore == null ? null : Number(detection.fragmentScore || 0),
+    name: detection.name || "",
+    score: Number(detection.score || 0),
+    x1: detection.x1,
+    y1: detection.y1,
+    x2: detection.x2,
+    y2: detection.y2,
+    rejected: Boolean(detection.rejected),
+    rejectReason: detection.rejectReason || "",
+  };
+}
+
+function diagnosticDetections(detections) {
+  return detections.map((detection) => diagnosticDetection(detection));
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -532,6 +554,9 @@ async function runModel() {
     rejectAfterNms,
     clusteredProposals: clustered.length,
     rejectedAfterNms,
+    proposalDetections: diagnosticDetections(proposals),
+    classifiedDetections: diagnosticDetections(filtered),
+    clusteredDetections: diagnosticDetections(clustered),
     unclassifiedMinConf,
     finalDetections: state.detections.length,
     proposals: proposals.length,

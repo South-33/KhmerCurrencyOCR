@@ -27,6 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--requirements", type=Path, default=DEFAULT_REQUIREMENTS)
     parser.add_argument("--inbox", type=Path, default=DEFAULT_INBOX, help="Inbox folder to scan for unregistered images.")
     parser.add_argument("--readiness", type=Path, default=DEFAULT_READINESS, help="Optional readiness JSON used to annotate mined-candidate gaps.")
+    parser.add_argument("--gate-review-targets", type=Path, default=None, help="Optional browser gate review target CSV used to annotate shot-list rows.")
     parser.add_argument("--json-out", type=Path, help="Optional machine-readable gap report path.")
     parser.add_argument("--shot-list-out", type=Path, help="Optional Markdown shot list for the missing capture set.")
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when requirements are not met.")
@@ -46,6 +47,16 @@ def repo_path(path: Path) -> str:
 
 def read_csv(path: Path) -> list[dict[str, str]]:
     with resolve(path).open("r", newline="", encoding="utf-8") as handle:
+        return list(csv.DictReader(handle))
+
+
+def read_optional_csv(path: Path | None) -> list[dict[str, str]]:
+    if path is None:
+        return []
+    resolved = resolve(path)
+    if not resolved.exists():
+        return []
+    with resolved.open("r", newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
@@ -108,6 +119,41 @@ def mined_candidate_gap_scenes(readiness: dict[str, object]) -> dict[str, list[s
 def append_note(notes: str, extra: str) -> str:
     notes = notes.strip()
     return f"{notes} {extra}" if notes else extra
+
+
+def priority_int(value: str) -> int:
+    try:
+        return int(value or "9")
+    except ValueError:
+        return 9
+
+
+def short_text(value: str, limit: int = 72) -> str:
+    value = value.strip()
+    if len(value) <= limit:
+        return value
+    return value[: max(0, limit - 3)] + "..."
+
+
+def format_gate_target(row: dict[str, str]) -> str:
+    priority = priority_int(row.get("priority", ""))
+    source = row.get("source", "").strip()
+    effect = row.get("effect", "").strip()
+    case_id = short_text(row.get("case_id", ""))
+    return f"P{priority} {source} {effect} `{case_id}`".strip()
+
+
+def gate_targets_by_requirement(path: Path | None) -> dict[str, list[dict[str, str]]]:
+    targets: dict[str, list[dict[str, str]]] = {}
+    for row in read_optional_csv(path):
+        requirement_id = row.get("capture_requirement", "").strip()
+        if not requirement_id:
+            continue
+        targets.setdefault(requirement_id, []).append(row)
+    return {
+        requirement_id: sorted(rows, key=lambda row: (priority_int(row.get("priority", "")), row.get("case_id", "")))
+        for requirement_id, rows in targets.items()
+    }
 
 
 def image_ok(row: dict[str, str]) -> tuple[bool, str]:
@@ -189,6 +235,7 @@ def main() -> None:
     rows = read_csv(args.inventory)
     requirements = read_csv(args.requirements)
     readiness = read_optional_json(args.readiness)
+    gate_review_targets = gate_targets_by_requirement(args.gate_review_targets)
     mined_gap_scenes = mined_candidate_gap_scenes(readiness)
     registered_paths = {row.get("local_path", "").strip() for row in rows}
     unregistered_inbox = [path for path in inbox_images(args.inbox) if path not in registered_paths]
@@ -224,6 +271,12 @@ def main() -> None:
                 notes,
                 "Current mined real scan has zero candidate hints for this scene; fresh phone capture is mandatory for the bridge.",
             )
+        review_targets = gate_review_targets.get(req["requirement_id"], [])
+        if review_targets and count < minimum:
+            examples = "; ".join(format_gate_target(row) for row in review_targets[:3])
+            if len(review_targets) > 3:
+                examples += f"; +{len(review_targets) - 3} more"
+            notes = append_note(notes, f"Browser gate review targets: {examples}.")
         suffix = f" ({hint})" if hint and count < minimum else ""
         priority = req.get("priority", "").strip()
         priority_text = f" priority={priority}" if priority else ""
@@ -245,6 +298,7 @@ def main() -> None:
                 "notes": notes,
                 "mined_candidate_hint_gap": bool(mined_gap_conditions),
                 "mined_candidate_gap_conditions": mined_gap_conditions,
+                "gate_review_targets": review_targets,
             }
         )
     if gaps:

@@ -394,6 +394,10 @@ function evaluateDetections(value, args) {
   const labels = readYoloLabels(args.labels, value.imageWidth, value.imageHeight);
   if (!labels) return null;
   const detections = value.detections || [];
+  const debug = value.debug || {};
+  const proposalDetections = Array.isArray(debug.proposalDetections) ? debug.proposalDetections : [];
+  const classifiedDetections = Array.isArray(debug.classifiedDetections) ? debug.classifiedDetections : [];
+  const clusteredDetections = Array.isArray(debug.clusteredDetections) ? debug.clusteredDetections : [];
   const expected = currencyValues(labels);
   const predicted = currencyValues(detections);
   const sources = {
@@ -401,6 +405,38 @@ function evaluateDetections(value, args) {
     detector: evaluateSource(sourceDetections(detections, "detectorName", "detectorScore"), labels, args.matchIou),
     fragment: evaluateSource(sourceDetections(detections, "fragmentName", "fragmentScore"), labels, args.matchIou),
   };
+  if (proposalDetections.length) {
+    sources.proposals_detector = evaluateSource(
+      sourceDetections(proposalDetections, "detectorName", "detectorScore"),
+      labels,
+      args.matchIou,
+    );
+  }
+  if (classifiedDetections.length) {
+    sources.classified_detector = evaluateSource(
+      sourceDetections(classifiedDetections, "detectorName", "detectorScore"),
+      labels,
+      args.matchIou,
+    );
+    sources.classified_fragment = evaluateSource(
+      sourceDetections(classifiedDetections, "fragmentName", "fragmentScore"),
+      labels,
+      args.matchIou,
+    );
+  }
+  if (clusteredDetections.length) {
+    sources.clustered_detector = evaluateSource(
+      sourceDetections(clusteredDetections, "detectorName", "detectorScore"),
+      labels,
+      args.matchIou,
+    );
+    sources.clustered_final = evaluateSource(sourceDetections(clusteredDetections, "name", "score"), labels, args.matchIou);
+    sources.clustered_fragment = evaluateSource(
+      sourceDetections(clusteredDetections, "fragmentName", "fragmentScore"),
+      labels,
+      args.matchIou,
+    );
+  }
   return {
     labels: path.relative(ROOT, path.resolve(ROOT, args.labels)),
     matchIou: args.matchIou,

@@ -31,6 +31,11 @@ Counterfeit detection and authenticity classification are out of scope.
   cache has front/back for 20/21 classes; raw Numista any-status cache has
   front/back for all 21. `KHR_50` is the only official class missing from the
   current-status raw cache, while any-status raw has 6 front/back pairs.
+- `scripts/build_currency_taxonomy_gap_plan.py` turns that scope gap into a
+  promotion queue. Current full-scope Numista candidate cutouts cover the seven
+  active/model-missing current-status classes (`USD_2`, `KHR_100`, `KHR_200`,
+  `KHR_15000`, `KHR_30000`, `KHR_100000`, `KHR_200000`); `KHR_50` is any-status
+  only and needs explicit status review before trainable current-currency use.
 - Browser failures are mostly detector-proposal/curriculum limited. Fragment
   or final-count heuristics alone are not enough.
 - The latest base-first clean probe failed hard. A fresh `yolo26n.pt` trained
@@ -97,6 +102,61 @@ Counterfeit detection and authenticity classification are out of scope.
 - Proposal-gate promotion is now explicitly blocked by capture buckets for
   `khr_50000_hard_positive_partials` and `usd_hard_positive_partials`; these
   target high-confidence banknote->background errors from the v2 failure pack.
+- Browser-count comparison is now a first-class detector-probe artifact. Use
+  `scripts/run_browser_detector_probe.py` after bounded synth detector probes
+  when an ONNX export is available; it runs/reuses synthetic and mined-real
+  browser reports and compares them with `scripts/compare_browser_reports.py`.
+  The comparator caught no-hand stack dose1 as blocked despite its tiny detector
+  mAP gain: synthetic stress worsened abs count by `+3`, abs KHR by `+26000`,
+  and hard-negative predictions by `+1`; mined-real stress lost `3` perfect
+  cases, `5` same-class matches, and added `+166000` abs KHR error.
+- Strict browser comparison says proposal-gate v2 is the best diagnostic stack
+  but still not promotable: mined-real passes versus default (`+4` perfect,
+  `+8` same-class, `-6` abs count, `-62500` abs KHR, `-80` abs USD), while
+  synthetic stress still blocks on positive evidence (`-1` same/any,
+  `+2` abs count, `+66000` abs KHR) even though hard-negative predictions drop
+  by `5` and failures drop by `3`.
+- Proposal-gate v2 case effects are now reviewable with
+  `scripts/summarize_browser_gate_effects.py`. The browser smoke summary now
+  exposes proposal, classified, and clustered diagnostic sources, so the
+  analyzer no longer infers gate effects from counters alone. At NMS `0.65`,
+  synthetic stress has `2` hard-negative helps, `1` hard-negative same,
+  `1` positive NMS harm, `1` positive reject harm, and `4` positive same.
+  Mined-real has `14` positive same, `1` positive reject safe, and `2`
+  positive reject harms. The concrete next target is protected thin/weak
+  positives such as `cashsnapv1_weak_khr_50000_03_khmer_scan_img_9189_jpeg_jpg`,
+  not generic hard-negative scale.
+- Browser gate review targets are now generated with
+  `scripts/build_browser_gate_review_targets.py` and embedded in detector-probe
+  summaries as `gate_review`. For proposal-gate v2, the P1 review/capture
+  targets are mined KHR_50000 hard-positive partials, mined KHR_20000 thin
+  slices, synthetic hand-fan NMS/fusion harm, and synthetic same-denomination
+  fan reject harm.
+- `scripts/check_capture_requirements.py --gate-review-targets <targets.csv>`
+  annotates the real shot list with those browser failure examples; use it when
+  refreshing `runs/cashsnap/real_capture_shot_list_latest.md` so capture work is
+  tied to concrete deploy failures.
+- Raising proposal-gate v2 browser NMS from `0.65` to `0.80` is not the fix.
+  It keeps mined-real strict comparison passing but worsens the v2 aggregate
+  (`pred 35->38`, abs count `4->5`, abs KHR `21000->26000`) and synthetic KHR
+  error (`474500->531500`) despite reducing synthetic abs count (`19->17`).
+  The corrected gate-effect categories still point at the same protected-positive
+  reject harms, so this needs proposal-gate calibration/validation, not a
+  simple NMS threshold bump.
+- Strict accepted-blend visible-note geometry is now diagnosable with
+  `scripts/summarize_domain_gap_geometry_targets.py`. Current accepted-nowarmup
+  synthetic boxes are much smaller than real (`area -0.372`, `width -0.417`,
+  `height -0.381`). Thin-edge partials should remain a protected partial slice,
+  not evidence that general visible-note scale is correct; clean/base and
+  back-side confusion rows need larger visible-note framing or selected-geometry
+  filtering. Worst class aspect gaps are `USD_10`, `USD_20`, and `KHR_10000`.
+- Selection alone does not repair accepted general-visible geometry. Bounded
+  selectors over clean-base + back-side roots still fail strict geometry at
+  32 images (`area -0.352`) and 16 images (`area -0.341`). Clean-closeup v2
+  proves aggregate scale is fixable (`area -0.009`, `width +0.027`,
+  `height -0.039`) but still fails five per-class aspect checks and already
+  regressed the real-only ablation, so a v3 needs class-conditioned pose/aspect
+  calibration plus model proof, not just larger notes.
 
 ## North Star
 
@@ -163,12 +223,27 @@ matched controls and seed stability.
    `render_webgl_variant_batch.py` and `run_webgl_recipe.py` support
    `--render-jobs`; validation/package assembly remains sequential. Keep
    laptop probes bounded until larger batches prove headroom is stable.
-9. Only revisit fresh-from-`yolo26n.pt` base-first training if the checkpoint
+9. For every detector-side synth probe that gets trained, export/reuse ONNX and
+   run `scripts/run_browser_detector_probe.py` before treating mAP as useful.
+   The pass/fail comparison and, when artifacts exist, gate-effect counts should
+   travel with the training summary.
+10. Use `scripts/summarize_browser_gate_effects.py` and
+   `scripts/build_browser_gate_review_targets.py` on two-stage browser reports
+   before proposal-gate changes. Gate deltas must separate hard-negative help,
+   positive reject harm, and NMS/duplicate harm, then map those rows to real
+   capture/review buckets.
+11. Only revisit fresh-from-`yolo26n.pt` base-first training if the checkpoint
    ablation is not harmful. Do not stage overlap/fan/hand from a weak clean
    stage.
-10. In parallel, improve the real bridge:
+12. In parallel, improve the real bridge:
    promoted real fan/overlap/hand/no-note/hard-positive partial labels are
    still the biggest blocker.
+13. For geometry repairs, run `scripts/summarize_domain_gap_geometry_targets.py`
+   on the latest strict geometry CSVs before rendering more. Separate
+   protected partial slices from general visible-note scale and repair the
+   clean/back-side source groups first. Do not treat a strict geometry pass as
+   enough; clean-closeup and selected-stack history show geometry can pass while
+   model/browser utility still regresses.
 
 ## Promotion Rules
 

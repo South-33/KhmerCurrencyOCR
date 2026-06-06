@@ -1360,7 +1360,11 @@ def currency_taxonomy_scope_axis(data_config: Path, numista_metadata: Path, cuto
         next_action=(
             ""
             if status == "pass"
-            else "Run check_currency_taxonomy_coverage.py, then promote verified raw scans into the active cutout/schema layers or document a narrower product scope before any perfect/done claim."
+            else (
+                "Run check_currency_taxonomy_coverage.py and build_currency_taxonomy_gap_plan.py, then promote "
+                "verified raw scans into the active cutout/schema layers or document a narrower product scope "
+                "before any perfect/done claim."
+            )
         ),
     )
 
@@ -1609,7 +1613,10 @@ def build_scorecard(
             name="visible_note_geometry_gap",
             label="Accepted-blend visible-note geometry domain-gap",
             expected_preset="accepted_blend_geometry_v1",
-            blocked_next_action="Repair synthetic visible-note scale and per-class geometry before more training spend.",
+            blocked_next_action=(
+                "Run summarize_domain_gap_geometry_targets.py on the latest geometry box/image CSVs, then repair "
+                "synthetic visible-note scale and per-class geometry before more training spend."
+            ),
         )
     )
     axes.append(mined_real_utility_axis(mined_real_utility_comparisons))
