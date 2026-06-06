@@ -54,6 +54,15 @@ Counterfeit detection and authenticity classification are out of scope.
 - Prop-diverse hard negatives are more realistic than the old weak root, but
   not a solved path: diversity8 loses `-0.003090` mAP50-95 versus old8, and
   browser rejection/threshold tweaks clear hard negatives by killing positives.
+- Background false-positive probing explains the detector/browser mismatch:
+  no-hand dose1 and both hard-negative fine-tunes hallucinate far more than the
+  default detector on zero-label synthetic prop scenes. Do not scale those
+  recipes until proposal false positives improve under a real/deploy guardrail.
+- Existing model families split the problem: the old overlap-stage detector
+  improves mined-real overlap/fan recall but is noisy on prop-diverse negatives;
+  the full-real-only detector is background-saner but loses mined-real and
+  synthetic stress recall. The next synthetic/curriculum probe must preserve
+  overlap recall while borrowing the full-real/background restraint.
 
 ## North Star
 
@@ -82,14 +91,18 @@ matched controls and seed stability.
 3. Do not scale no-hand stack yet. Its first exact class-mix detector probe is
    slightly positive, but browser stress says the signal is not deploy-useful.
    Next work should explain detector-vs-browser mismatch before more renders.
-4. Improve render throughput before more 500+ image runs:
+4. Treat the next repo-only bet as a proposal-calibration/curriculum probe, not
+   a renderer expansion: combine overlap/fan recall pressure with no-note or
+   background restraint and require both mined-real browser stress and synthetic
+   hard-negative stress to avoid regression.
+5. Improve render throughput before more 500+ image runs:
    the current batch path launches/checks one WebGL render at a time and took
    about 50 minutes for 512 images. That is expected from the current harness
    but too slow for iteration on this laptop.
-5. Only revisit fresh-from-`yolo26n.pt` base-first training if the checkpoint
+6. Only revisit fresh-from-`yolo26n.pt` base-first training if the checkpoint
    ablation is not harmful. Do not stage overlap/fan/hand from a weak clean
    stage.
-6. In parallel, improve the real bridge:
+7. In parallel, improve the real bridge:
    promoted real fan/overlap/hand/no-note labels are still the biggest blocker.
 
 ## Promotion Rules
@@ -219,6 +232,12 @@ Rejected latest base clean probe:
 - Hard-negative diversity8 is not promotable by itself: it improves some KHR
   value noise on synthetic stress, but loses detector AP versus old8 and
   threshold/disagreement rejection trades false positives for missed bills.
+- Background FP comparison (`runs/cashsnap/background_fp_default_nohand_hardneg_comparison.json`):
+  at `conf=0.05`, default has `13/32` detections on the old hard-negative root
+  and `9/8` on the prop-diverse root; no-hand dose1 jumps to `56/32` and
+  `22/8`, while hardneg old8/diversity8 remain high (`48/32`/`18/8` and
+  `46/32`/`16/8`). The no-hand AP lift is likely proposal hallucination, not a
+  deploy-useful overlap fix.
 - The 512 clean WebGL root is a useful scarcity-control signal but is not
   promotable. It improves over matched p24 real-only by `+0.006006` mAP50-95
   and fails clean-checkpoint guardrails by `-0.041934`, led by `KHR_50000`.
@@ -232,6 +251,12 @@ Rejected latest base clean probe:
 - The old staged overlap detector gets `12/17` perfect on the same mined-real
   browser set and improves fan/dense-overlap recall, but shifts errors into
   overcount/value noise.
+- Full-real-only is a useful negative/proposal reference, not a browser base.
+  It is cleanest on synthetic prop false positives (`4/32` and `1/8`
+  detections at `conf=0.05`, and zero detections by `conf=0.18`), but browser
+  replay regresses mined-real same-class recall versus default/old-overlap and
+  collapses positive synthetic stress. Use it to shape restraint, not to replace
+  the current detector.
 - Disagreement/unclassified browser veto flags are diagnostic only. They clear
   some synthetic hard negatives but do not improve mined-real stress.
 
