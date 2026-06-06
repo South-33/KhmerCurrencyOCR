@@ -37,10 +37,15 @@ DEFAULT_BROWSER_SYNTHETIC_STRESS = ROOT / "runs" / "cashsnap" / "browser_synthet
 DEFAULT_BROWSER_SYNTHETIC_MANIFEST = ROOT / "manifests" / "browser_synthetic_stress_cases.csv"
 DEFAULT_BROWSER_MINED_REAL_STRESS = ROOT / "runs" / "cashsnap" / "browser_mined_real_scoreable_default_latest.json"
 DEFAULT_BROWSER_MINED_REAL_MANIFEST = ROOT / "runs" / "cashsnap" / "mined_real_browser_cases_latest.csv"
+DEFAULT_TAXONOMY_DATA = ROOT / "data" / "cashsnap_v1" / "data.yaml"
 DEFAULT_JSON_OUT = ROOT / "runs" / "cashsnap" / "synthetic_dataset_scorecard_latest.json"
 
 STATUS_ORDER = {"pass": 0, "review": 1, "missing": 2, "blocked": 3}
 RUBRIC_SOURCE = "docs/research/What Makes a Dataset Perfect for Synthetic Data Pipelines.pdf"
+RUBRIC_SOURCES = [
+    RUBRIC_SOURCE,
+    "docs/research/CashSnap_Fact_Checked_Dataset_Strategy.pdf",
+]
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 CLASS_NAMES = [
     "USD_1",
@@ -71,6 +76,33 @@ CLASS_VALUES = {
     "KHR_10000": ("khr", 10000),
     "KHR_20000": ("khr", 20000),
     "KHR_50000": ("khr", 50000),
+}
+OFFICIAL_CURRENT_CLASS_NAMES = [
+    "USD_1",
+    "USD_2",
+    "USD_5",
+    "USD_10",
+    "USD_20",
+    "USD_50",
+    "USD_100",
+    "KHR_50",
+    "KHR_100",
+    "KHR_200",
+    "KHR_500",
+    "KHR_1000",
+    "KHR_2000",
+    "KHR_5000",
+    "KHR_10000",
+    "KHR_15000",
+    "KHR_20000",
+    "KHR_30000",
+    "KHR_50000",
+    "KHR_100000",
+    "KHR_200000",
+]
+OFFICIAL_TAXONOMY_SOURCES = {
+    "USD": "https://www.uscurrency.gov/denominations",
+    "KHR": "https://www.nbc.gov.kh/english/about_the_bank/banknotes_in_circulation.php",
 }
 
 
@@ -105,6 +137,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--browser-synthetic-stress", type=Path, default=DEFAULT_BROWSER_SYNTHETIC_STRESS)
     parser.add_argument("--browser-mined-real-manifest", type=Path, default=DEFAULT_BROWSER_MINED_REAL_MANIFEST)
     parser.add_argument("--browser-mined-real-stress", type=Path, default=DEFAULT_BROWSER_MINED_REAL_STRESS)
+    parser.add_argument(
+        "--taxonomy-data",
+        type=Path,
+        default=DEFAULT_TAXONOMY_DATA,
+        help="YOLO data YAML whose class names define the current model taxonomy scope.",
+    )
     parser.add_argument("--json-out", type=Path, default=DEFAULT_JSON_OUT)
     parser.add_argument("--strict", action="store_true", help="Exit non-zero when any axis is blocked or missing.")
     parser.add_argument("--require-pass", action="store_true", help="Exit non-zero unless every scorecard axis passes.")
@@ -1179,6 +1217,78 @@ def real_train_class_coverage_axis(split_coverage: dict[str, Any], min_unique_im
     )
 
 
+def read_yolo_class_names(data_config: Path) -> tuple[list[str], list[str]]:
+    resolved = resolve(data_config)
+    if not resolved.exists():
+        return [], [f"taxonomy data config is missing: {repo_path(resolved)}"]
+    try:
+        data = yaml.safe_load(resolved.read_text(encoding="utf-8"))
+    except Exception as exc:  # pragma: no cover - defensive CLI guard
+        return [], [f"taxonomy data config could not be read: {exc}"]
+    if not isinstance(data, dict):
+        return [], [f"taxonomy data config is malformed: {repo_path(resolved)}"]
+    raw_names = data.get("names", {})
+    if isinstance(raw_names, dict):
+        rows: list[tuple[int, str]] = []
+        for key, value in raw_names.items():
+            try:
+                class_id = int(key)
+            except (TypeError, ValueError):
+                return [], [f"taxonomy data config has non-integer class id: {key!r}"]
+            rows.append((class_id, str(value)))
+        return [name for _, name in sorted(rows)], []
+    if isinstance(raw_names, list):
+        return [str(item) for item in raw_names], []
+    return [], [f"taxonomy data config has no usable names map: {repo_path(resolved)}"]
+
+
+def currency_taxonomy_scope_axis(data_config: Path) -> dict[str, Any]:
+    class_names, failures = read_yolo_class_names(data_config)
+    if failures:
+        return axis(
+            "currency_taxonomy_scope",
+            "missing",
+            "Current model taxonomy scope could not be checked.",
+            evidence={"data": repo_path(resolve(data_config)), "official_sources": OFFICIAL_TAXONOMY_SOURCES},
+            blockers=failures,
+            next_action="Point --taxonomy-data at the current YOLO data.yaml before any perfect/done claim.",
+        )
+
+    present = set(class_names)
+    missing_official = [name for name in OFFICIAL_CURRENT_CLASS_NAMES if name not in present]
+    outside_official = [name for name in class_names if name not in set(OFFICIAL_CURRENT_CLASS_NAMES)]
+    status = "pass" if not missing_official else "blocked"
+    summary = (
+        f"Current model taxonomy covers all {len(OFFICIAL_CURRENT_CLASS_NAMES)} official current USD/KHR denomination class(es)."
+        if status == "pass"
+        else (
+            f"Current model taxonomy covers {len(class_names)}/{len(OFFICIAL_CURRENT_CLASS_NAMES)} official current "
+            "USD/KHR denomination class(es)."
+        )
+    )
+    blockers = [f"missing official current denomination class: {name}" for name in missing_official]
+    return axis(
+        "currency_taxonomy_scope",
+        status,
+        summary,
+        evidence={
+            "data": repo_path(resolve(data_config)),
+            "data_config_sha256": file_sha256(resolve(data_config)),
+            "current_class_names": class_names,
+            "official_current_class_names": OFFICIAL_CURRENT_CLASS_NAMES,
+            "missing_official_class_names": missing_official,
+            "outside_official_class_names": outside_official,
+            "official_sources": OFFICIAL_TAXONOMY_SOURCES,
+        },
+        blockers=blockers,
+        next_action=(
+            ""
+            if status == "pass"
+            else "Make an explicit product-scope decision, then add real/synthetic assets and labels for missing denominations or document them as out of scope before any perfect/done claim."
+        ),
+    )
+
+
 def governance_axis(report: dict[str, Any]) -> dict[str, Any]:
     if not report:
         return axis(
@@ -1247,6 +1357,7 @@ def build_scorecard(
     browser_mined_real_stress: dict[str, Any],
     browser_mined_real_manifest: list[dict[str, str]],
     browser_mined_real_manifest_path: Path,
+    taxonomy_data: Path,
 ) -> dict[str, Any]:
     required = int(readiness.get("required_conditions", 0) or 0)
     trainable = int(readiness.get("required_with_trainable_candidate", 0) or 0)
@@ -1263,6 +1374,7 @@ def build_scorecard(
 
     axes: list[dict[str, Any]] = []
     axes.append(readiness_freshness_axis(readiness))
+    axes.append(currency_taxonomy_scope_axis(taxonomy_data))
     axes.append(
         axis(
             "target_condition_coverage",
@@ -1465,6 +1577,7 @@ def build_scorecard(
 
     return {
         "rubric_source": RUBRIC_SOURCE,
+        "rubric_sources": RUBRIC_SOURCES,
         "readiness": readiness.get("ready_for_synthetic_scale", False),
         "overall_status": overall,
         "status_counts": dict(sorted(status_counts.items())),
@@ -1504,6 +1617,7 @@ def main() -> int:
         browser_mined_real_stress,
         browser_mined_real_manifest,
         args.browser_mined_real_manifest,
+        args.taxonomy_data,
     )
     out = resolve(args.json_out)
     out.parent.mkdir(parents=True, exist_ok=True)
