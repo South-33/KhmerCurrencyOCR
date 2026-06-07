@@ -414,6 +414,14 @@ Targeted branch status:
   shows large source-note remnants. Read: pre-erasing with the current detector
   is not sufficient because the detector misses some visible source notes; the
   final strict composite audit remains mandatory.
+- Source-anchor strict audit diagnostic: `scripts/audit_yolo_unlabeled_predictions.py`
+  now accepts `--manifest`, and `scripts/filter_jsonl_manifest_by_unlabeled_audit.py`
+  can remove suspect JSONL rows. The mined train-anchor manifest has `18/151`
+  strict source-level suspects; filtering keeps `133`. Building
+  `sourcectx_sourceclean_v1` from that manifest still fails final strict
+  composite audit (`23/260` suspect images, `32` unmatched predictions). Read:
+  source-level filtering helps explain the leak but does not replace final
+  composite filtering; source context can become unsafe after placement/overlap.
 - Model-side status: real-transfer proof is still blocked by RAM headroom, not
   by data wiring. Full latest-baseline `416/b2` train-only probe failed at the
   RAM guard while scanning/training the `1,248` row baseline. A row-matched
@@ -616,6 +624,7 @@ Key configs:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen60_strictclean_balanced20_puresynth_realval_v1.yaml`
 - `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen60_strictclean_balanced20_v1_train.txt`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_detectorerasectx_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_sourceclean_puresynth_realval_v1.yaml`
 - `configs/synthetic_recipes/cashsnap_external_negative_banks_v1.json`
 - `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`
 - `configs/synthetic_recipes/cashsnap_synthetic_governance_v1.json`
@@ -638,6 +647,7 @@ Key roots:
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen60_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_detectorerasectx_v1/`
+- `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_sourceclean_v1/`
 - `data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/`
 - `data/processed/roboflow_khmer_us_currency_core13_bridge_v1/`
 - `data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/`
@@ -749,6 +759,12 @@ Key run artifacts:
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_train_anchors_strictcov50_v1.json`
+- `runs/cashsnap/representation_gap_synthleader_train_analogs_v1/train_anchor_manifest_strict_sourceclean_v1.jsonl`
+- `runs/cashsnap/representation_gap_synthleader_train_analogs_v1/train_anchor_manifest_strict_sourceclean_v1.summary.json`
+- `runs/cashsnap/dataset_check_rep_gap_sourcectx_sourceclean_v1.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_sourceclean_strictcov50_v1.json`
+- `runs/cashsnap/visual_qa_rep_gap_sourcectx_sourceclean_v1/per_class_sheet.jpg`
 - `runs/cashsnap/fixed_step_target_anchor_latest_vs_rep_gap_inpaintctx_b8_s150_ctxprobe_v1_preflight.json`
 - `runs/cashsnap/system_profile_after_inpaintctx_b32_guard.json`
 - `runs/cashsnap/system_profile_after_b8_inpaintctx_guard_v1.json`
@@ -761,6 +777,7 @@ Key scripts:
 - `scripts/materialize_yolo_trainonly_data_yaml.py`
 - `scripts/materialize_yolo_unlabeled_audit_filtered_config.py`
 - `scripts/build_yolo_split_visual_qa_sheet.py`
+- `scripts/filter_jsonl_manifest_by_unlabeled_audit.py`
 - `scripts/audit_synthetic_composite_edges.py`
 - `scripts/build_synthetic_obligation_ledger.py`
 - `scripts/build_webgl_hard_negative_dose_config.py`

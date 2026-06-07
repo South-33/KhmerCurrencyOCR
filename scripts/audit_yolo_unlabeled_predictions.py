@@ -42,7 +42,8 @@ def repo_rel(path: Path) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=True, type=Path)
-    parser.add_argument("--data", required=True, type=Path)
+    parser.add_argument("--data", type=Path, default=None)
+    parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument("--split", default="train")
     parser.add_argument("--imgsz", type=int, default=416)
     parser.add_argument("--batch", type=int, default=8)
@@ -99,6 +100,46 @@ def split_images(config_path: Path, split: str) -> list[Path]:
         else:
             images.extend(sorted(item for item in path.glob("*") if item.suffix.lower() in IMAGE_EXTS))
     return images
+
+
+def unique_images(images: list[Path]) -> list[Path]:
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for image in images:
+        resolved = image.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique.append(image)
+    return unique
+
+
+def manifest_images(path: Path) -> list[Path]:
+    images: list[Path] = []
+    if path.suffix.lower() == ".jsonl":
+        for line_no, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            line = raw_line.strip()
+            if not line:
+                continue
+            payload = json.loads(line)
+            image = payload.get("image")
+            if not image:
+                raise SystemExit(f"{repo_rel(path)}:{line_no} missing image field")
+            images.append(resolve(image))
+    elif path.suffix.lower() == ".csv":
+        with path.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            if "image" not in (reader.fieldnames or []):
+                raise SystemExit(f"{repo_rel(path)} must include an image column")
+            for row in reader:
+                if row.get("image"):
+                    images.append(resolve(row["image"]))
+    else:
+        for raw_line in path.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if line and not line.startswith("#"):
+                images.append(resolve(line))
+    return unique_images(images)
 
 
 def label_path_for_image(image_path: Path) -> Path:
@@ -207,8 +248,16 @@ def draw_sheet(records: list[dict[str, Any]], sheet_out: Path, count: int) -> No
 
 def main() -> None:
     args = parse_args()
-    data_path = resolve(args.data)
-    images = split_images(data_path, args.split)
+    if (args.data is None) == (args.manifest is None):
+        raise SystemExit("Provide exactly one of --data or --manifest")
+    if args.data is not None:
+        source_path = resolve(args.data)
+        source_kind = "data_yaml"
+        images = split_images(source_path, args.split)
+    else:
+        source_path = resolve(args.manifest)
+        source_kind = "manifest"
+        images = manifest_images(source_path)
     if args.max_images > 0:
         rng = random.Random(args.seed)
         images = rng.sample(images, min(args.max_images, len(images)))
@@ -283,7 +332,9 @@ def main() -> None:
         "schema": "cashsnap_yolo_unlabeled_prediction_audit_v1",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "model": repo_rel(resolve(args.model)),
-        "data": repo_rel(data_path),
+        "data": repo_rel(source_path),
+        "source": repo_rel(source_path),
+        "source_kind": source_kind,
         "split": args.split,
         "images": len(images),
         "conf": args.conf,
