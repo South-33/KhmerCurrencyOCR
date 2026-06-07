@@ -434,8 +434,13 @@ Targeted branch status:
   (`~97%`, `~0.5GB` free). A later retry after RAM recovered to `83.4%` still
   tripped the guard when the `1,562` image test cache/eval loaded, even at
   batch `1`. Do not cite the `320/b1` self-eval as transfer proof; rerun
-  real-test eval when memory headroom is available or add a bounded real-test
-  subset evaluator.
+  real-test eval when memory headroom is available.
+- Bounded real-test subset support now exists:
+  `scripts/materialize_yolo_split_balanced_eval_subset.py` wrote
+  `cashsnap_v1_realtest_balanced10_bg50_v1` with `179` test images (`10/class`
+  plus `50` backgrounds). Validation on this smaller real slice still tripped
+  the RAM guard before metrics at current headroom (`92.2%` RAM, `1.19GB`
+  free), but the config is ready for the next lower-memory window.
 - Fixed-step model A/B is not completed. b64/b32/b16/b8 attempts hit the 95%
   RAM guard while RunLong/Codex were resident. Also, one failed b64 attempt
   reused the old leader run name with the wrapper's real-clean default before
@@ -608,6 +613,8 @@ Key configs:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_realfgstyle_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_latest_balanced20_puresynth_realval_v1.yaml`
 - `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_latest_balanced20_v1_train.txt`
+- `configs/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1.yaml`
+- `configs/generated_lists/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1_test.txt`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_analogs_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml`
@@ -759,6 +766,8 @@ Key run artifacts:
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_sourcectx_strictclean_b20_b1_s150_i320_v1_summary.json`
 - `runs/cashsnap/fixed_step_target_anchor_latest_balanced20_trainonly_vs_sourcectx_strictclean_b20_trainonly_steps150/summary.json`
 - `runs/cashsnap/system_profile_after_i320_train_before_realtest_guard_v1.json`
+- `runs/cashsnap/system_profile_after_sourceclean_diagnostic_v1.json`
+- `runs/cashsnap/system_profile_after_bounded_eval_guard_v1.json`
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`
@@ -781,6 +790,7 @@ Key scripts:
 - `scripts/materialize_yolo_unlabeled_audit_filtered_config.py`
 - `scripts/build_yolo_split_visual_qa_sheet.py`
 - `scripts/filter_jsonl_manifest_by_unlabeled_audit.py`
+- `scripts/materialize_yolo_split_balanced_eval_subset.py`
 - `scripts/audit_synthetic_composite_edges.py`
 - `scripts/build_synthetic_obligation_ledger.py`
 - `scripts/build_webgl_hard_negative_dose_config.py`

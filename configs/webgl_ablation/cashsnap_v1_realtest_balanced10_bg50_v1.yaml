@@ -1,0 +1,45 @@
+path: ../..
+train: images/train
+val: images/val
+test: configs/generated_lists/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1_test.txt
+nc: 13
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_eval_subset_policy:
+  schema: cashsnap_yolo_balanced_eval_subset_v1
+  created_utc: '2026-06-07T13:37:42.440920+00:00'
+  source_data: data/cashsnap_v1/data.yaml
+  source_split: test
+  target_split: test
+  list: configs/generated_lists/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1_test.txt
+  seed: 17
+  per_class: 10
+  backgrounds: 50
+  selected_images: 179
+  selected_backgrounds: 50
+  selected_class_images:
+    USD_1: 10
+    USD_5: 10
+    USD_10: 10
+    USD_20: 10
+    USD_50: 10
+    USD_100: 10
+    KHR_500: 10
+    KHR_1000: 10
+    KHR_2000: 10
+    KHR_5000: 10
+    KHR_10000: 10
+    KHR_20000: 10
+    KHR_50000: 10
