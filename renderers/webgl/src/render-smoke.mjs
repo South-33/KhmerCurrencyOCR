@@ -166,8 +166,8 @@ if (!["off", "local_dynamic_range_v1", "bill_auto_exposure_v1", "real_bridge_pri
   throw new Error("--note-print-tone-policy must be one of: off, local_dynamic_range_v1, bill_auto_exposure_v1, real_bridge_print_contrast_v1");
 }
 
-if (!["default", "phone_dynamic_range_v1", "phone_dynamic_range_v2", "real_bridge_dynamic_range_v1"].includes(CAMERA_ISP_POLICY)) {
-  throw new Error("--camera-isp-policy must be one of: default, phone_dynamic_range_v1, phone_dynamic_range_v2, real_bridge_dynamic_range_v1");
+if (!["default", "phone_dynamic_range_v1", "phone_dynamic_range_v2", "real_bridge_dynamic_range_v1", "mined_fp_dark_v1"].includes(CAMERA_ISP_POLICY)) {
+  throw new Error("--camera-isp-policy must be one of: default, phone_dynamic_range_v1, phone_dynamic_range_v2, real_bridge_dynamic_range_v1, mined_fp_dark_v1");
 }
 
 if (!["flat", "lit_material", "backing_plane", "postprocess", "condition"].includes(TEXTURE_QA_EFFECTS)) {
@@ -182,8 +182,8 @@ if (!["scene_default", "no_hand", "none"].includes(OCCLUDER_POLICY)) {
   throw new Error("--occluder-policy must be one of: scene_default, no_hand, none");
 }
 
-if (!["classic", "unknown_currency_soft_v1", "unknown_currency_v1", "unknown_currency_fullframe_v1"].includes(NEGATIVE_PROP_POLICY)) {
-  throw new Error("--negative-prop-policy must be one of: classic, unknown_currency_soft_v1, unknown_currency_v1, unknown_currency_fullframe_v1");
+if (!["classic", "unknown_currency_soft_v1", "unknown_currency_v1", "unknown_currency_fullframe_v1", "unknown_currency_fullframe_dark_v1"].includes(NEGATIVE_PROP_POLICY)) {
+  throw new Error("--negative-prop-policy must be one of: classic, unknown_currency_soft_v1, unknown_currency_v1, unknown_currency_fullframe_v1, unknown_currency_fullframe_dark_v1");
 }
 
 const ABLATION_ACTIVE = APPEARANCE_ABLATION !== "full";
@@ -789,7 +789,22 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
   const textureQaSurfaces = [
     { name: "texture_qa_flat_gray", base: "#d8d8d8", light: "#d8d8d8", dark: "#d8d8d8", scene: "#d8d8d8", repeat: [1.0, 1.0], flatTexture: true },
   ];
-  const surfaces = textureQa ? textureQaSurfaces : mode === "clean_single" ? cleanSingleSurfaces : mode === "clean_context" ? cleanContextSurfaces : defaultSurfaces;
+  const minedFpDarkSurfaces = [
+    { name: "dim_black_counter", base: "#16120f", light: "#4a382d", dark: "#050403", scene: "#15110f", repeat: [2.2, 1.8] },
+    { name: "deep_blue_phone_shadow", base: "#111722", light: "#35475c", dark: "#020407", scene: "#0f1520", repeat: [1.9, 1.6] },
+    { name: "dark_red_brown_laminate", base: "#29150f", light: "#5f3426", dark: "#070302", scene: "#24120d", repeat: [2.5, 1.9] },
+    { name: "low_light_gray_pad", base: "#1c1d1b", light: "#565852", dark: "#050604", scene: "#1a1b19", repeat: [2.0, 1.7] },
+  ];
+  const minedFpDarkNegative = mode === "negative" && NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1";
+  const surfaces = textureQa
+    ? textureQaSurfaces
+    : minedFpDarkNegative
+      ? minedFpDarkSurfaces
+      : mode === "clean_single"
+        ? cleanSingleSurfaces
+        : mode === "clean_context"
+          ? cleanContextSurfaces
+          : defaultSurfaces;
   const surface = surfaces[randomInt(rng, surfaces.length)];
   const cleanSingle = mode === "clean_single";
   const cleanContext = mode === "clean_context";
@@ -848,6 +863,15 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
     postprocess.grainStrength = randomBetween(rng, cleanReadable ? 14 : 20, cleanReadable ? 38 : 48);
     postprocess.grainAlpha = randomBetween(rng, cleanReadable ? 11 : 13, cleanReadable ? 27 : 32);
     postprocess.vignette = randomBetween(rng, cleanReadable ? 42 : 56, cleanReadable ? 110 : 130);
+  }
+  if (CAMERA_ISP_POLICY === "mined_fp_dark_v1" && !(textureQa && !textureQaPostprocess)) {
+    postprocess.contrast = randomBetween(rng, 1.42, 2.18);
+    postprocess.saturation = randomBetween(rng, 1.85, 3.10);
+    postprocess.brightness = randomBetween(rng, 0.44, 0.74);
+    postprocess.focusBlurPx = rng() < 0.24 ? randomBetween(rng, 0.02, 0.18) : 0;
+    postprocess.grainStrength = randomBetween(rng, 24, 52);
+    postprocess.grainAlpha = randomBetween(rng, 18, 34);
+    postprocess.vignette = randomBetween(rng, 92, 160);
   }
   if (ABLATION_DISABLE_POSTPROCESS) {
     postprocess.contrast = 1.0;
@@ -1827,9 +1851,19 @@ const UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES = [
   { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", colors: [0xc7d3bc, 0xd8cab0, 0xb9c9d8, 0xd5bdd0], width: [0.84, 1.12], height: [0.34, 0.52] },
 ];
 
+const UNKNOWN_CURRENCY_FULLFRAME_DARK_PROP_STYLES = [
+  { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", negativeVisualDomain: "mined_fp_dark_v1", colors: [0x321826, 0x20392d, 0x1e2d4a, 0x482818], width: [1.02, 1.36], height: [0.40, 0.64] },
+  { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", negativeVisualDomain: "mined_fp_dark_v1", colors: [0x4c202e, 0x174048, 0x28381f, 0x3c244c], width: [0.92, 1.24], height: [0.36, 0.58] },
+  { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", negativeVisualDomain: "mined_fp_dark_v1", colors: [0x241a12, 0x1a2735, 0x30213d, 0x17362b], width: [0.86, 1.16], height: [0.34, 0.54] },
+];
+
+function isFullFrameNegativePolicy() {
+  return NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_v1" || NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1";
+}
+
 function negativePropStylesForPolicy() {
   if (NEGATIVE_PROP_POLICY === "unknown_currency_soft_v1") return UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
-  if (NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_v1") return UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
+  if (isFullFrameNegativePolicy()) return UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
   return NEGATIVE_PROP_POLICY === "unknown_currency_v1" ? UNKNOWN_CURRENCY_PROP_STYLES : NEGATIVE_PROP_STYLES;
 }
 
@@ -1897,7 +1931,7 @@ function cleanContextOccluders(variant) {
 
 function negativeOccluders(variant) {
   const rng = mulberry32(26057511 + variant * 149);
-  const propCount = NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_v1" ? 2 + (variant % 3) : 3 + (variant % 3);
+  const propCount = isFullFrameNegativePolicy() ? 2 + (variant % 3) : 3 + (variant % 3);
   const styles = negativePropStylesForPolicy();
   const props = [];
   for (let index = 0; index < propCount; index += 1) {
@@ -1922,9 +1956,11 @@ function negativeOccluders(variant) {
       });
       continue;
     }
-    const isFullFrameUnknown = NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_v1" && index === 0;
+    const isFullFrameUnknown = isFullFrameNegativePolicy() && index === 0;
     const style = isFullFrameUnknown
-      ? UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES[variant % UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES.length]
+      ? NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1"
+        ? UNKNOWN_CURRENCY_FULLFRAME_DARK_PROP_STYLES[variant % UNKNOWN_CURRENCY_FULLFRAME_DARK_PROP_STYLES.length]
+        : UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES[variant % UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES.length]
       : NEGATIVE_PROP_POLICY === "unknown_currency_v1" && index === 0
       ? UNKNOWN_CURRENCY_PROP_STYLES[variant % 2]
       : NEGATIVE_PROP_POLICY === "unknown_currency_soft_v1" && index === 0 && variant % 2 === 0
@@ -1935,6 +1971,7 @@ function negativeOccluders(variant) {
       propKind: style.propKind,
       textureStyle: style.textureStyle,
       negativeConfusionHardness: style.negativeConfusionHardness || "none",
+      negativeVisualDomain: style.negativeVisualDomain || "default",
       seed: 26057511 + variant * 149 + index * 811,
       layer: 20 + index,
       color: style.colors[randomInt(rng, style.colors.length)],
@@ -2394,18 +2431,33 @@ function makeOccluderTexture(occluder) {
   } else if (occluder.textureStyle === "unknown_banknote") {
     const fullframe = occluder.negativeConfusionHardness === "fullframe";
     const soft = occluder.negativeConfusionHardness === "soft";
-    const accent = ["rgba(122,52,78,0.34)", "rgba(42,96,116,0.32)", "rgba(74,118,66,0.30)"][Math.floor(rng() * 3)];
-    context.fillStyle = soft ? "rgba(255,255,255,0.18)" : fullframe ? "rgba(255,255,255,0.20)" : "rgba(255,255,255,0.24)";
+    const darkTeacher = occluder.negativeVisualDomain === "mined_fp_dark_v1";
+    const accent = darkTeacher
+      ? ["rgba(184,24,76,0.62)", "rgba(12,132,170,0.58)", "rgba(84,168,28,0.54)", "rgba(132,54,196,0.54)"][Math.floor(rng() * 4)]
+      : ["rgba(122,52,78,0.34)", "rgba(42,96,116,0.32)", "rgba(74,118,66,0.30)"][Math.floor(rng() * 3)];
+    context.fillStyle = soft
+      ? "rgba(255,255,255,0.18)"
+      : darkTeacher
+        ? "rgba(255,255,255,0.08)"
+        : fullframe
+          ? "rgba(255,255,255,0.20)"
+          : "rgba(255,255,255,0.24)";
     context.fillRect(22, 24, 468, 464);
-    context.strokeStyle = soft ? "rgba(72,64,54,0.18)" : fullframe ? "rgba(72,54,48,0.24)" : "rgba(72,54,48,0.28)";
+    context.strokeStyle = soft
+      ? "rgba(72,64,54,0.18)"
+      : darkTeacher
+        ? "rgba(4,3,3,0.36)"
+        : fullframe
+          ? "rgba(72,54,48,0.24)"
+          : "rgba(72,54,48,0.28)";
     context.lineWidth = soft ? 6 : fullframe ? 9 : 8;
     context.strokeRect(34, 36, 444, 440);
     context.strokeStyle = accent;
-    context.lineWidth = soft ? 3 : fullframe ? 4 : 5;
+    context.lineWidth = soft ? 3 : darkTeacher ? 5 : fullframe ? 4 : 5;
     for (let y = 76; y < 450; y += soft ? 68 : fullframe ? 34 : 42) {
       context.beginPath();
       for (let x = 54; x <= 458; x += soft ? 28 : fullframe ? 16 : 18) {
-        const wave = Math.sin((x + y) * (soft ? 0.022 : fullframe ? 0.040 : 0.035) + rng() * 0.4) * (soft ? 5 : fullframe ? 7 : 9);
+        const wave = Math.sin((x + y) * (soft ? 0.022 : fullframe ? 0.040 : 0.035) + rng() * 0.4) * (soft ? 5 : darkTeacher ? 10 : fullframe ? 7 : 9);
         if (x === 54) context.moveTo(x, y + wave);
         else context.lineTo(x, y + wave);
       }
@@ -2415,23 +2467,31 @@ function makeOccluderTexture(occluder) {
       context.save();
       context.translate(248, 256);
       context.rotate(-0.08);
-      context.fillStyle = "rgba(255,255,255,0.18)";
+      context.fillStyle = darkTeacher ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.18)";
       context.fillRect(-28, -218, 56, 436);
-      context.strokeStyle = "rgba(68,58,48,0.24)";
+      context.strokeStyle = darkTeacher ? "rgba(0,0,0,0.30)" : "rgba(68,58,48,0.24)";
       context.lineWidth = 4;
       context.strokeRect(-28, -218, 56, 436);
       context.restore();
-      context.fillStyle = "rgba(35,32,30,0.20)";
+      context.fillStyle = darkTeacher ? "rgba(220,230,240,0.12)" : "rgba(35,32,30,0.20)";
       for (let y = 112; y < 396; y += 44) {
         context.fillRect(292 + rng() * 10, y, 118 + rng() * 54, 6);
         context.fillRect(292 + rng() * 10, y + 16, 76 + rng() * 38, 5);
       }
+      if (darkTeacher) {
+        context.fillStyle = "rgba(190,28,74,0.34)";
+        context.fillRect(44, 52, 146, 388);
+        context.fillStyle = "rgba(10,128,184,0.31)";
+        context.fillRect(190, 70, 118, 360);
+        context.fillStyle = "rgba(72,160,28,0.29)";
+        context.fillRect(318, 52, 132, 386);
+      }
     }
-    context.fillStyle = "rgba(255,255,255,0.28)";
+    context.fillStyle = darkTeacher ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.28)";
     context.beginPath();
     context.ellipse(soft ? 346 : 334, 242, soft ? 72 : 92, soft ? 104 : 132, -0.12, 0, Math.PI * 2);
     context.fill();
-    context.strokeStyle = soft ? "rgba(68,58,48,0.18)" : "rgba(68,50,48,0.28)";
+    context.strokeStyle = soft ? "rgba(68,58,48,0.18)" : darkTeacher ? "rgba(0,0,0,0.38)" : "rgba(68,50,48,0.28)";
     context.lineWidth = soft ? 4 : 6;
     context.stroke();
     context.fillStyle = accent;
@@ -2449,15 +2509,19 @@ function makeOccluderTexture(occluder) {
       context.fillRect(-230, -34, 460, 68);
       context.restore();
     }
-    context.fillStyle = soft ? "rgba(55,48,42,0.36)" : "rgba(55,44,40,0.50)";
+    context.fillStyle = soft ? "rgba(55,48,42,0.36)" : darkTeacher ? "rgba(235,225,210,0.30)" : "rgba(55,44,40,0.50)";
     context.font = soft ? "bold 56px sans-serif" : fullframe ? "bold 86px sans-serif" : "bold 78px sans-serif";
     const denom = (soft ? ["40", "70", "90", "250", "880"] : fullframe ? ["30", "70", "300", "700", "900"] : ["25", "75", "200", "300", "700"])[Math.floor(rng() * 5)];
     context.fillText(denom, 54, 372);
     context.font = soft ? "bold 26px sans-serif" : fullframe ? "bold 36px sans-serif" : "bold 34px sans-serif";
     context.fillText(["RT", "BN", "LM", "QA"][Math.floor(rng() * 4)], 360, 92);
-    context.fillStyle = "rgba(35,32,30,0.24)";
+    context.fillStyle = darkTeacher ? "rgba(235,225,210,0.20)" : "rgba(35,32,30,0.24)";
     for (let i = 0; i < (soft ? 4 : fullframe ? 9 : 7); i += 1) {
       context.fillRect(78 + i * (soft ? 52 : fullframe ? 30 : 34), 420 + (rng() - 0.5) * 8, 18 + rng() * (soft ? 24 : 34), soft ? 5 : fullframe ? 6 : 7);
+    }
+    if (darkTeacher) {
+      context.fillStyle = "rgba(0,0,0,0.12)";
+      context.fillRect(0, 0, 512, 512);
     }
   } else if (occluder.textureStyle === "coin_cluster") {
     context.fillStyle = "rgba(65,54,42,0.34)";

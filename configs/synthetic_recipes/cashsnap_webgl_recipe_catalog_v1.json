@@ -572,6 +572,31 @@
       "current_blocker": "New full-frame near-negative policy; needs WebGL smoke/visual QA, hard-negative diversity, and a bounded fixed-step dose before trainable-candidate use."
     },
     {
+      "id": "webgl_unknown_currency_fullframe_dark_negative_v1",
+      "target_condition_ids": ["hard_negatives_and_non_banknote_paper"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["negative"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_clean_base_topdown_readable_v1",
+      "camera_isp_policy": "mined_fp_dark_v1",
+      "negative_prop_policy": "unknown_currency_fullframe_dark_v1",
+      "render_pool_count": 16,
+      "diagnostic_gates": {
+        "hard_negative_diversity": {
+          "min_images": 16,
+          "min_total_props": 32,
+          "min_prop_kinds": 4,
+          "min_textured_props": 32,
+          "require_prop_kinds": ["unknown_banknote", "coin_cluster"],
+          "require_confusion_hardness": ["fullframe", "soft", "coin"],
+          "require_zero_assets": true
+        }
+      },
+      "intended_use": "Zero-label dominant unknown-currency negatives with darker mined-FP-style exposure and stronger color variation after the first full-frame audit found the bright synthetic root too far from the real FP teacher.",
+      "promotion_gate": "Negative visual-gap audit must materially reduce luma and saturation-std deltas versus webgl_unknown_currency_fullframe_negative_v1 before any dose/model probe.",
+      "current_blocker": "New visual-domain correction recipe; needs smoke/visual QA, hard-negative diversity, and mined-FP visual-gap audit before training."
+    },
+    {
       "id": "webgl_unknown_currency_soft_negative_v1",
       "target_condition_ids": ["hard_negatives_and_non_banknote_paper"],
       "artifact_status": "diagnostic",

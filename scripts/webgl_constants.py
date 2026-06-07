@@ -15,7 +15,13 @@ WEBGL_NOTE_CONDITION_POLICIES = {"mixed", "scan_fidelity", "pristine_only", "han
 
 WEBGL_NOTE_PRINT_TONE_POLICIES = {"off", "local_dynamic_range_v1", "bill_auto_exposure_v1", "real_bridge_print_contrast_v1"}
 
-WEBGL_CAMERA_ISP_POLICIES = {"default", "phone_dynamic_range_v1", "phone_dynamic_range_v2", "real_bridge_dynamic_range_v1"}
+WEBGL_CAMERA_ISP_POLICIES = {
+    "default",
+    "phone_dynamic_range_v1",
+    "phone_dynamic_range_v2",
+    "real_bridge_dynamic_range_v1",
+    "mined_fp_dark_v1",
+}
 
 WEBGL_TEXTURE_QA_EFFECTS = {"flat", "lit_material", "backing_plane", "postprocess", "condition"}
 
@@ -26,6 +32,7 @@ WEBGL_NEGATIVE_PROP_POLICIES = {
     "unknown_currency_soft_v1",
     "unknown_currency_v1",
     "unknown_currency_fullframe_v1",
+    "unknown_currency_fullframe_dark_v1",
 }
 
 WEBGL_SCENE_MODES = {
