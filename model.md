@@ -31,6 +31,11 @@ file?" This file should answer what we believe, what is blocked, what not to
 repeat without a new reason, which ideas look promising, and what gates decide
 promotion.
 
+Keep `model.md` live. Whenever direction, evidence, blockers, or candidate
+ideas change, update this file in the same pass: prune stale advice, remove
+achieved or rejected ideas, and rewrite the research frame instead of appending a
+new mini-changelog. A stale `model.md` is a repo bug, not harmless history.
+
 This file is context, not a command queue. A future agent should read it,
 challenge it, inspect the current repo/results, and choose the best next step by
 their own judgment.
