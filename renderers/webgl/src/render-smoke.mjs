@@ -182,8 +182,8 @@ if (!["scene_default", "no_hand", "none"].includes(OCCLUDER_POLICY)) {
   throw new Error("--occluder-policy must be one of: scene_default, no_hand, none");
 }
 
-if (!["classic", "unknown_currency_soft_v1", "unknown_currency_v1", "unknown_currency_fullframe_v1", "unknown_currency_fullframe_dark_v1"].includes(NEGATIVE_PROP_POLICY)) {
-  throw new Error("--negative-prop-policy must be one of: classic, unknown_currency_soft_v1, unknown_currency_v1, unknown_currency_fullframe_v1, unknown_currency_fullframe_dark_v1");
+if (!["classic", "unknown_currency_soft_v1", "unknown_currency_soft_dark_v1", "unknown_currency_v1", "unknown_currency_fullframe_v1", "unknown_currency_fullframe_dark_v1"].includes(NEGATIVE_PROP_POLICY)) {
+  throw new Error("--negative-prop-policy must be one of: classic, unknown_currency_soft_v1, unknown_currency_soft_dark_v1, unknown_currency_v1, unknown_currency_fullframe_v1, unknown_currency_fullframe_dark_v1");
 }
 
 const ABLATION_ACTIVE = APPEARANCE_ABLATION !== "full";
@@ -795,7 +795,10 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
     { name: "dark_red_brown_laminate", base: "#29150f", light: "#5f3426", dark: "#070302", scene: "#24120d", repeat: [2.5, 1.9] },
     { name: "low_light_gray_pad", base: "#1c1d1b", light: "#565852", dark: "#050604", scene: "#1a1b19", repeat: [2.0, 1.7] },
   ];
-  const minedFpDarkNegative = mode === "negative" && NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1";
+  const minedFpDarkNegative = mode === "negative" && (
+    NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1"
+    || NEGATIVE_PROP_POLICY === "unknown_currency_soft_dark_v1"
+  );
   const surfaces = textureQa
     ? textureQaSurfaces
     : minedFpDarkNegative
@@ -1845,6 +1848,15 @@ const UNKNOWN_CURRENCY_SOFT_PROP_STYLES = [
   { propKind: "payment_card", textureStyle: "payment_card", negativeConfusionHardness: "none", colors: [0x2f5570, 0xd7e3ec, 0x5f6f61], width: [0.34, 0.56], height: [0.19, 0.32] },
 ];
 
+const UNKNOWN_CURRENCY_SOFT_DARK_PROP_STYLES = [
+  { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "soft", negativeVisualDomain: "mined_fp_dark_v1", colors: [0x321826, 0x20392d, 0x1e2d4a, 0x482818], width: [0.46, 0.74], height: [0.18, 0.30] },
+  { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "soft", negativeVisualDomain: "mined_fp_dark_v1", colors: [0x4c202e, 0x174048, 0x28381f, 0x3c244c], width: [0.42, 0.68], height: [0.17, 0.28] },
+  { propKind: "coin_cluster", textureStyle: "coin_cluster", negativeConfusionHardness: "coin", colors: [0x453427, 0x55432e, 0x2e2922], width: [0.30, 0.56], height: [0.24, 0.50] },
+  { propKind: "receipt", textureStyle: "receipt", negativeConfusionHardness: "none", colors: [0x625748, 0x4a4237], width: [0.48, 0.82], height: [0.14, 0.28] },
+  { propKind: "blank_paper", textureStyle: "paper", negativeConfusionHardness: "none", colors: [0x575248, 0x3d3a34, 0x42494d], width: [0.42, 0.76], height: [0.18, 0.34] },
+  { propKind: "payment_card", textureStyle: "payment_card", negativeConfusionHardness: "none", colors: [0x142434, 0x263427, 0x351f31], width: [0.34, 0.56], height: [0.19, 0.32] },
+];
+
 const UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES = [
   { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", colors: [0xd1b7a6, 0xb9cbbb, 0xb8c8dd, 0xd7c0cf], width: [1.02, 1.34], height: [0.40, 0.62] },
   { propKind: "unknown_banknote", textureStyle: "unknown_banknote", negativeConfusionHardness: "fullframe", colors: [0xe0c1a0, 0xb8d2c8, 0xd5c7a6, 0xc8bad8], width: [0.92, 1.22], height: [0.36, 0.56] },
@@ -1862,9 +1874,14 @@ function isFullFrameNegativePolicy() {
 }
 
 function negativePropStylesForPolicy() {
+  if (NEGATIVE_PROP_POLICY === "unknown_currency_soft_dark_v1") return UNKNOWN_CURRENCY_SOFT_DARK_PROP_STYLES;
   if (NEGATIVE_PROP_POLICY === "unknown_currency_soft_v1") return UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
   if (isFullFrameNegativePolicy()) return UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
   return NEGATIVE_PROP_POLICY === "unknown_currency_v1" ? UNKNOWN_CURRENCY_PROP_STYLES : NEGATIVE_PROP_STYLES;
+}
+
+function isSoftUnknownCurrencyPolicy() {
+  return NEGATIVE_PROP_POLICY === "unknown_currency_soft_v1" || NEGATIVE_PROP_POLICY === "unknown_currency_soft_dark_v1";
 }
 
 const CLEAN_CONTEXT_PROP_PLACEMENTS = [
@@ -1957,14 +1974,17 @@ function negativeOccluders(variant) {
       continue;
     }
     const isFullFrameUnknown = isFullFrameNegativePolicy() && index === 0;
+    const softUnknownStyles = NEGATIVE_PROP_POLICY === "unknown_currency_soft_dark_v1"
+      ? UNKNOWN_CURRENCY_SOFT_DARK_PROP_STYLES
+      : UNKNOWN_CURRENCY_SOFT_PROP_STYLES;
     const style = isFullFrameUnknown
       ? NEGATIVE_PROP_POLICY === "unknown_currency_fullframe_dark_v1"
         ? UNKNOWN_CURRENCY_FULLFRAME_DARK_PROP_STYLES[variant % UNKNOWN_CURRENCY_FULLFRAME_DARK_PROP_STYLES.length]
         : UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES[variant % UNKNOWN_CURRENCY_FULLFRAME_PROP_STYLES.length]
       : NEGATIVE_PROP_POLICY === "unknown_currency_v1" && index === 0
       ? UNKNOWN_CURRENCY_PROP_STYLES[variant % 2]
-      : NEGATIVE_PROP_POLICY === "unknown_currency_soft_v1" && index === 0 && variant % 2 === 0
-        ? UNKNOWN_CURRENCY_SOFT_PROP_STYLES[variant % 2]
+      : isSoftUnknownCurrencyPolicy() && index === 0 && variant % 2 === 0
+        ? softUnknownStyles[variant % 2]
       : styles[(variant + index * 3) % styles.length];
     props.push({
       kind: "cover_card",

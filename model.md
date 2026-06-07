@@ -608,6 +608,20 @@ Targeted branch status:
   target-like semantics: partial/off-center unknown notes, less dominant
   full-frame banknote texture, and more receipts/cards/patterned paper/foreign
   clutter, with positive-preserving guardrails before any bounded real run.
+- `unknown_currency_soft_dark_v1` tested that softer semantic shape. The
+  camera-only soft-dark root stayed too bright (`crop luma_mean +0.086`), so
+  the renderer now has a soft dark policy that uses mined-FP dark surfaces and
+  dark unknown-note palettes without full-frame hardness. Its 16-image v2 root
+  passes diversity (`63` props, `59` textured, `21` unknown_banknote,
+  `soft/coin/none` hardness, zero assets), and visual-gap audit improves to
+  crop luma mean `-0.070`, luma p05 `+0.023`, luma p95 `-0.043`, saturation
+  std `-0.139`, box area `+0.174`. Model-side result is still reject: dose-4
+  self-eval `0.004152` (delta `-0.003216`, worst `KHR_5000 -0.014010`) and
+  dose-1 `0.003690` (delta `-0.003678`, worst `KHR_5000 -0.015580`). Read:
+  negative-only dark banknote-like pixels are an anti-curriculum in balanced20,
+  even when visually plausible and soft. Do not run bounded real for these
+  doses. Next step is matched dark positive support and/or negative-loss/sampling
+  strategy, not more raw zero-label dark-negative variants.
 - Earlier non-fallback fixed-step A/B attempts remain incomplete:
   b64/b32/b16/b8 runs hit the 95% RAM guard while RunLong/Codex were resident.
   Also, one failed b64 attempt reused the old leader run name with the
@@ -768,11 +782,17 @@ Current state:
   calibration clue, not a trainable recipe. The next move is to decouple dark
   mined-FP camera statistics from dominant target-like full-frame note
   semantics.
+- Soft-dark WebGL negatives successfully decouple full-frame hardness from the
+  dark mined-FP visual domain, but dose-1/4 still fail self-eval. That changes
+  the active bet: add matched dark positive examples or curriculum/loss controls
+  before testing more dark zero-label near-negatives.
 
 Next realistic bank should include reviewed foreign/unknown currencies,
 target-lookalike partial notes, receipts, cards, patterned paper, and retail
-clutter rendered or composited through the same camera-domain policy. Do not
-mine CashSnap val/test empty frames into training.
+clutter rendered or composited through the same camera-domain policy, paired
+with target-positive support under that camera domain so "dark currency-like"
+does not mean "background." Do not mine CashSnap val/test empty frames into
+training.
 
 ## Promotion Gates
 
@@ -1143,6 +1163,12 @@ Key run artifacts:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglfullframedark4_bal20_probe_puresynth_realval_v1.yaml`
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglfullframedark1_b20_b1_s1000_i320_v1_summary.json`
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglfullframedark4_b20_b1_s1000_i320_v1_summary.json`
+- `data/synthetic/cashsnap_webgl_unknown_currency_soft_dark_negative_probe_v2/`
+- `runs/cashsnap/negative_fp_visual_gap_alpha_geoscale_mined_vs_webglsoftdark_v2.json`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglsoftdark1_bal20_probe_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglsoftdark4_bal20_probe_puresynth_realval_v1.yaml`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglsoftdark1_b20_b1_s1000_i320_v1_summary.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglsoftdark4_b20_b1_s1000_i320_v1_summary.json`
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`
@@ -1212,6 +1238,11 @@ Script notes:
   recipe `webgl_unknown_currency_fullframe_dark_negative_v1`; it matches mined
   FP visual stats much better but fails dose-1/4 fixed-step self-eval, so use it
   as a teacher for softer dark near-negatives rather than as a scaled recipe.
+- WebGL `--negative-prop-policy unknown_currency_soft_dark_v1` keeps soft
+  unknown-currency hardness while using mined-FP dark surfaces/palettes. It
+  passes negative diversity and visual-gap audit, but dose-1/4 fixed-step
+  self-eval still fails; pair with dark target-positive support before any
+  further negative-only dose.
 - `audit_negative_fp_visual_gap.py` compares mined real background-FP review
   manifests with synthetic negative roots using image/crop visual stats; use it
   before spending GPU on a new zero-label negative recipe.

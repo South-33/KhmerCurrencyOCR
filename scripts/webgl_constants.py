@@ -30,6 +30,7 @@ WEBGL_OCCLUDER_POLICIES = {"scene_default", "no_hand", "none"}
 WEBGL_NEGATIVE_PROP_POLICIES = {
     "classic",
     "unknown_currency_soft_v1",
+    "unknown_currency_soft_dark_v1",
     "unknown_currency_v1",
     "unknown_currency_fullframe_v1",
     "unknown_currency_fullframe_dark_v1",
