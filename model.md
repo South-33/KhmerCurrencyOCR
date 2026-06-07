@@ -405,6 +405,17 @@ Targeted branch status:
   `19=0.8231`, `22=0.8577`, late MMD `0.0293`. Read: strict source-context is
   about tied with inpaintctx on late domain accuracy, better on late MMD, and
   much safer on unlabeled-target leakage.
+- Model-side status: real-transfer proof is still blocked by RAM headroom, not
+  by data wiring. Full latest-baseline `416/b2` train-only probe failed at the
+  RAM guard while scanning/training the `1,248` row baseline. A row-matched
+  latest `260` image, `20/class` baseline was built, but `416/b2` still hit the
+  guard at train start. A reduced `320/b1`, `150`-batch row-matched train did
+  complete and produced weights for both arms, but its built-in comparison used
+  train-only YAML self-eval, not real transfer: candidate synthetic self
+  mAP50-95 `0.005647` vs baseline `0.005095` (`+0.000552`). Real CashSnap test
+  validation of those weights was attempted and blocked immediately by RAM
+  (`~97%`, `~0.5GB` free). Do not cite the `320/b1` self-eval as transfer
+  proof; rerun real-test eval when memory headroom is available.
 - Fixed-step model A/B is not completed. b64/b32/b16/b8 attempts hit the 95%
   RAM guard while RunLong/Codex were resident. Also, one failed b64 attempt
   reused the old leader run name with the wrapper's real-clean default before
@@ -419,10 +430,9 @@ Targeted branch status:
   weights. No fair model A/B exists for inpaintctx/couplectx yet in this
   RunLong session.
 - Do not promote either branch yet. Next best move is a clean fixed-step model
-  A/B for the strict overgen60 balanced candidate under the train-only YAML
-  helper, plus empty-frame FP/positive-error checks if weights are produced.
-  If model transfer does not improve, stop treating source-context as a
-  curriculum answer and improve the generator itself by erasing all detector
+  A/B/eval for the strict overgen60 balanced candidate when memory headroom is
+  available, using original real test data for evaluation. While RAM is blocked,
+  the safer synth-data direction is generator-side cleanup: erase all detector
   source-note regions before compositing, not only the sampled YOLO box.
 
 Success signal is not a prettier sheet. A real step-change branch should reduce
@@ -575,6 +585,8 @@ Key configs:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_realbgneg25_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_unknownsoftfp8lowconf_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_realfgstyle_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_latest_balanced20_puresynth_realval_v1.yaml`
+- `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_latest_balanced20_v1_train.txt`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_analogs_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml`
@@ -716,6 +728,11 @@ Key run artifacts:
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_singlebox_overgen60_strictclean_balanced20_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_sourcectx_singlebox_overgen60_strictclean_balanced20_v1/per_class_sheet.jpg`
 - `runs/cashsnap/representation_gap_synthleader_rep_gap_sourcectx_singlebox_overgen60_strictclean_balanced20_test_v1/summary.json`
+- `runs/cashsnap/dataset_check_target_anchor_latest_balanced20_v1.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_sourcectx_strictclean_b20_b1_s150_i320_v1_preflight.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_sourcectx_strictclean_b20_b1_s150_i320_v1_summary.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_balanced20_trainonly_vs_sourcectx_strictclean_b20_trainonly_steps150/summary.json`
+- `runs/cashsnap/system_profile_after_i320_train_before_realtest_guard_v1.json`
 - `runs/cashsnap/fixed_step_target_anchor_latest_vs_rep_gap_inpaintctx_b8_s150_ctxprobe_v1_preflight.json`
 - `runs/cashsnap/system_profile_after_inpaintctx_b32_guard.json`
 - `runs/cashsnap/system_profile_after_b8_inpaintctx_guard_v1.json`
