@@ -77,6 +77,7 @@ class Background:
     image_path: Path
     label_path: Path
     source: str
+    source_image_path: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -176,8 +177,29 @@ def load_cashsnap_train(cashsnap_root: Path) -> tuple[list[Background], dict[str
     return backgrounds, boxes_by_class
 
 
+def load_background_manifest_sources(background_root: Path) -> dict[Path, Path]:
+    manifest_path = background_root / "manifest.json"
+    if not manifest_path.exists():
+        return {}
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    records = payload.get("records", [])
+    if not isinstance(records, list):
+        raise SystemExit(f"{repo_rel(manifest_path)} records must be a list")
+    sources: dict[Path, Path] = {}
+    for index, record in enumerate(records, start=1):
+        if not isinstance(record, dict):
+            raise SystemExit(f"{repo_rel(manifest_path)} record {index} must be a mapping")
+        image = record.get("image")
+        source_image = record.get("source_image")
+        if not image or not source_image:
+            continue
+        sources[repo_path(image).resolve()] = repo_path(source_image).resolve()
+    return sources
+
+
 def load_patch_backgrounds(background_root: Path, split: str) -> list[Background]:
     backgrounds: list[Background] = []
+    source_by_image = load_background_manifest_sources(background_root)
     for path in sorted(background_root.glob("*")):
         if path.suffix.lower() not in IMAGE_EXTS:
             continue
@@ -185,7 +207,16 @@ def load_patch_backgrounds(background_root: Path, split: str) -> list[Background
             continue
         if split and not path.stem.endswith(f"_{split}"):
             continue
-        backgrounds.append(Background(image_path=path, label_path=path.with_suffix(".txt"), source="no_note_patch"))
+        source_image_path = source_by_image.get(path.resolve())
+        source = "inpainted_train_anchor" if source_image_path is not None else "no_note_patch"
+        backgrounds.append(
+            Background(
+                image_path=path,
+                label_path=path.with_suffix(".txt"),
+                source=source,
+                source_image_path=source_image_path,
+            )
+        )
     if not backgrounds:
         raise SystemExit(f"No background patches found under {repo_rel(background_root)} for split '{split}'")
     return backgrounds
@@ -441,12 +472,41 @@ def sample_geometry(
     boxes_by_class: dict[str, list[BoxSample]],
     rng: random.Random,
     min_class_geometry_samples: int,
+    coupled_samples: list[BoxSample] | None = None,
 ) -> BoxSample:
+    if coupled_samples:
+        same_class = [box for box in coupled_samples if box.class_name == class_name]
+        return rng.choice(same_class if same_class else coupled_samples)
     class_boxes = boxes_by_class[class_name]
     if len(class_boxes) >= min_class_geometry_samples:
         return rng.choice(class_boxes)
     all_boxes = [box for boxes in boxes_by_class.values() for box in boxes]
     return rng.choice(all_boxes)
+
+
+def index_boxes_by_image(boxes_by_class: dict[str, list[BoxSample]]) -> dict[Path, list[BoxSample]]:
+    boxes_by_image: dict[Path, list[BoxSample]] = defaultdict(list)
+    for boxes in boxes_by_class.values():
+        for box in boxes:
+            boxes_by_image[box.image_path.resolve()].append(box)
+    return dict(boxes_by_image)
+
+
+def index_backgrounds_by_source_class(
+    backgrounds: list[Background],
+    boxes_by_image: dict[Path, list[BoxSample]],
+) -> dict[str, list[Background]]:
+    backgrounds_by_class: dict[str, list[Background]] = defaultdict(list)
+    for background in backgrounds:
+        if background.source_image_path is None:
+            continue
+        class_names = {
+            box.class_name
+            for box in boxes_by_image.get(background.source_image_path.resolve(), [])
+        }
+        for class_name in class_names:
+            backgrounds_by_class[class_name].append(background)
+    return dict(backgrounds_by_class)
 
 
 def jitter_box(
@@ -456,10 +516,12 @@ def jitter_box(
     rng: random.Random,
     box_scale: float,
     box_scale_jitter: float,
+    geometry_size_jitter: float,
+    position_jitter_fraction: float,
 ) -> tuple[float, float, float, float]:
     width, height = image_size
-    box_w = sample.width * width * rng.uniform(0.86, 1.14)
-    box_h = sample.height * height * rng.uniform(0.86, 1.14)
+    box_w = sample.width * width * rng.uniform(1.0 - geometry_size_jitter, 1.0 + geometry_size_jitter)
+    box_h = sample.height * height * rng.uniform(1.0 - geometry_size_jitter, 1.0 + geometry_size_jitter)
     if box_scale_jitter > 0:
         scale_jitter = rng.uniform(max(0.10, 1.0 - box_scale_jitter), 1.0 + box_scale_jitter)
     else:
@@ -481,8 +543,8 @@ def jitter_box(
         scale = max_h / box_h
         box_w *= scale
         box_h *= scale
-    cx = sample.cx * width + rng.uniform(-0.045, 0.045) * width
-    cy = sample.cy * height + rng.uniform(-0.045, 0.045) * height
+    cx = sample.cx * width + rng.uniform(-position_jitter_fraction, position_jitter_fraction) * width
+    cy = sample.cy * height + rng.uniform(-position_jitter_fraction, position_jitter_fraction) * height
     cx = float(np.clip(cx, box_w * 0.42, width - box_w * 0.42))
     cy = float(np.clip(cy, box_h * 0.42, height - box_h * 0.42))
     return cx, cy, box_w, box_h
@@ -655,6 +717,15 @@ def warp_rgba(note: Image.Image, quad: np.ndarray, out_size: tuple[int, int]) ->
     )
 
 
+def feather_warped_alpha(layer_rgba: np.ndarray, radius: float) -> np.ndarray:
+    if radius <= 0:
+        return layer_rgba
+    out = layer_rgba.copy()
+    alpha = Image.fromarray(out[:, :, 3], "L").filter(ImageFilter.GaussianBlur(radius=radius))
+    out[:, :, 3] = np.asarray(alpha)
+    return out
+
+
 def alpha_composite(base_rgb: np.ndarray, layer_rgba: np.ndarray) -> np.ndarray:
     alpha = layer_rgba[:, :, 3:4].astype(np.float32) / 255.0
     out = layer_rgba[:, :, :3].astype(np.float32) * alpha + base_rgb.astype(np.float32) * (1.0 - alpha)
@@ -800,6 +871,7 @@ def render_one(
     background: Background,
     asset: Asset,
     boxes_by_class: dict[str, list[BoxSample]],
+    boxes_by_image: dict[Path, list[BoxSample]],
     foreground_styles_by_class: dict[str, list[ForegroundStyle]] | None,
     foreground_sharpness_quantiles: dict[str, float],
     rng: random.Random,
@@ -810,6 +882,10 @@ def render_one(
     shadow_policy: str,
     box_scale: float,
     box_scale_jitter: float,
+    geometry_size_jitter: float,
+    position_jitter_fraction: float,
+    warp_alpha_feather_px: float,
+    couple_background_geometry: bool,
     pose_policy: str,
     min_render_short_px: float,
     min_render_width_px: float,
@@ -821,7 +897,16 @@ def render_one(
     if canvas_size is not None:
         base = ImageOps.fit(base, canvas_size, method=Image.Resampling.LANCZOS)
     width, height = base.size
-    sample = sample_geometry(asset.class_name, boxes_by_class, rng, min_class_geometry_samples)
+    coupled_samples: list[BoxSample] | None = None
+    if couple_background_geometry and background.source_image_path is not None:
+        coupled_samples = boxes_by_image.get(background.source_image_path.resolve(), [])
+    sample = sample_geometry(
+        asset.class_name,
+        boxes_by_class,
+        rng,
+        min_class_geometry_samples,
+        coupled_samples=coupled_samples,
+    )
     note = prepare_note(asset, rng)
     foreground_style: ForegroundStyle | None = None
     if foreground_styles_by_class is not None:
@@ -833,7 +918,16 @@ def render_one(
         )
         note = apply_foreground_style(note, foreground_style, foreground_sharpness_quantiles, rng)
     asset_aspect = note.width / max(1, note.height)
-    cx, cy, box_w, box_h = jitter_box(sample, (width, height), asset_aspect, rng, box_scale, box_scale_jitter)
+    cx, cy, box_w, box_h = jitter_box(
+        sample,
+        (width, height),
+        asset_aspect,
+        rng,
+        box_scale,
+        box_scale_jitter,
+        geometry_size_jitter,
+        position_jitter_fraction,
+    )
     angle = rng.gauss(0, 8.0)
     if rng.random() < 0.18:
         angle += rng.choice([-1, 1]) * rng.uniform(10, 28)
@@ -853,7 +947,7 @@ def render_one(
     y2 = min(height, int(np.ceil(quad[:, 1].max())) + 12)
     patch = base.crop((x1, y1, max(x1 + 1, x2), max(y1 + 1, y2)))
     note = tone_match_note(note, patch, rng)
-    warped = warp_rgba(note, quad, (width, height))
+    warped = feather_warped_alpha(warp_rgba(note, quad, (width, height)), warp_alpha_feather_px)
     alpha = warped[:, :, 3]
     if alpha.max() <= 16:
         return None
@@ -892,7 +986,14 @@ def render_one(
         "asset_max_year": asset.max_year,
         "background": repo_rel(background.image_path),
         "background_source": background.source,
+        "background_source_image": repo_rel(background.source_image_path) if background.source_image_path else None,
         "geometry_source": repo_rel(sample.image_path),
+        "geometry_class": sample.class_name,
+        "geometry_coupled_to_background": bool(
+            couple_background_geometry
+            and background.source_image_path is not None
+            and sample.image_path.resolve() == background.source_image_path.resolve()
+        ),
         "quad_xy": [[round(float(x), 2), round(float(y), 2)] for x, y in quad],
         "note_angle_deg": round(float(angle), 3),
         "canvas_size": [width, height],
@@ -900,6 +1001,9 @@ def render_one(
         "shadow_policy": shadow_policy,
         "box_scale": round(float(box_scale), 4),
         "box_scale_jitter": round(float(box_scale_jitter), 4),
+        "geometry_size_jitter": round(float(geometry_size_jitter), 4),
+        "position_jitter_fraction": round(float(position_jitter_fraction), 4),
+        "warp_alpha_feather_px": round(float(warp_alpha_feather_px), 4),
         "pose_policy": pose_policy,
         "min_render_short_px": round(float(min_render_short_px), 3),
         "min_render_width_px": round(float(min_render_width_px), 3),
@@ -1050,6 +1154,29 @@ def parse_args() -> argparse.Namespace:
         help="Optional relative jitter around --box-scale, e.g. 0.12 samples 88-112 percent of the scale.",
     )
     parser.add_argument(
+        "--geometry-size-jitter",
+        type=float,
+        default=0.14,
+        help="Relative jitter applied to sampled geometry width/height before aspect repair.",
+    )
+    parser.add_argument(
+        "--position-jitter-fraction",
+        type=float,
+        default=0.045,
+        help="Canvas-relative jitter applied to sampled geometry center coordinates.",
+    )
+    parser.add_argument(
+        "--warp-alpha-feather-px",
+        type=float,
+        default=0.0,
+        help="Gaussian blur radius applied to the warped foreground alpha before compositing.",
+    )
+    parser.add_argument(
+        "--couple-background-geometry",
+        action="store_true",
+        help="Prefer geometry from each background manifest's source image when available.",
+    )
+    parser.add_argument(
         "--pose-policy",
         default="current",
         choices=("current", "aabb_aspect_repair"),
@@ -1131,6 +1258,12 @@ def main() -> None:
         raise SystemExit("--box-scale must be > 0")
     if args.box_scale_jitter < 0 or args.box_scale_jitter >= 1:
         raise SystemExit("--box-scale-jitter must be >= 0 and < 1")
+    if args.geometry_size_jitter < 0 or args.geometry_size_jitter >= 1:
+        raise SystemExit("--geometry-size-jitter must be >= 0 and < 1")
+    if args.position_jitter_fraction < 0 or args.position_jitter_fraction >= 0.5:
+        raise SystemExit("--position-jitter-fraction must be >= 0 and < 0.5")
+    if args.warp_alpha_feather_px < 0:
+        raise SystemExit("--warp-alpha-feather-px must be >= 0")
     if args.min_render_short_px < 0:
         raise SystemExit("--min-render-short-px must be >= 0")
     if args.min_render_width_px < 0 or args.min_render_height_px < 0 or args.min_render_area_px < 0:
@@ -1151,6 +1284,12 @@ def main() -> None:
         if len(parts) != 2 or min(parts) <= 0:
             raise SystemExit("--canvas-size must be WIDTH,HEIGHT or empty")
         canvas_size = (parts[0], parts[1])
+    boxes_by_image = index_boxes_by_image(boxes_by_class)
+    backgrounds_by_class = (
+        index_backgrounds_by_source_class(backgrounds, boxes_by_image)
+        if args.couple_background_geometry
+        else {}
+    )
 
     target_count = args.per_class * len(CLASS_NAMES)
     class_counts: Counter[str] = Counter()
@@ -1164,12 +1303,14 @@ def main() -> None:
         if attempts > target_count * 20:
             raise SystemExit("Too many failed transplant attempts; check geometry/asset/background inputs.")
         class_name = choose_class(rng, class_counts)
-        background = rng.choice(backgrounds)
+        class_backgrounds = backgrounds_by_class.get(class_name, [])
+        background = rng.choice(class_backgrounds if class_backgrounds else backgrounds)
         asset = rng.choice(assets_by_class[class_name])
         rendered = render_one(
             background,
             asset,
             boxes_by_class,
+            boxes_by_image,
             foreground_styles_by_class,
             foreground_sharpness_quantiles,
             rng,
@@ -1180,6 +1321,10 @@ def main() -> None:
             args.shadow_policy,
             args.box_scale,
             args.box_scale_jitter,
+            args.geometry_size_jitter,
+            args.position_jitter_fraction,
+            args.warp_alpha_feather_px,
+            args.couple_background_geometry,
             args.pose_policy,
             args.min_render_short_px,
             args.min_render_width_px,
@@ -1238,6 +1383,14 @@ def main() -> None:
         "shadow_policy": args.shadow_policy,
         "box_scale": args.box_scale,
         "box_scale_jitter": args.box_scale_jitter,
+        "geometry_size_jitter": args.geometry_size_jitter,
+        "position_jitter_fraction": args.position_jitter_fraction,
+        "warp_alpha_feather_px": args.warp_alpha_feather_px,
+        "couple_background_geometry": args.couple_background_geometry,
+        "background_source_classes": {
+            class_name: len(backgrounds_by_class.get(class_name, [])) for class_name in CLASS_NAMES
+        },
+        "coupled_geometry_records": sum(1 for record in records if record.get("geometry_coupled_to_background")),
         "pose_policy": args.pose_policy,
         "min_render_short_px": args.min_render_short_px,
         "min_render_width_px": args.min_render_width_px,

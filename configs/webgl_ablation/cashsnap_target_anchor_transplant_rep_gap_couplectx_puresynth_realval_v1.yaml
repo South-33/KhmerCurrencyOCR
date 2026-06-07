@@ -1,0 +1,151 @@
+path: ../..
+train: data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth target-anchored transplant TSTR probe using train-only
+    CashSnap no-note background patches and synthetic cutout-bank note labels
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_v1
+  promotion_rule: reject unless fixed-step full real transfer jumps materially over
+    filtered185/repair baselines without worse empty-frame behavior
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 31
+  per_class: 20
+  images: 260
+  class_counts:
+    KHR_1000: 20
+    KHR_10000: 20
+    KHR_2000: 20
+    KHR_20000: 20
+    KHR_500: 20
+    KHR_5000: 20
+    KHR_50000: 20
+    USD_1: 20
+    USD_10: 20
+    USD_100: 20
+    USD_20: 20
+    USD_5: 20
+    USD_50: 20
+  background_source_images: 58
+  background_root: data/backgrounds/cashsnap_rep_gap_train_anchor_inpainted_filtered_v1
+  background_split: train
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 57
+  real_geometry_samples_by_class:
+    USD_1: 8
+    USD_5: 18
+    USD_10: 16
+    USD_20: 23
+    USD_50: 25
+    USD_100: 19
+    KHR_500: 14
+    KHR_1000: 4
+    KHR_2000: 4
+    KHR_5000: 614
+    KHR_10000: 20
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest:
+    path: runs/cashsnap/representation_gap_synthleader_train_analogs_v1/train_anchor_manifest.jsonl
+    mode: prefer
+    images: 151
+    selected_boxes_by_class:
+      USD_1: 8
+      USD_5: 18
+      USD_10: 16
+      USD_20: 23
+      USD_50: 25
+      USD_100: 19
+      KHR_500: 14
+      KHR_1000: 4
+      KHR_2000: 4
+      KHR_10000: 20
+    fallback_classes:
+    - KHR_5000
+    - KHR_20000
+    - KHR_50000
+  unique_geometry_sources_used: 57
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: poisson_mixed
+  shadow_policy: contact
+  box_scale: 1.06
+  box_scale_jitter: 0.04
+  geometry_size_jitter: 0.05
+  position_jitter_fraction: 0.012
+  couple_background_geometry: true
+  background_source_classes:
+    USD_1: 0
+    USD_5: 4
+    USD_10: 6
+    USD_20: 4
+    USD_50: 4
+    USD_100: 4
+    KHR_500: 14
+    KHR_1000: 0
+    KHR_2000: 2
+    KHR_5000: 0
+    KHR_10000: 20
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 260
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 0.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 8
+    USD_5: 18
+    USD_10: 16
+    USD_20: 23
+    USD_50: 25
+    USD_100: 19
+    KHR_500: 14
+    KHR_1000: 4
+    KHR_2000: 4
+    KHR_5000: 256
+    KHR_10000: 20
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 1375.724365234375
+    sharpness_p50: 2647.3515625
+    sharpness_p75: 4462.34619140625
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_v1/metadata/train.jsonl

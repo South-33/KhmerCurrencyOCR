@@ -327,12 +327,33 @@ Targeted branch status:
   layer `0` domain accuracy `0.823 -> 0.808`, layer `1` `0.877 -> 0.823`,
   layer `22` `0.938 -> 0.862`, and late MMD `0.0992 -> 0.0414`. Read: real
   train-context canvases directly attack the measured image-formation gap.
+- Coupled-context branch:
+  `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_v1/`.
+  It reuses each inpainted background's source-image geometry so the synthetic
+  note covers the erased real note region. Dataset/QA pass, but edge boundary
+  ratio is high (`1.4016`) and representation is mixed: early layers improve
+  strongly (`layer0 0.808 -> 0.773`, MMD `0.1050 -> 0.0624` versus inpaintctx),
+  while late domain accuracy worsens (`layer22 0.862 -> 0.888`). Read: coupling
+  reduces camera/context distance but exposes a note-edge/presentation shortcut.
+- Strict inpaint filtering (`max_mask_fraction=0.35`) is rejected. It kept only
+  `32` contexts, collapsed class-specific source coverage, worsened edge audit
+  (`boundary_ratio=1.5176`, `color_step=0.1122`), and worsened representation
+  separation (`layer22=0.9538`).
+- Alpha-feathered coupled branch:
+  `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_feather08_v1/`.
+  MMD/centroids improve further and `layer19` domain accuracy reaches `0.846`,
+  but edge boundary ratio rises (`1.6120`) and `layer22` domain accuracy worsens
+  to `0.9077`. Keep as a diagnostic knob, not a promotion path.
 - Fixed-step model A/B is not completed. b64/b32/b16/b8 attempts hit the 95%
   RAM guard while RunLong/Codex were resident. Also, one failed b64 attempt
   reused the old leader run name with the wrapper's real-clean default before
   this was caught; do not trust that run directory's current weights. Use the
   previously written metrics JSONs as historical evidence or rerun clean with
   explicit `--model yolo26n.pt` under lower memory pressure.
+- Latest model-side retry: b8 `target_anchor_latest_yolo_b8_s150_ctxprobe_v1`
+  trained the baseline from `yolo26n.pt`, but candidate inpaintctx hit the 95%
+  RAM guard; b4 and b2/no-AMP retries also hit the guard during setup/scanning.
+  No fair model A/B exists for inpaintctx/couplectx yet in this RunLong session.
 - Do not promote either branch yet. Promote only after visual artifacts fall,
   representation separation stays lower, real positive recall improves, and
   empty-frame FPs do not regress.
@@ -489,6 +510,8 @@ Key configs:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_realfgstyle_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_analogs_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_couplectx_feather08_puresynth_realval_v1.yaml`
 - `configs/synthetic_recipes/cashsnap_external_negative_banks_v1.json`
 - `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`
 - `configs/synthetic_recipes/cashsnap_synthetic_governance_v1.json`
@@ -503,6 +526,8 @@ Key roots:
 - `data/backgrounds/cashsnap_rep_gap_train_anchor_inpainted_filtered_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_analogs_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_inpaintctx_v1/`
+- `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_v1/`
+- `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_couplectx_feather08_v1/`
 - `data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/`
 - `data/processed/roboflow_khmer_us_currency_core13_bridge_v1/`
 - `data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/`
@@ -568,7 +593,17 @@ Key run artifacts:
 - `runs/cashsnap/visual_qa_rep_gap_inpaintctx_v1/`
 - `runs/cashsnap/composite_edge_audit_rep_gap_inpaintctx_v1.json`
 - `runs/cashsnap/representation_gap_synthleader_rep_gap_inpaintctx_test_v1/summary.json`
+- `runs/cashsnap/dataset_check_rep_gap_couplectx_v1.json`
+- `runs/cashsnap/visual_qa_rep_gap_couplectx_v1/`
+- `runs/cashsnap/composite_edge_audit_rep_gap_couplectx_v1.json`
+- `runs/cashsnap/representation_gap_synthleader_rep_gap_couplectx_test_v1/summary.json`
+- `runs/cashsnap/dataset_check_rep_gap_couplectx_feather08_v1.json`
+- `runs/cashsnap/visual_qa_rep_gap_couplectx_feather08_v1/`
+- `runs/cashsnap/composite_edge_audit_rep_gap_couplectx_feather08_v1.json`
+- `runs/cashsnap/representation_gap_synthleader_rep_gap_couplectx_feather08_test_v1/summary.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_vs_rep_gap_inpaintctx_b8_s150_ctxprobe_v1_preflight.json`
 - `runs/cashsnap/system_profile_after_inpaintctx_b32_guard.json`
+- `runs/cashsnap/system_profile_after_b8_inpaintctx_guard_v1.json`
 - `runs/cashsnap/cyclegan_turbo_smoke_s1_128_noval_nolpips/`
 
 Key scripts:
@@ -603,6 +638,10 @@ Script notes:
 - `build_cashsnap_target_anchor_transplant.py` accepts
   `--geometry-manifest` with `--geometry-manifest-mode prefer|only`; `prefer`
   uses train-anchor geometry where present and falls back per missing class.
+- `build_cashsnap_target_anchor_transplant.py` also accepts
+  `--couple-background-geometry`, `--geometry-size-jitter`,
+  `--position-jitter-fraction`, and `--warp-alpha-feather-px` for train-anchor
+  inpaint/context diagnostics.
 - `build_yolo_inpainted_background_bank.py` creates train-only empty-label
   inpainted canvases from labeled YOLO images; use `--max-mask-fraction` to
   reject full-frame erasures that make obvious scars.
@@ -652,7 +691,9 @@ rl python scripts\probe_yolo_representation_domain_gap.py --model runs\cashsnap\
 rl python scripts\mine_representation_gap_train_analogs.py --gap-summary runs\cashsnap\representation_gap_synthleader_target_anchor_latest_test_v1\summary.json --candidate-data data\cashsnap_v1\data.yaml --candidate-split train --out-dir runs\cashsnap\representation_gap_synthleader_train_analogs_v1 --batch 16 --device 0 --top-query 40 --per-query 4 --max-candidates-per-class 300 --clean
 rl python scripts\build_yolo_inpainted_background_bank.py --manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --out-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --suffix train --pad-fraction 0.08 --mask-dilate-px 5 --inpaint-radius 7 --max-mask-fraction 0.45 --clean
 rl python scripts\build_cashsnap_target_anchor_transplant.py --background-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --background-split train --geometry-manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --geometry-manifest-mode prefer --foreground-style-policy real_crop_stats --composite-policy poisson_mixed --shadow-policy contact --pose-policy aabb_aspect_repair --box-scale-jitter 0.12 --min-class-geometry-samples 1 --per-class 20 --seed 29 --out-root data\synthetic\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_v1 --out-config configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml --preview-count 30 --clean
+rl python scripts\build_cashsnap_target_anchor_transplant.py --background-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --background-split train --geometry-manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --geometry-manifest-mode prefer --foreground-style-policy real_crop_stats --composite-policy poisson_mixed --shadow-policy contact --pose-policy aabb_aspect_repair --box-scale 1.06 --box-scale-jitter 0.04 --geometry-size-jitter 0.05 --position-jitter-fraction 0.012 --couple-background-geometry --min-class-geometry-samples 1 --per-class 20 --seed 31 --out-root data\synthetic\cashsnap_target_anchor_transplant_rep_gap_couplectx_v1 --out-config configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml --preview-count 30 --clean
 rl python scripts\probe_yolo_representation_domain_gap.py --model runs\cashsnap\fixed_step_target_anchor_transplant_latest_v1_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0\weights\best.pt --real-data data\cashsnap_v1\data.yaml --real-split test --synthetic-data configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml --synthetic-split train --out-dir runs\cashsnap\representation_gap_synthleader_rep_gap_inpaintctx_test_v1 --imgsz 416 --batch 8 --device 0 --max-per-class 10 --top-k 40 --clean
+rl python scripts\probe_yolo_representation_domain_gap.py --model runs\cashsnap\fixed_step_target_anchor_transplant_latest_v1_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0\weights\best.pt --real-data data\cashsnap_v1\data.yaml --real-split test --synthetic-data configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml --synthetic-split train --out-dir runs\cashsnap\representation_gap_synthleader_rep_gap_couplectx_test_v1 --imgsz 416 --batch 8 --device 0 --max-per-class 10 --top-k 40 --clean
 rl python scripts\build_synthetic_obligation_ledger.py --no-default-evidence --positive-error-review runs\cashsnap\positive_error_review_synthleader_real_test_v1\summary.json --background-fp runs\cashsnap\background_fp_synthleader_real_test_v1.json --visual-failure "representation_gap|real_test|Current synthetic leader remains highly domain-separable after class balancing." --json-out runs\cashsnap\synthetic_obligation_ledger_synthleader_rep_gap_v1.json --md-out runs\cashsnap\synthetic_obligation_ledger_synthleader_rep_gap_v1.md
 rl python scripts\run_yolo_fixed_step_probe.py --help
 rl python scripts\check_yolo_transfer_guardrails.py --help
