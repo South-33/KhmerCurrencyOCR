@@ -469,6 +469,18 @@ Targeted branch status:
   (`boundary=1.3669`, `color_step=0.0960`). Keep as leak-minimized diagnostic;
   do not prefer it over the non-USD-risk fallback unless label leakage becomes
   the dominant blocker in model probes.
+- Narrow USD_50/USD_100 fallback is the best current safety/signal compromise.
+  `sourcectx_usd50100fallback_metagated_strict_v1` keeps USD_20 source context
+  but forces USD_50/USD_100 to no-note fallback. Full-root strict audit drops to
+  `13/780` suspect images (`14` unmatched), audit-clean keeps `767`, and the
+  balanced `260` package passes dataset, exact inpaint metadata, and final
+  strict detector audits (`0/260`, `0` unmatched). Representation sits between
+  the two fallback extremes: layer22 domain accuracy is best of the current
+  safe fallback set (`0.8231`), but layer22 MMD is worse (`0.0442`) and early
+  layers are weaker than non-risk fallback. Edge audit is also rougher
+  (`boundary=1.3578`, `color_step=0.0938`). Prefer this branch when pre-filter
+  label cleanliness matters more; prefer non-risk fallback when late MMD/early
+  representation gap matters more. Neither is transfer proof.
 - Model-side status: real-transfer proof is still blocked by RAM headroom, not
   by data wiring. Full latest-baseline `416/b2` train-only probe failed at the
   RAM guard while scanning/training the `1,248` row baseline. A row-matched
@@ -706,6 +718,11 @@ Key configs:
 - `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usdriskfallback_metagated_strict_auditclean_v1_train.txt`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usdriskfallback_metagated_strict_auditclean_balanced20_puresynth_realval_v1.yaml`
 - `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usdriskfallback_metagated_strict_auditclean_balanced20_v1_train.txt`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_puresynth_realval_v1.yaml`
+- `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_v1_train.txt`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_puresynth_realval_v1.yaml`
+- `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_v1_train.txt`
 - `configs/synthetic_recipes/cashsnap_external_negative_banks_v1.json`
 - `configs/synthetic_recipes/cashsnap_webgl_recipe_catalog_v1.json`
 - `configs/synthetic_recipes/cashsnap_synthetic_governance_v1.json`
@@ -732,6 +749,7 @@ Key roots:
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_pad20_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_boxarea90_fallback_metagated_strict_v1/`
 - `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usdriskfallback_metagated_strict_v1/`
+- `data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_usd50100fallback_metagated_strict_v1/`
 - `data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/`
 - `data/processed/roboflow_khmer_us_currency_core13_bridge_v1/`
 - `data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/`
@@ -854,6 +872,15 @@ Key run artifacts:
 - `runs/cashsnap/visual_qa_rep_gap_sourcectx_usdriskfallback_metagated_strict_auditclean_balanced20_v1/per_class_sheet.jpg`
 - `runs/cashsnap/composite_edge_audit_rep_gap_sourcectx_usdriskfallback_metagated_strict_v1.json`
 - `runs/cashsnap/representation_gap_synthleader_rep_gap_sourcectx_usdriskfallback_metagated_strict_auditclean_balanced20_test_v1/summary.json`
+- `runs/cashsnap/dataset_check_rep_gap_sourcectx_usd50100fallback_metagated_strict_v1.json`
+- `runs/cashsnap/target_anchor_inpaint_metadata_rep_gap_sourcectx_usd50100fallback_metagated_strict_gate_v1.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_usd50100fallback_metagated_strict_strictcov50_v1.json`
+- `runs/cashsnap/dataset_check_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_v1.json`
+- `runs/cashsnap/target_anchor_inpaint_metadata_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_gate_v1.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_strictcov50_v1.json`
+- `runs/cashsnap/visual_qa_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_v1/per_class_sheet.jpg`
+- `runs/cashsnap/composite_edge_audit_rep_gap_sourcectx_usd50100fallback_metagated_strict_v1.json`
+- `runs/cashsnap/representation_gap_synthleader_rep_gap_sourcectx_usd50100fallback_metagated_strict_auditclean_balanced20_test_v1/summary.json`
 - `runs/cashsnap/dataset_check_target_anchor_latest_balanced20_v1.json`
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_sourcectx_strictclean_b20_b1_s150_i320_v1_preflight.json`
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_sourcectx_strictclean_b20_b1_s150_i320_v1_summary.json`
