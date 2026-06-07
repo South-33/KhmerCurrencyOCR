@@ -353,7 +353,10 @@ Targeted branch status:
 - Latest model-side retry: b8 `target_anchor_latest_yolo_b8_s150_ctxprobe_v1`
   trained the baseline from `yolo26n.pt`, but candidate inpaintctx hit the 95%
   RAM guard; b4 and b2/no-AMP retries also hit the guard during setup/scanning.
-  No fair model A/B exists for inpaintctx/couplectx yet in this RunLong session.
+  A train-only YAML helper avoided scanning the real val split during no-val
+  setup, but b8 inpaintctx still hit the RAM guard mid-epoch and wrote no
+  weights. No fair model A/B exists for inpaintctx/couplectx yet in this
+  RunLong session.
 - Do not promote either branch yet. Promote only after visual artifacts fall,
   representation separation stays lower, real positive recall improves, and
   empty-frame FPs do not regress.
@@ -609,6 +612,7 @@ Key run artifacts:
 Key scripts:
 - `scripts/build_cashsnap_target_anchor_transplant.py`
 - `scripts/build_yolo_inpainted_background_bank.py`
+- `scripts/materialize_yolo_trainonly_data_yaml.py`
 - `scripts/audit_synthetic_composite_edges.py`
 - `scripts/build_synthetic_obligation_ledger.py`
 - `scripts/build_webgl_hard_negative_dose_config.py`
@@ -645,6 +649,9 @@ Script notes:
 - `build_yolo_inpainted_background_bank.py` creates train-only empty-label
   inpainted canvases from labeled YOLO images; use `--max-mask-fraction` to
   reject full-frame erasures that make obvious scars.
+- `materialize_yolo_trainonly_data_yaml.py` rewrites `val`/`test` to `train`
+  for no-val training setup only. Evaluate with the original data YAML; do not
+  treat train-only YAML metrics as real transfer.
 
 ## Repo And Harness Rules
 
@@ -690,6 +697,7 @@ rl python scripts\audit_synthetic_composite_edges.py --help
 rl python scripts\probe_yolo_representation_domain_gap.py --model runs\cashsnap\fixed_step_target_anchor_transplant_latest_v1_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0\weights\best.pt --real-data data\cashsnap_v1\data.yaml --real-split test --synthetic-data configs\webgl_ablation\cashsnap_target_anchor_transplant_latest_puresynth_realval_v1.yaml --synthetic-split train --out-dir runs\cashsnap\representation_gap_synthleader_target_anchor_latest_test_v1 --imgsz 416 --batch 8 --device 0 --max-per-class 10 --top-k 40 --clean
 rl python scripts\mine_representation_gap_train_analogs.py --gap-summary runs\cashsnap\representation_gap_synthleader_target_anchor_latest_test_v1\summary.json --candidate-data data\cashsnap_v1\data.yaml --candidate-split train --out-dir runs\cashsnap\representation_gap_synthleader_train_analogs_v1 --batch 16 --device 0 --top-query 40 --per-query 4 --max-candidates-per-class 300 --clean
 rl python scripts\build_yolo_inpainted_background_bank.py --manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --out-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --suffix train --pad-fraction 0.08 --mask-dilate-px 5 --inpaint-radius 7 --max-mask-fraction 0.45 --clean
+rl python scripts\materialize_yolo_trainonly_data_yaml.py --data configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml --out .cache_runtime\ultralytics_data\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_trainonly_ctxprobe_v1.yaml
 rl python scripts\build_cashsnap_target_anchor_transplant.py --background-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --background-split train --geometry-manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --geometry-manifest-mode prefer --foreground-style-policy real_crop_stats --composite-policy poisson_mixed --shadow-policy contact --pose-policy aabb_aspect_repair --box-scale-jitter 0.12 --min-class-geometry-samples 1 --per-class 20 --seed 29 --out-root data\synthetic\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_v1 --out-config configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml --preview-count 30 --clean
 rl python scripts\build_cashsnap_target_anchor_transplant.py --background-root data\backgrounds\cashsnap_rep_gap_train_anchor_inpainted_filtered_v1 --background-split train --geometry-manifest runs\cashsnap\representation_gap_synthleader_train_analogs_v1\train_anchor_manifest.jsonl --geometry-manifest-mode prefer --foreground-style-policy real_crop_stats --composite-policy poisson_mixed --shadow-policy contact --pose-policy aabb_aspect_repair --box-scale 1.06 --box-scale-jitter 0.04 --geometry-size-jitter 0.05 --position-jitter-fraction 0.012 --couple-background-geometry --min-class-geometry-samples 1 --per-class 20 --seed 31 --out-root data\synthetic\cashsnap_target_anchor_transplant_rep_gap_couplectx_v1 --out-config configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_couplectx_puresynth_realval_v1.yaml --preview-count 30 --clean
 rl python scripts\probe_yolo_representation_domain_gap.py --model runs\cashsnap\fixed_step_target_anchor_transplant_latest_v1_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0\weights\best.pt --real-data data\cashsnap_v1\data.yaml --real-split test --synthetic-data configs\webgl_ablation\cashsnap_target_anchor_transplant_rep_gap_inpaintctx_puresynth_realval_v1.yaml --synthetic-split train --out-dir runs\cashsnap\representation_gap_synthleader_rep_gap_inpaintctx_test_v1 --imgsz 416 --batch 8 --device 0 --max-per-class 10 --top-k 40 --clean
