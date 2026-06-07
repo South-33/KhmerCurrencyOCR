@@ -578,6 +578,12 @@ Multi-instance replacement diagnostic status:
   (`runs/cashsnap/unlabeled_prediction_audit_multi_instance_replacement_context_phone_balanced_poissonedge_inpainttone_scale100_notiny_strictcov50_v1.json`).
   The suspect is a broad low-confidence `KHR_50000` prediction spanning two
   labeled notes, not an obvious erased-source remnant.
+- Real-clean representation probe is also bounded but still negative:
+  `runs/cashsnap/representation_gap_realclean_multi_instance_phone_balanced_poissonedge_notiny_test_v1/summary.json`
+  selected `80` class-balanced rows and reports domain accuracy
+  `0.850/0.912/0.887` at layers `0/8/22` (`MMD2` at layer `22` is `0.0853`).
+  This is better than older real-clean source Poisson at mid/late layers, but
+  still far above a trainable/promotion signal.
 - Decision: keep multi-instance replacement as a mechanism branch, not a
   trainable package. Next work should add source-context quality gates and
   improve edge-weighted blending before any detector audit/model proof.
