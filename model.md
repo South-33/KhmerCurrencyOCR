@@ -441,6 +441,15 @@ Targeted branch status:
   plus `50` backgrounds). Validation on this smaller real slice still tripped
   the RAM guard before metrics at current headroom (`92.2%` RAM, `1.19GB`
   free), but the config is ready for the next lower-memory window.
+- Lightweight streaming real eval now bypasses the heavy Ultralytics validator:
+  `scripts/eval_yolo_lightweight_real_recall.py` ran on the bounded real-test
+  slice for the `320/b1/150` row-matched weights. Result is negative/too weak:
+  at `conf=0.05` both models have `0.0` recall; sourcectx adds `1/50`
+  background FP while baseline has `0/50`. At `conf=0.01` both still have
+  `0.0` recall and `2/50` background FPs. At `conf=0.001`, baseline recall is
+  `0.7615` and sourcectx `0.7385`, but both fire on all `50/50` backgrounds
+  with precision about `0.0018`. Read: the low-res short probe is undertrained
+  and uncalibrated; it does not prove strict sourcectx transfer.
 - Fixed-step model A/B is not completed. b64/b32/b16/b8 attempts hit the 95%
   RAM guard while RunLong/Codex were resident. Also, one failed b64 attempt
   reused the old leader run name with the wrapper's real-clean default before
@@ -768,6 +777,12 @@ Key run artifacts:
 - `runs/cashsnap/system_profile_after_i320_train_before_realtest_guard_v1.json`
 - `runs/cashsnap/system_profile_after_sourceclean_diagnostic_v1.json`
 - `runs/cashsnap/system_profile_after_bounded_eval_guard_v1.json`
+- `runs/cashsnap/light_eval_target_anchor_latest_balanced20_realtest_bal10_bg50_i320_conf005_iou50_v1.json`
+- `runs/cashsnap/light_eval_sourcectx_strictclean_b20_realtest_bal10_bg50_i320_conf005_iou50_v1.json`
+- `runs/cashsnap/light_eval_target_anchor_latest_balanced20_realtest_bal10_bg50_i320_conf01_iou50_v1.json`
+- `runs/cashsnap/light_eval_sourcectx_strictclean_b20_realtest_bal10_bg50_i320_conf01_iou50_v1.json`
+- `runs/cashsnap/light_eval_target_anchor_latest_balanced20_realtest_bal10_bg50_i320_conf001_iou50_v1.json`
+- `runs/cashsnap/light_eval_sourcectx_strictclean_b20_realtest_bal10_bg50_i320_conf001_iou50_v1.json`
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`
@@ -791,6 +806,7 @@ Key scripts:
 - `scripts/build_yolo_split_visual_qa_sheet.py`
 - `scripts/filter_jsonl_manifest_by_unlabeled_audit.py`
 - `scripts/materialize_yolo_split_balanced_eval_subset.py`
+- `scripts/eval_yolo_lightweight_real_recall.py`
 - `scripts/audit_synthetic_composite_edges.py`
 - `scripts/build_synthetic_obligation_ledger.py`
 - `scripts/build_webgl_hard_negative_dose_config.py`
