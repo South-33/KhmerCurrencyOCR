@@ -599,6 +599,15 @@ Targeted branch status:
   `+0.114`, saturation std `-0.093`, and box area `+0.174`. Read: exposure is
   now teacher-like enough for a bounded dose probe; color variation still needs
   another realism pass if the model probe remains suppressive.
+- Dark full-frame dose probes proved that the better-looking correction is
+  still too semantically strong as zero-label training. Dose-4 self-eval fails
+  (`0.003629` vs `0.007368`, delta `-0.003739`, worst `KHR_5000 -0.015747`),
+  and dose-1 also fails (`0.003702`, delta `-0.003666`, worst `KHR_5000
+  -0.015564`). Do not scale this dark full-frame recipe. The next synthetic
+  negative should keep the mined-FP camera/exposure statistics but soften the
+  target-like semantics: partial/off-center unknown notes, less dominant
+  full-frame banknote texture, and more receipts/cards/patterned paper/foreign
+  clutter, with positive-preserving guardrails before any bounded real run.
 - Earlier non-fallback fixed-step A/B attempts remain incomplete:
   b64/b32/b16/b8 runs hit the 95% RAM guard while RunLong/Codex were resident.
   Also, one failed b64 attempt reused the old leader run name with the
@@ -754,9 +763,11 @@ Current state:
   and less color-varied than mined real FPs, so improve exposure/color/texture
   before scaling this axis.
 - A dark full-frame WebGL correction now materially closes that audit gap
-  without using real mined negatives in training. It is ready for a tiny bounded
-  dose probe; if it still suppresses positives, keep improving color/texture
-  realism rather than increasing dose.
+  without using real mined negatives in training, but tiny dose-1 and dose-4
+  fixed-step probes both fail synthetic self-eval. Treat it as an audit
+  calibration clue, not a trainable recipe. The next move is to decouple dark
+  mined-FP camera statistics from dominant target-like full-frame note
+  semantics.
 
 Next realistic bank should include reviewed foreign/unknown currencies,
 target-lookalike partial notes, receipts, cards, patterned paper, and retail
@@ -1126,6 +1137,12 @@ Key run artifacts:
 - `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglfullframe8_b20_b1_s1000_i320_v1_summary.json`
 - `runs/cashsnap/light_eval_alpha_geoscale205_webglfullframe4_b20_s1000_realtest_bal10_bg50_i320_conf01_iou50_v2.json`
 - `runs/cashsnap/light_eval_alpha_geoscale205_webglfullframe8_b20_s1000_realtest_bal10_bg50_i320_conf01_iou50_v2.json`
+- `data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/`
+- `runs/cashsnap/negative_fp_visual_gap_alpha_geoscale_mined_vs_webglfullframedark_v1.json`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglfullframedark1_bal20_probe_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglfullframedark4_bal20_probe_puresynth_realval_v1.yaml`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglfullframedark1_b20_b1_s1000_i320_v1_summary.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_webglfullframedark4_b20_b1_s1000_i320_v1_summary.json`
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`
@@ -1182,7 +1199,8 @@ Key scripts:
 
 Script notes:
 - `build_webgl_hard_negative_dose_config.py` accepts directory train splits as
-  well as `.txt` lists and supports `--filename-contains`.
+  well as `.txt` lists and supports `--filename-contains`,
+  `--intended-use`, and `--promotion-rule`.
 - `build_fp_mined_negative_dose_config.py` accepts directory train splits as
   well as `.txt` lists and supports `--selection top|spread|random` for
   negative-dose shape probes.
@@ -1191,7 +1209,9 @@ Script notes:
   pressure and is registered as `webgl_unknown_currency_fullframe_negative_v1`.
 - WebGL `--negative-prop-policy unknown_currency_fullframe_dark_v1` plus
   `--camera-isp-policy mined_fp_dark_v1` is the teacher-aligned dark correction
-  recipe `webgl_unknown_currency_fullframe_dark_negative_v1`.
+  recipe `webgl_unknown_currency_fullframe_dark_negative_v1`; it matches mined
+  FP visual stats much better but fails dose-1/4 fixed-step self-eval, so use it
+  as a teacher for softer dark near-negatives rather than as a scaled recipe.
 - `audit_negative_fp_visual_gap.py` compares mined real background-FP review
   manifests with synthetic negative roots using image/crop visual stats; use it
   before spending GPU on a new zero-label negative recipe.
