@@ -360,6 +360,13 @@ Targeted branch status:
   but inpaint bands remain. Representation is still strong (`layer22=0.7769`,
   `layer0=0.6538`), so source-context replacement is now the best mechanism
   direction, with label-safety/erase quality as the blocker.
+- Detector label-safety audit now quantifies that blocker. Using the current
+  real-clean detector at `conf=0.05` and unmatched IoU `<0.10`, inpaint-context
+  has `6/260` suspect images and `8` unmatched predictions, while
+  sourcectx-singlebox has `23/260` suspect images and `26` unmatched
+  predictions. The representation win is partly buying real-note leakage or
+  detector-visible source remnants, so source-context must be filtered,
+  re-erased, or gated before it can become training data.
 - Fixed-step model A/B is not completed. b64/b32/b16/b8 attempts hit the 95%
   RAM guard while RunLong/Codex were resident. Also, one failed b64 attempt
   reused the old leader run name with the wrapper's real-clean default before
@@ -373,9 +380,12 @@ Targeted branch status:
   setup, but b8 inpaintctx still hit the RAM guard mid-epoch and wrote no
   weights. No fair model A/B exists for inpaintctx/couplectx yet in this
   RunLong session.
-- Do not promote either branch yet. Promote only after visual artifacts fall,
-  representation separation stays lower, real positive recall improves, and
-  empty-frame FPs do not regress.
+- Do not promote either branch yet. Next best synth-data move is a
+  label-safety loop around source-context replacement: exclude audit-suspect
+  composites or erase unmatched detector regions, then rerun representation and
+  visual/edge gates. Promote only after visual artifacts fall, unmatched-source
+  detections drop, representation separation stays lower, real positive recall
+  improves, and empty-frame FPs do not regress.
 
 Success signal is not a prettier sheet. A real step-change branch should reduce
 early-layer domain separability, recover broad real positive recall, and avoid
@@ -632,6 +642,10 @@ Key run artifacts:
 - `runs/cashsnap/visual_qa_rep_gap_sourcectx_singlebox_v1/`
 - `runs/cashsnap/composite_edge_audit_rep_gap_sourcectx_singlebox_v1.json`
 - `runs/cashsnap/representation_gap_synthleader_rep_gap_sourcectx_singlebox_test_v1/summary.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_inpaintctx_v1.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_inpaintctx_v1.jpg`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_singlebox_v1.json`
+- `runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_singlebox_v1.jpg`
 - `runs/cashsnap/fixed_step_target_anchor_latest_vs_rep_gap_inpaintctx_b8_s150_ctxprobe_v1_preflight.json`
 - `runs/cashsnap/system_profile_after_inpaintctx_b32_guard.json`
 - `runs/cashsnap/system_profile_after_b8_inpaintctx_guard_v1.json`
@@ -656,6 +670,7 @@ Key scripts:
 - `scripts/run_sd_turbo_img2img_refiner.py`
 - `scripts/probe_yolo_representation_domain_gap.py`
 - `scripts/mine_representation_gap_train_analogs.py`
+- `scripts/audit_yolo_unlabeled_predictions.py`
 - `scripts/run_yolo_fixed_step_probe.py`
 - `scripts/probe_yolo_background_false_positives.py`
 - `scripts/check_yolo_transfer_guardrails.py`
