@@ -772,7 +772,14 @@ def apply_foreground_style(
     return out
 
 
-def tone_match_note(note: Image.Image, background_patch: Image.Image, rng: random.Random) -> Image.Image:
+def tone_match_note(
+    note: Image.Image,
+    background_patch: Image.Image,
+    rng: random.Random,
+    tone_match_policy: str,
+) -> Image.Image:
+    if tone_match_policy == "none":
+        return note
     note_arr = np.asarray(note).astype(np.float32)
     alpha = note_arr[:, :, 3] > 16
     if not alpha.any():
@@ -786,9 +793,20 @@ def tone_match_note(note: Image.Image, background_patch: Image.Image, rng: rando
     note_pixels = note_rgb[alpha]
     note_mean = note_pixels.mean(axis=0)
     note_std = np.maximum(note_pixels.std(axis=0), 1.0)
-    target_mean = 0.58 * note_mean + 0.42 * (patch_mean + rng.uniform(-18, 18))
-    target_std = np.clip(0.62 * note_std + 0.38 * np.maximum(patch_std, 12.0), 18.0, 95.0)
-    adjusted = (note_rgb - note_mean) * (target_std / note_std) * rng.uniform(0.82, 1.16) + target_mean
+    if tone_match_policy == "preserve_luma":
+        patch_target = patch_mean + rng.uniform(-10, 10)
+        target_mean = 0.80 * note_mean + 0.20 * patch_target
+        note_luma = float(np.dot(note_mean, [0.2126, 0.7152, 0.0722]))
+        target_luma = float(np.dot(target_mean, [0.2126, 0.7152, 0.0722]))
+        if target_luma < note_luma - 4.0:
+            target_mean += note_luma - 4.0 - target_luma
+        target_std = np.clip(0.78 * note_std + 0.22 * np.maximum(patch_std, 12.0), 20.0, 105.0)
+        contrast_gain = rng.uniform(0.92, 1.10)
+    else:
+        target_mean = 0.58 * note_mean + 0.42 * (patch_mean + rng.uniform(-18, 18))
+        target_std = np.clip(0.62 * note_std + 0.38 * np.maximum(patch_std, 12.0), 18.0, 95.0)
+        contrast_gain = rng.uniform(0.82, 1.16)
+    adjusted = (note_rgb - note_mean) * (target_std / note_std) * contrast_gain + target_mean
     note_arr[:, :, :3] = np.clip(adjusted, 0, 255)
     return Image.fromarray(note_arr.astype(np.uint8), "RGBA")
 
@@ -935,6 +953,32 @@ def alpha_composite(base_rgb: np.ndarray, layer_rgba: np.ndarray) -> np.ndarray:
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
+def rgb_luma(rgb: np.ndarray) -> np.ndarray:
+    arr = rgb.astype(np.float32)
+    return arr[:, :, 0] * 0.2126 + arr[:, :, 1] * 0.7152 + arr[:, :, 2] * 0.0722
+
+
+def luma_guard_blend(rendered_rgb: np.ndarray, reference_rgb: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    if not mask.any():
+        return rendered_rgb
+    kernel = np.ones((7, 7), np.uint8)
+    guard_mask = cv2.erode(mask.astype(np.uint8), kernel, iterations=1).astype(bool)
+    if not guard_mask.any():
+        guard_mask = mask
+    rendered = rendered_rgb.astype(np.float32).copy()
+    reference = reference_rgb.astype(np.float32)
+    rendered_luma = rgb_luma(rendered_rgb)
+    reference_luma = rgb_luma(reference_rgb)
+    dark_delta = np.clip(reference_luma - rendered_luma - 8.0, 0.0, 40.0) / 40.0
+    mix = np.zeros_like(rendered_luma, dtype=np.float32)
+    mix[guard_mask] = np.minimum(dark_delta[guard_mask] * 0.54, 0.42)
+    if not np.any(mix > 0):
+        return rendered_rgb
+    mix3 = mix[:, :, None]
+    guarded = rendered * (1.0 - mix3) + reference * mix3
+    return np.clip(guarded, 0, 255).astype(np.uint8)
+
+
 def make_shadow(alpha: np.ndarray, rng: random.Random) -> np.ndarray:
     alpha_image = Image.fromarray(alpha, "L").filter(ImageFilter.GaussianBlur(radius=rng.uniform(4.0, 14.0)))
     shadow = np.zeros((alpha.shape[0], alpha.shape[1], 4), dtype=np.uint8)
@@ -1010,7 +1054,9 @@ def poisson_composite(
     base_roi = base_rgb[roi_y1:roi_y2, roi_x1:roi_x2]
     layer_roi = layer_rgba[roi_y1:roi_y2, roi_x1:roi_x2]
     mask_roi = mask[roi_y1:roi_y2, roi_x1:roi_x2]
-    flag = cv2.MIXED_CLONE if composite_policy == "poisson_mixed" else cv2.NORMAL_CLONE
+    use_luma_guard = composite_policy.endswith("_lumaguard")
+    clone_policy = composite_policy.removesuffix("_lumaguard")
+    flag = cv2.MIXED_CLONE if clone_policy == "poisson_mixed" else cv2.NORMAL_CLONE
     try:
         cloned_roi_bgr = cv2.seamlessClone(
             cv2.cvtColor(source_roi, cv2.COLOR_RGB2BGR),
@@ -1023,16 +1069,18 @@ def poisson_composite(
         return alpha_composite(base_rgb, layer_rgba)
     cloned_roi_rgb = cv2.cvtColor(cloned_roi_bgr, cv2.COLOR_BGR2RGB)
     direct_roi_rgb = alpha_composite(base_roi, layer_roi)
-    strength = rng.uniform(0.62, 0.86)
+    strength = rng.uniform(0.58, 0.78) if use_luma_guard else rng.uniform(0.62, 0.86)
     blended = np.clip(
         cloned_roi_rgb.astype(np.float32) * strength + direct_roi_rgb.astype(np.float32) * (1.0 - strength),
         0,
         255,
-    )
+    ).astype(np.uint8)
+    if use_luma_guard:
+        blended = luma_guard_blend(blended, direct_roi_rgb, mask_roi > 0)
     out = base_rgb.copy()
     out[roi_y1:roi_y2, roi_x1:roi_x2] = cloned_roi_rgb
     roi_out = out[roi_y1:roi_y2, roi_x1:roi_x2]
-    roi_out[mask_roi > 0] = blended[mask_roi > 0].astype(np.uint8)
+    roi_out[mask_roi > 0] = blended[mask_roi > 0]
     out[roi_y1:roi_y2, roi_x1:roi_x2] = roi_out
     return out
 
@@ -1088,6 +1136,7 @@ def render_one(
     geometry_size_jitter: float,
     position_jitter_fraction: float,
     warp_alpha_feather_px: float,
+    tone_match_policy: str,
     inpaint_under_foreground_px: int,
     inpaint_under_foreground_radius: float,
     inpaint_source_box_pad_fraction: float | None,
@@ -1154,7 +1203,7 @@ def render_one(
     x2 = min(width, int(np.ceil(quad[:, 0].max())) + 12)
     y2 = min(height, int(np.ceil(quad[:, 1].max())) + 12)
     patch = base.crop((x1, y1, max(x1 + 1, x2), max(y1 + 1, y2)))
-    note = tone_match_note(note, patch, rng)
+    note = tone_match_note(note, patch, rng, tone_match_policy)
     warped = feather_warped_alpha(warp_rgba(note, quad, (width, height)), warp_alpha_feather_px)
     alpha = warped[:, :, 3]
     if alpha.max() <= 16:
@@ -1228,6 +1277,7 @@ def render_one(
         "geometry_size_jitter": round(float(geometry_size_jitter), 4),
         "position_jitter_fraction": round(float(position_jitter_fraction), 4),
         "warp_alpha_feather_px": round(float(warp_alpha_feather_px), 4),
+        "tone_match_policy": tone_match_policy,
         "inpaint_under_foreground_px": int(inpaint_under_foreground_px),
         "inpaint_under_foreground_radius": round(float(inpaint_under_foreground_radius), 4),
         "inpaint_source_box_pad_fraction": (
@@ -1398,8 +1448,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--composite-policy",
         default="alpha",
-        choices=("alpha", "poisson_mixed", "poisson_normal"),
+        choices=("alpha", "poisson_mixed", "poisson_normal", "poisson_mixed_lumaguard"),
         help="Foreground/background blending policy. alpha preserves historical target-anchor behavior.",
+    )
+    parser.add_argument(
+        "--tone-match-policy",
+        default="background",
+        choices=("background", "preserve_luma", "none"),
+        help="Controls foreground tone matching against the local background patch before compositing.",
     )
     parser.add_argument(
         "--shadow-policy",
@@ -1683,6 +1739,7 @@ def main() -> None:
             args.geometry_size_jitter,
             args.position_jitter_fraction,
             args.warp_alpha_feather_px,
+            args.tone_match_policy,
             args.inpaint_under_foreground_px,
             args.inpaint_under_foreground_radius,
             args.inpaint_source_box_pad_fraction,
@@ -1782,6 +1839,7 @@ def main() -> None:
         "geometry_size_jitter": args.geometry_size_jitter,
         "position_jitter_fraction": args.position_jitter_fraction,
         "warp_alpha_feather_px": args.warp_alpha_feather_px,
+        "tone_match_policy": args.tone_match_policy,
         "inpaint_under_foreground_px": args.inpaint_under_foreground_px,
         "inpaint_under_foreground_radius": args.inpaint_under_foreground_radius,
         "inpaint_source_box_pad_fraction": args.inpaint_source_box_pad_fraction,

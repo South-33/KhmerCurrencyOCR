@@ -48,7 +48,8 @@ Stop iterating small negative doses around the same Poisson/contact candidate.
 The best next synth-data bet is no longer "prettier background/refiner" alone.
 It is an obligation-driven sim-to-real rebuild:
 
-1. Keep Poisson/contact as the current image-formation base.
+1. Keep Poisson/contact as the current low-edge image-formation base, but use
+   alpha/contact as a diagnostic contrast when luma/geometry proxies improve.
 2. Drive new recipes from real failure clusters and detector-representation
    gaps, not from renderer knobs that only improve proxy stats.
 3. Add a bounded label-preserving learned/AI refiner only when it reduces the
@@ -534,6 +535,27 @@ Targeted branch status:
   (`73 -> 19`) and background-hit families, but still gets only one true
   positive. Next synth work should explicitly train/gate object extent and
   empty-background rejection, not just push more realistic positive context.
+- Geometry-scaled target-anchor probes show that extent/luma proxy gains are
+  real but still insufficient. `geoscale205_minshort190` repaired candidate
+  object size (p05 short side about `130-138px` at 416; aggregate geometry
+  area delta roughly `-0.21`) but Poisson/contact crops stayed too dark
+  (`luma_mean -0.105`). Removing `real_crop_stats` did not solve it
+  (`luma_mean -0.098`, crop separator AUC `0.929`). A first
+  `poisson_mixed_lumaguard` improved luma (`-0.050`) but made pasted edges
+  obvious (`edge_color_step_mean 0.214`); the tuned guard was still an
+  edge/proxy compromise (`luma_mean -0.087`, edge `0.131`).
+- Best geometry/luma diagnostic from this pass is
+  `alpha_contact_geoscale205_minshort190_bal20`: crop luma is near the older
+  target-anchor leader (`-0.031` vs `-0.025`), crop separator improves to
+  `0.859`, box separator to `0.792`, and geometry aggregate improves to
+  `box_area -0.194`, `width -0.148`, `height -0.168`, `aspect -0.004`.
+  However, fixed-step `320/b1/1000` synthetic self-eval is slightly down
+  (`0.007190` vs baseline `0.007368`, delta `-0.000178`). Bounded real eval:
+  `conf=0.05` recall `0.0`, bg FP `0/50`; `conf=0.01` recall `0.0154`
+  (`2/130` GT), precision `0.0144`, bg FP `7/50`; `conf=0.001` recall
+  `0.7462`, precision `0.0018`, bg FP `50/50`. Do not promote it; keep it as
+  evidence that scale/tone helps a little, while calibration/full-frame FP
+  rejection remains the blocker.
 - Earlier non-fallback fixed-step A/B attempts remain incomplete:
   b64/b32/b16/b8 runs hit the 95% RAM guard while RunLong/Codex were resident.
   Also, one failed b64 attempt reused the old leader run name with the
@@ -784,6 +806,8 @@ Key configs:
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_realfgstyle_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_target_anchor_latest_balanced20_puresynth_realval_v1.yaml`
 - `configs/generated_lists/webgl_ablation/cashsnap_target_anchor_latest_balanced20_v1_train.txt`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml`
+- `configs/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml`
 - `configs/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1.yaml`
 - `configs/generated_lists/webgl_ablation/cashsnap_v1_realtest_balanced10_bg50_v1_test.txt`
 - `configs/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_analogs_puresynth_realval_v1.yaml`
@@ -1021,6 +1045,13 @@ Key run artifacts:
 - `runs/cashsnap/light_eval_diag_target_anchor_latest_bal20_s1000_realtest_bal10_bg50_i320_conf001_iou50_v2.json`
 - `runs/cashsnap/light_eval_diag_sourcectx_usd50100fallback_b20_s1000_realtest_bal10_bg50_i320_conf001_iou50_v2.json`
 - `runs/cashsnap/light_eval_diag_sourcectx_boxarea90fallback_b20_s1000_realtest_bal10_bg50_i320_conf001_iou50_v2.json`
+- `runs/cashsnap/cross_visual_gap_realtrain_pos_vs_target_anchor_alpha_contact_geoscale205_minshort190_bal20_probe_v1.json`
+- `runs/cashsnap/geometry_targets_cross_realtrain_pos_vs_target_anchor_alpha_contact_geoscale205_minshort190_bal20_probe_v1.json`
+- `runs/cashsnap/domain_separator_realtrain_pos_vs_target_anchor_alpha_contact_geoscale205_minshort190_bal20_probe_v1.json`
+- `runs/cashsnap/fixed_step_target_anchor_latest_bal20_vs_alpha_geoscale205_minshort190_b20_b1_s1000_i320_v1_summary.json`
+- `runs/cashsnap/light_eval_alpha_geoscale205_minshort190_b20_s1000_realtest_bal10_bg50_i320_conf005_iou50_v2.json`
+- `runs/cashsnap/light_eval_alpha_geoscale205_minshort190_b20_s1000_realtest_bal10_bg50_i320_conf01_iou50_v2.json`
+- `runs/cashsnap/light_eval_alpha_geoscale205_minshort190_b20_s1000_realtest_bal10_bg50_i320_conf001_iou50_v2.json`
 - `runs/cashsnap/dataset_check_rep_gap_detectorerasectx_v1.json`
 - `runs/cashsnap/unlabeled_prediction_audit_rep_gap_detectorerasectx_strictcov50_v1.json`
 - `runs/cashsnap/visual_qa_rep_gap_detectorerasectx_v1/per_class_sheet.jpg`

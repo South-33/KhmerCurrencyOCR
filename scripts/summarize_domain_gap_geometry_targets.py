@@ -11,6 +11,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 BOX_METRICS = ["box_area", "box_width", "box_height", "box_aspect"]
+CROSS_DATASET_BOX_LIMITS = {
+    "box_area": 0.25,
+    "box_width": 0.35,
+    "box_height": 0.35,
+    "box_aspect": 0.20,
+}
+CROSS_DATASET_CLASS_LIMITS = {
+    "box_area": 0.30,
+    "box_width": 0.40,
+    "box_height": 0.40,
+    "box_aspect": 0.25,
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -64,7 +76,15 @@ def float_value(value: Any, default: float = 0.0) -> float:
 
 
 def source_family(row: dict[str, str]) -> str:
-    return row.get("source_family", "").strip()
+    explicit = row.get("source_family", "").strip()
+    if explicit:
+        return explicit
+    family = row.get("family", "").strip()
+    if family == "reference":
+        return "real"
+    if family == "candidate":
+        return "synthetic"
+    return family
 
 
 def is_real(row: dict[str, str]) -> bool:
@@ -98,6 +118,8 @@ def gate_limits(payload: dict[str, Any]) -> tuple[dict[str, float], dict[str, fl
     limits = gate.get("limits", {}) if isinstance(gate, dict) else {}
     box_limits = limits.get("box", {}) if isinstance(limits, dict) else {}
     class_limits = limits.get("class_box", {}) if isinstance(limits, dict) else {}
+    if not box_limits and str(payload.get("schema", "")).startswith("cashsnap_yolo_cross_dataset_visual_gap"):
+        return (dict(CROSS_DATASET_BOX_LIMITS), dict(CROSS_DATASET_CLASS_LIMITS))
     return (
         {metric: float_value(value) for metric, value in box_limits.items()},
         {metric: float_value(value) for metric, value in class_limits.items()},
@@ -404,14 +426,27 @@ def main() -> None:
     )[: max(0, args.top_groups)]
     image_rows_out = image_targets(synthetic_boxes)[: max(0, args.top_images)]
     gate = payload_json.get("domain_gap_gate", {})
+    cross_dataset = str(payload_json.get("schema", "")).startswith("cashsnap_yolo_cross_dataset_visual_gap")
     report = {
         "schema": "cashsnap_domain_gap_geometry_targets_v1",
         "generated_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "domain_gap_json": repo_path(args.domain_gap_json),
         "box_csv": repo_path(args.box_csv),
         "image_csv": repo_path(args.image_csv) if args.image_csv else "",
-        "gate_status": "pass" if isinstance(gate, dict) and gate.get("passed") else "blocked",
-        "gate_preset": gate.get("limits", {}).get("preset", "") if isinstance(gate, dict) else "",
+        "gate_status": (
+            "cross_dataset_targets"
+            if cross_dataset
+            else "pass"
+            if isinstance(gate, dict) and gate.get("passed")
+            else "blocked"
+        ),
+        "gate_preset": (
+            "cross_dataset_geometry_v1"
+            if cross_dataset
+            else gate.get("limits", {}).get("preset", "")
+            if isinstance(gate, dict)
+            else ""
+        ),
         "aggregate": clean_row(aggregate),
         "source_group_targets": [clean_row(row) for row in group_rows_out],
         "class_targets": [clean_row(row) for row in class_rows],
