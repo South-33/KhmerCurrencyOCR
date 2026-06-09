@@ -1,0 +1,62 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_single_replacement_context_phone_sameclass_reuse_minshort80_bal96_unmatched17filtered_probe_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+nc: 13
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_synthetic_policy:
+  generator: build_cashsnap_multi_instance_replacement.py
+  status: diagnostic_only
+  reason: Real train scene replacement probe; not trainable until source-remnant audit,
+    representation gap, and real-transfer probes pass.
+cashsnap_policy:
+  unlabeled_audit_filter:
+    source_data: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_single_replacement_context_phone_sameclass_reuse_minshort80_bal96_probe_puresynth_realval_v1.yaml
+    split: train
+    list: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_single_replacement_context_phone_sameclass_reuse_minshort80_bal96_unmatched17filtered_probe_v1_train.txt
+    path_mode: repo-root
+    val_override: data/cashsnap_v1/images/val
+    test_override: data/cashsnap_v1/images/test
+    min_unmatched_count: 1
+    input_images: 1248
+    kept_images: 1231
+    removed_images: 17
+    removed_class_image_counts:
+      0: 4
+      1: 12
+      11: 1
+    kept_class_image_counts:
+      0: 92
+      1: 84
+      2: 96
+      3: 96
+      4: 96
+      5: 96
+      6: 96
+      7: 96
+      8: 96
+      9: 96
+      10: 96
+      11: 95
+      12: 96
+    audits:
+    - path: runs/cashsnap/unmatched_teacher_predictions_single_replacement_sameclass_reuse_minshort80_bal96_conf005_v1.json
+      schema: cashsnap_yolo_unlabeled_prediction_audit_v1
+      conf: 0.05
+      match_iou: 0.1
+      images: 1248
+      suspect_records: 17
+      excluded_records: 17

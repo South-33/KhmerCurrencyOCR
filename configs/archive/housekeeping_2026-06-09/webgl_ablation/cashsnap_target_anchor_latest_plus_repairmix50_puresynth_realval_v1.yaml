@@ -1,0 +1,29 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_latest_plus_repairmix50_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth target-anchor latest-design plus WebGL repair balanced-exposure
+    fusion probe
+  phase: target-domain anchor / WebGL class-cue fusion regime probe
+  promotion_rule: reject unless it beats target-anchor latest or preserves its aggregate
+    while reducing repair-relative per-class drops
+  target_anchor_rows: 1248
+  repair_list: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_hardnegold8_topdownsupport10_unknownsoftfp3_repair_khr500_usd10_topdown_v1_train.txt
+  repair_unique_rows: 210
+  repair_repeat: 6
+  total_rows: 2508

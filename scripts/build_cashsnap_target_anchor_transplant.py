@@ -1567,8 +1567,11 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Reject/retry rows whose source box is poorly covered by the rendered note; <=0 disables.",
     )
-    parser.add_argument("--out-root", default="data/synthetic/cashsnap_target_anchor_transplant_mvp_v1")
-    parser.add_argument("--out-config", default="configs/webgl_ablation/cashsnap_target_anchor_transplant_mvp_puresynth_realval_v1.yaml")
+    parser.add_argument("--out-root", default="data/synthetic/cashsnap_target_anchor_transplant_generated_probe_v1")
+    parser.add_argument(
+        "--out-config",
+        default="configs/webgl_ablation/cashsnap_target_anchor_transplant_generated_probe_puresynth_realval_v1.yaml",
+    )
     parser.add_argument("--per-class", type=int, default=96, help="Generated train positives per class.")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--clean", action="store_true")

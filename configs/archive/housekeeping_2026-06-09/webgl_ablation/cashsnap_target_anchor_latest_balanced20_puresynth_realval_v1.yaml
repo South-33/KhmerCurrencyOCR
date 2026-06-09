@@ -1,0 +1,92 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_latest_balanced20_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_latest_puresynth_realval_v1.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes: []
+cashsnap_subset_policy:
+  per_class_real_target: 20
+  background_target: 0
+  include_all_target_images: false
+  always_max_per_class: null
+  oversample_min_per_class: null
+  oversample_added_images: 0
+  oversample_trigger_class_images:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  always_included_images: 0
+  always_skipped_by_class_cap: 0
+  target_excluded_images: 0
+  selected_unique_images: 260
+  selected_images: 260
+  selected_backgrounds: 0
+  selected_target_backgrounds: 0
+  selected_class_images:
+    USD_1: 20
+    USD_5: 20
+    USD_10: 20
+    USD_20: 20
+    USD_50: 20
+    USD_100: 20
+    KHR_500: 20
+    KHR_1000: 20
+    KHR_2000: 20
+    KHR_5000: 20
+    KHR_10000: 20
+    KHR_20000: 20
+    KHR_50000: 20
+  selected_target_class_images:
+    USD_1: 20
+    USD_5: 20
+    USD_10: 20
+    USD_20: 20
+    USD_50: 20
+    USD_100: 20
+    KHR_500: 20
+    KHR_1000: 20
+    KHR_2000: 20
+    KHR_5000: 20
+    KHR_10000: 20
+    KHR_20000: 20
+    KHR_50000: 20
+  selected_always_class_images:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0

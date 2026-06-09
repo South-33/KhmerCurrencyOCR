@@ -1,0 +1,31 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_khr20000boost249_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  synthetic_train:
+    - data/synthetic/cashsnap_webgl_clean_base_topdown_768x640_handled_probe_v2
+    - data/synthetic/cashsnap_webgl_clean_base_square_classdiverse_postproc_geometry_selected96_v2
+    - data/synthetic/cashsnap_webgl_clean_base_topdown_768x640_khr20000_boost_probe_v1
+  filtered_train_list: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_khr20000boost249_v1_train.txt
+  real_val: data/cashsnap_v1/images/val
+  real_test: data/cashsnap_v1/images/test
+cashsnap_policy:
+  intended_use: pure-synth clean visible-note TSTR probe adding a targeted 768x640 KHR_20000 boost root to the best filtered blend
+  phase: protected-class clean single-note curriculum repair before overlap/fan/hand/HDRI curricula
+  promotion_rule: reject unless the KHR_20000 boost improves protected KHR_20000 without losing the filtered blend full-test aggregate
+  known_limit: 13-class operational subset, intentionally not full 21-class USD/KHR scope

@@ -1,0 +1,86 @@
+{
+  "name": "cashsnap_three_stage_strictbest_trueempty_synthreal24_denom_reclassifier_stack",
+  "status": "diagnostic_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/fixed_step_scaled_foreignhardneg6_from_yolo26n_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps1000_seed0/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false
+  },
+  "fragment_gate": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_strictbest_current_v1_e4_pre_lr3e4_b64w2/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "classes": ["reject", "target"],
+    "reject_class": "reject",
+    "reject_min_confidence": 0.99,
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "denomination_reclassifier": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_denoms13_strictbest_usdweakalpha317_synthtrain_realtrain24_fragtrain_realval_v1_e8_pre_lr3e4_augcropv1_b64w2/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_after_fragment_gate": true,
+    "override_min_confidence": 0.0,
+    "blocked_override_classes": ["KHR_50000"],
+    "classes": [
+      "KHR_1000",
+      "KHR_10000",
+      "KHR_2000",
+      "KHR_20000",
+      "KHR_500",
+      "KHR_5000",
+      "KHR_50000",
+      "USD_1",
+      "USD_10",
+      "USD_100",
+      "USD_20",
+      "USD_5",
+      "USD_50"
+    ],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "reject_after_nms": true,
+    "denomination_override_after_reject": true,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf"
+  },
+  "evidence": {
+    "real_test_probe": "runs/cashsnap/proposal_gate_strictbest_trueempty_usdweakalpha317_synth_real24_fragtrain_denom_augcropv1_reclass_realtest_i416_conf005_det70_match50_batch1_rej099_blockkhr50000_e8_v1.json",
+    "baseline_two_stage_probe": "runs/cashsnap/proposal_gate_strictbest_banknotebg_edgepos_trueempty_pre_realtest_i416_conf005_det70_match50_batch1_rej099_v1.json",
+    "summary": "Strictbest detector plus true-empty gate plus weak-USD-augmented synthetic+real-24/class train-fragment crop-transfer denomination reclassifier, with KHR_50000 override blocked, improved real-test recall 0.6438 -> 0.7809, precision 0.3809 -> 0.4620, exact-value images 945 -> 1021, and KHR MAE 1279.77 -> 766.01. Real-full crop reclassifier upper bound reached recall 0.8262 and exact-value 1031; pure-synth weak-USD crop-transfer reclassifier gave a smaller lift to recall 0.6659 and exact-value 973."
+  },
+  "known_limits": [
+    "Diagnostic stack only; the denomination reclassifier uses a small real labeled crop anchor and is not pure synthetic-transfer proof.",
+    "The detector still has 129 no-box false negatives on real test at IoU 0.50; reclassification cannot recover absent proposals.",
+    "KHR_50000 override is blocked because the fragment-aware reclassifier otherwise creates high-value false positives; remove only after a replacement guard is verified.",
+    "The reclassifier changes denomination classes after proposal rejection; downstream UI must preserve detector boxes while replacing class labels.",
+    "The class order differs from detector order and must be mapped by class name, not index."
+  ]
+}

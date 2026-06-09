@@ -1,0 +1,273 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_pairforeignhardneg6_freeside154_unknown14_probe_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+  13: UNKNOWN_FOREIGN_NOTE
+cashsnap_policy:
+  intended_use: Fair strict-best append probe with explicit UNKNOWN_FOREIGN_NOTE labels
+    for paired foreign-note distractors.
+  phase: target-vs-unknown structural objective probe
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_v1
+  promotion_rule: Reject unless full real transfer improves strict best without protected-class
+    regressions and lightweight eval improves after filtering UNKNOWN_FOREIGN_NOTE
+    predictions.
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260609
+  per_class: 96
+  images: 1248
+  class_counts:
+    KHR_1000: 96
+    KHR_10000: 96
+    KHR_2000: 96
+    KHR_20000: 96
+    KHR_500: 96
+    KHR_5000: 96
+    KHR_50000: 96
+    USD_1: 96
+    USD_10: 96
+    USD_100: 96
+    USD_20: 96
+    USD_5: 96
+    USD_50: 96
+  background_source_images: 25
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_root: data/backgrounds/cashsnap_v1_no_note_patches_strict_v1
+  background_split: train
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 25
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest: null
+  unique_geometry_sources_used: 1108
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: poisson_mixed
+  shadow_policy: contact
+  box_scale: 2.05
+  box_scale_jitter: 0.08
+  geometry_size_jitter: 0.14
+  position_jitter_fraction: 0.045
+  warp_alpha_feather_px: 0.0
+  tone_match_policy: background
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 190.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 256
+    USD_5: 256
+    USD_10: 256
+    USD_20: 256
+    USD_50: 256
+    USD_100: 256
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2051.5830078125
+    sharpness_p50: 3129.20458984375
+    sharpness_p75: 4444.64794921875
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 1248
+      min: 0.044213999062776566
+      p05: 0.08023705333471298
+      p25: 0.1273447573184967
+      p50: 0.192159503698349
+      p75: 0.28031474351882935
+      p95: 0.4412200450897217
+      max: 0.562516987323761
+    inpaint_source_box_fraction:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 1248
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_v1/metadata/train.jsonl
+  unknown_pair_rows: 154
+  unknown_class_id: 13
+  unknown_class_name: UNKNOWN_FOREIGN_NOTE
+  unknown_pair_source_dataset: data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_v1
+cashsnap_sources:
+  fp_mined_negative_dose_base_config: configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_puresynth_realval_v1.yaml
+  fp_mined_negative_probe_json: runs/cashsnap/background_fp_train_empty_poisson_contact_geoscale205_minshort190_bal20_b64_conf005_v1.json
+  fp_mined_negative_image_root: configs/cashsnap_v1.yaml#train:empty-label
+cashsnap_fp_mined_negative_dose:
+  schema: cashsnap_fp_mined_negative_dose_v1
+  base_config: configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_puresynth_realval_v1.yaml
+  base_train_sources:
+  - data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_v1/images/train
+  probe_json: runs/cashsnap/background_fp_train_empty_poisson_contact_geoscale205_minshort190_bal20_b64_conf005_v1.json
+  probe_schema: cashsnap_yolo_background_false_positive_probe_v1
+  model_label: poisson_contact_geoscale205_minshort190_bal20_b64
+  model: runs/cashsnap/fixed_step_poisson_contact_geoscale205_minshort190_bal20_b64_contactctrl_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0/weights/best.pt
+  image_root: configs/cashsnap_v1.yaml#train:empty-label
+  conf: 0.05
+  mine_source: manual-list
+  replace_existing_root: configs/cashsnap_v1.yaml#train:empty-label
+  requested_count: 6
+  selection: manual
+  seed: 20260608
+  source_name_require_regex: ''
+  source_name_block_regex: ''
+  removed_existing_rows: 0
+  insert_at: 1248
+  base_images: 1248
+  selected_fp_mined_negative_images: 6
+  combined_images: 1254
+  source_images: 6
+  selected_images:
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5685_jpg.rf.79398ff1ecb0c065b7f3611b01c083ea.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6042_jpg.rf.e35836376a5b3f2018c19467cd64ec93.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6064_jpg.rf.b61c2f55692046fd8c55f8826b6763f6.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5945_jpg.rf.01163d8e109f7b425a2acd23a671acfc.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5789_jpg.rf.17c7d1b5e256d807094fee3562265e34.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6069_jpg.rf.fa0480b9b83a83e1723179dfc3bbb333.jpg
+    detections_in_top: 0
+    max_confidence: 0.0
+    classes: {}

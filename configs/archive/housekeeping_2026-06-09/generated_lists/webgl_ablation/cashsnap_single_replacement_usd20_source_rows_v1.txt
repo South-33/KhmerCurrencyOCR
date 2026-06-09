@@ -1,0 +1,8 @@
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2162_jpeg.rf.d2b530f8109f060e09e0110f6b0cf9c6.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2161_jpeg.rf.15659e050f5371078fb8087e59572aac.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2204_jpeg.rf.1e66c717053c0a70ca4d2ca98e65182c.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2160_jpeg.rf.25a38f726b94156acb6eaea80336bc8d.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2208_jpeg.rf.78d3d48d6ac96366299dd4cfe81efb15.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2209_jpeg.rf.7c3de0fd50c120980b0c3900a127b1fa.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2159_jpeg.rf.eec60f0799fc6d840eb98f3a960883d4.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2211_jpeg.rf.0bbf36fc8c69d9eed8da8cd033685361.jpg

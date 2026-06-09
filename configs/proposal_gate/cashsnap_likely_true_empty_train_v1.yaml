@@ -1,0 +1,33 @@
+path: ../..
+train: runs/cashsnap/empty_label_semantic_bridge_train_v1/lists/likely_true_empty.txt
+val: runs/cashsnap/empty_label_semantic_bridge_val_v1/lists/likely_true_empty.txt
+test: runs/cashsnap/empty_label_semantic_bridge_test_v1/lists/likely_true_empty.txt
+
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+
+cashsnap_policy:
+  schema: cashsnap_proposal_gate_source_list_v1
+  intended_use: source wrapper for proposal-gate reject crops only
+  source_list: runs/cashsnap/empty_label_semantic_bridge_train_v1/lists/likely_true_empty.txt
+  source_bucket: likely_true_empty
+  source_summary: runs/cashsnap/empty_label_semantic_bridge_train_v1/summary.json
+  val_source_summary: runs/cashsnap/empty_label_semantic_bridge_val_v1/summary.json
+  test_source_summary: runs/cashsnap/empty_label_semantic_bridge_test_v1/summary.json
+  notes: >
+    Use with build_yolo_proposal_gate_dataset.py --source-policy and
+    reject_proposals/random_only policies. Do not treat the whole CashSnap
+    empty-label bucket this way; only this semantic likely-true-empty list is
+    intended as clean empty-frame rejection support.

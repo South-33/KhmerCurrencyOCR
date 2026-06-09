@@ -1,0 +1,60 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_v1_plus_webgl_clean_closeup_v1_probe_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes:
+  - data/synthetic/cashsnap_webgl_clean_closeup_candidate_v1/
+  target_exclude_prefixes:
+  - data/synthetic/
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 32
+  target_excluded_images: 304
+  selected_images: 349
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 27
+    USD_5: 27
+    USD_10: 26
+    USD_20: 26
+    USD_50: 26
+    USD_100: 27
+    KHR_500: 27
+    KHR_1000: 28
+    KHR_2000: 26
+    KHR_5000: 26
+    KHR_10000: 26
+    KHR_20000: 16
+    KHR_50000: 18
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15

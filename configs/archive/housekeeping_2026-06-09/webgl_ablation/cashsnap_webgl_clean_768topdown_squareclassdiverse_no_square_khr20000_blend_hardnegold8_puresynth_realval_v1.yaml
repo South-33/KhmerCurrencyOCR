@@ -1,0 +1,34 @@
+path: ../..
+train:
+  - configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend185_v1_train.txt
+  - configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_hardnegold8_v1_hardneg.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  synthetic_train:
+    - configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend185_v1_train.txt
+    - configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_hardnegold8_v1_hardneg.txt
+  positive_reference: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_puresynth_realval_v1.yaml
+  hard_negative_root: data/synthetic/cashsnap_webgl_hard_negative_candidate_v1
+  hard_negative_selection: even spread every 4th row from 32 sorted old-root variants
+  real_val: data/cashsnap_v1/images/val
+  real_test: data/cashsnap_v1/images/test
+cashsnap_policy:
+  intended_use: pure-synth TSTR probe testing a small old-root no-note dose after hardneg32 improved positive-only transfer but hurt protected classes
+  phase: clean non-overlap base before overlap/fan/hand curricula
+  promotion_rule: reject unless it preserves filtered185 full-real, labeled-all, protected-class, clean-visible, and real-empty FP guardrails
+  known_limit: 13-class operational subset, intentionally not full 21-class USD/KHR scope

@@ -1,0 +1,42 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/pair_foreignhardneg6_alpha_bal16_freeside_unknown14_teacher_labelmatch_conf005_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+  13: UNKNOWN_FOREIGN_NOTE
+cashsnap_policy:
+  intended_use: 14-class paired target+foreign unknown-class view; diagnostic only.
+  phase: target-vs-unknown structural objective probe
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_v1
+  unknown_class_id: 13
+  unknown_class_name: UNKNOWN_FOREIGN_NOTE
+  teacher_accepted_rows: 154
+  target_class_counts:
+    KHR_1000: 16
+    KHR_10000: 8
+    KHR_2000: 16
+    KHR_20000: 16
+    KHR_500: 16
+    KHR_5000: 16
+    KHR_50000: 14
+    USD_1: 10
+    USD_10: 12
+    USD_100: 8
+    USD_20: 6
+    USD_5: 9
+    USD_50: 7
+  promotion_rule: Reject unless unknown-class training improves strict full real transfer
+    without protected-class or background-FP regressions after filtering unknown predictions.

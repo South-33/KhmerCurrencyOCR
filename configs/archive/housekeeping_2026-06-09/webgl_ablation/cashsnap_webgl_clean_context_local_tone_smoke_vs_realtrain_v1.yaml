@@ -1,0 +1,29 @@
+path: ../..
+train:
+  - data/synthetic/cashsnap_webgl_clean_context_local_tone_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/train
+val:
+  - data/synthetic/cashsnap_webgl_clean_context_local_tone_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/val
+test:
+  - data/synthetic/cashsnap_webgl_clean_context_local_tone_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: diagnostic visual-gap audit only; do not train from this mixed config
+  synthetic_root: data/synthetic/cashsnap_webgl_clean_context_local_tone_single_smoke_v1
+  real_root: data/cashsnap_v1
+  promotion_rule: use only to compare crop visual stats and decide whether a larger local-tone clean-context diagnostic is worth rendering

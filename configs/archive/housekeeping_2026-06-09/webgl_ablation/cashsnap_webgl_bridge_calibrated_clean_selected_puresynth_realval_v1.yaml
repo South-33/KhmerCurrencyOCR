@@ -1,0 +1,30 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_bridge_calibrated_clean_selected_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_calibration:
+  schema: cashsnap_yolo_cross_dataset_calibrated_subset_v1
+  reference_data: data/processed/roboflow_khmer_us_currency_core13_bridge_v1/data.yaml
+  reference_splits:
+  - val
+  - test
+  candidate_data:
+  - data/synthetic/cashsnap_webgl_bridge_calibrated_clean_probe_v1/data.yaml
+  - data/synthetic/cashsnap_webgl_bridge_calibrated_clean_geometry_probe_v2/data.yaml
+  - data/synthetic/cashsnap_webgl_bridge_calibrated_clean_geometry_probe_v3/data.yaml
+  note: selected from bridge-calibrated appearance/geometry pools by per-class Roboflow
+    bridge crop/box distance

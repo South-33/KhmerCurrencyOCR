@@ -1,0 +1,2 @@
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2162_jpeg.rf.d2b530f8109f060e09e0110f6b0cf9c6.jpg
+data/cashsnap_v1/images/train/cashcountingxl_IMG_2204_jpeg.rf.1e66c717053c0a70ca4d2ca98e65182c.jpg

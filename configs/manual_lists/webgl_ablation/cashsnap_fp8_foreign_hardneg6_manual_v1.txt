@@ -1,0 +1,6 @@
+data/cashsnap_v1/images/train/asian_currency_IMG_5685_jpg.rf.79398ff1ecb0c065b7f3611b01c083ea.jpg
+data/cashsnap_v1/images/train/asian_currency_IMG_6042_jpg.rf.e35836376a5b3f2018c19467cd64ec93.jpg
+data/cashsnap_v1/images/train/asian_currency_IMG_6064_jpg.rf.b61c2f55692046fd8c55f8826b6763f6.jpg
+data/cashsnap_v1/images/train/asian_currency_IMG_5945_jpg.rf.01163d8e109f7b425a2acd23a671acfc.jpg
+data/cashsnap_v1/images/train/asian_currency_IMG_5789_jpg.rf.17c7d1b5e256d807094fee3562265e34.jpg
+data/cashsnap_v1/images/train/asian_currency_IMG_6069_jpg.rf.fa0480b9b83a83e1723179dfc3bbb333.jpg

@@ -1,0 +1,24 @@
+path: ../../data/synthetic/cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_acceptsrc_bal16_probe_v1
+train: images/train
+val: images/train
+test: images/train
+nc: 13
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_synthetic_policy:
+  generator: build_cashsnap_multi_instance_replacement.py
+  status: diagnostic_only
+  reason: Real train scene replacement probe; not trainable until source-remnant audit,
+    representation gap, and real-transfer probes pass.

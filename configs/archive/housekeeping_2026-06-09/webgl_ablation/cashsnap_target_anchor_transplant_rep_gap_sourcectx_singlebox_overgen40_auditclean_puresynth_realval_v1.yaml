@@ -1,0 +1,195 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_auditclean_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth target-anchored transplant TSTR probe using train-only
+    CashSnap no-note background patches and synthetic cutout-bank note labels
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_v1
+  promotion_rule: reject unless fixed-step full real transfer jumps materially over
+    filtered185/repair baselines without worse empty-frame behavior
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 67
+  per_class: 40
+  images: 520
+  class_counts:
+    KHR_1000: 40
+    KHR_10000: 40
+    KHR_2000: 40
+    KHR_20000: 40
+    KHR_500: 40
+    KHR_5000: 40
+    KHR_50000: 40
+    USD_1: 40
+    USD_10: 40
+    USD_100: 40
+    USD_20: 40
+    USD_5: 40
+    USD_50: 40
+  background_source_images: 151
+  background_max_source_boxes: 1
+  background_root: runs/cashsnap/representation_gap_synthleader_train_analogs_v1/train_anchor_manifest.jsonl
+  background_split: manifest_train_anchor_positive
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 143
+  real_geometry_samples_by_class:
+    USD_1: 8
+    USD_5: 18
+    USD_10: 16
+    USD_20: 23
+    USD_50: 25
+    USD_100: 19
+    KHR_500: 14
+    KHR_1000: 4
+    KHR_2000: 4
+    KHR_5000: 614
+    KHR_10000: 20
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest:
+    path: runs/cashsnap/representation_gap_synthleader_train_analogs_v1/train_anchor_manifest.jsonl
+    mode: prefer
+    images: 151
+    selected_boxes_by_class:
+      USD_1: 8
+      USD_5: 18
+      USD_10: 16
+      USD_20: 23
+      USD_50: 25
+      USD_100: 19
+      KHR_500: 14
+      KHR_1000: 4
+      KHR_2000: 4
+      KHR_10000: 20
+    fallback_classes:
+    - KHR_5000
+    - KHR_20000
+    - KHR_50000
+  unique_geometry_sources_used: 143
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: poisson_mixed
+  shadow_policy: contact
+  box_scale: 1.1
+  box_scale_jitter: 0.03
+  geometry_size_jitter: 0.04
+  position_jitter_fraction: 0.006
+  warp_alpha_feather_px: 0.0
+  inpaint_under_foreground_px: 8
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: 0.02
+  couple_background_geometry: true
+  background_source_classes:
+    USD_1: 8
+    USD_5: 18
+    USD_10: 16
+    USD_20: 23
+    USD_50: 25
+    USD_100: 19
+    KHR_500: 14
+    KHR_1000: 4
+    KHR_2000: 4
+    KHR_5000: 0
+    KHR_10000: 20
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 520
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 0.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 8
+    USD_5: 18
+    USD_10: 16
+    USD_20: 23
+    USD_50: 25
+    USD_100: 19
+    KHR_500: 14
+    KHR_1000: 4
+    KHR_2000: 4
+    KHR_5000: 256
+    KHR_10000: 20
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 1436.9163818359375
+    sharpness_p50: 2687.9072265625
+    sharpness_p75: 4462.28515625
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_v1/metadata/train.jsonl
+  unlabeled_audit_filter:
+    source_data: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_puresynth_realval_v1.yaml
+    split: train
+    list: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_rep_gap_sourcectx_singlebox_overgen40_auditclean_v1_train.txt
+    min_unmatched_count: 1
+    input_images: 520
+    kept_images: 453
+    removed_images: 67
+    removed_class_image_counts:
+      0: 1
+      1: 2
+      3: 7
+      4: 18
+      5: 18
+      9: 4
+      11: 10
+      12: 7
+    kept_class_image_counts:
+      0: 39
+      1: 38
+      2: 40
+      3: 33
+      4: 22
+      5: 22
+      6: 40
+      7: 40
+      8: 40
+      9: 36
+      10: 40
+      11: 30
+      12: 33
+    audits:
+    - path: runs/cashsnap/unlabeled_prediction_audit_rep_gap_sourcectx_singlebox_overgen40_v1.json
+      schema: cashsnap_yolo_unlabeled_prediction_audit_v1
+      conf: 0.05
+      match_iou: 0.1
+      images: 520
+      suspect_records: 67
+      excluded_records: 67

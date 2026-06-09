@@ -1,0 +1,266 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_staged_dose/cashsnap_v1_plus_webgl_accepted_selected_geometry_stack_dose40_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes:
+  - data/synthetic/cashsnap_webgl_clean_base_candidate_v1/
+  - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/
+  - data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/
+  - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/
+  target_exclude_prefixes:
+  - data/synthetic/
+  base_config: configs/archive/housekeeping_2026-06-09/root_configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml
+  base_train_list: configs/archive/housekeeping_2026-06-09/generated_lists/root/cashsnap_v1_plus_webgl_accepted_nowarmup_probe_train.txt
+  staged_dose_root: data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1
+  staged_dose_recipe_id: webgl_real_scale_stack_pose_selected_geometry_current_camera_v1
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  include_all_target_images: false
+  always_max_per_class: null
+  oversample_min_per_class: null
+  oversample_added_images: 0
+  oversample_trigger_class_images:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  always_included_images: 128
+  always_skipped_by_class_cap: 0
+  target_excluded_images: 176
+  selected_unique_images: 485
+  selected_images: 485
+  selected_backgrounds: 56
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 54
+    USD_5: 55
+    USD_10: 52
+    USD_20: 54
+    USD_50: 53
+    USD_100: 54
+    KHR_500: 72
+    KHR_1000: 54
+    KHR_2000: 52
+    KHR_5000: 74
+    KHR_10000: 82
+    KHR_20000: 75
+    KHR_50000: 44
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_always_class_images:
+    USD_1: 17
+    USD_5: 18
+    USD_10: 15
+    USD_20: 16
+    USD_50: 16
+    USD_100: 16
+    KHR_500: 35
+    KHR_1000: 16
+    KHR_2000: 15
+    KHR_5000: 38
+    KHR_10000: 46
+    KHR_20000: 48
+    KHR_50000: 16
+  staged_dose_images: 40
+  staged_dose_class_images:
+    USD_1: 13
+    USD_5: 13
+    USD_10: 13
+    USD_20: 14
+    USD_50: 13
+    USD_100: 14
+    KHR_500: 13
+    KHR_1000: 13
+    KHR_2000: 13
+    KHR_5000: 12
+    KHR_10000: 12
+    KHR_20000: 13
+    KHR_50000: 13
+cashsnap_webgl_acceptance:
+  summary: runs/cashsnap/webgl_ablation_nowarmup_i416_summary.json
+  per_class_summary: runs/cashsnap/webgl_ablation_nowarmup_i416_per_class.json
+  max_per_class_drop_vs_real_only: 0.05
+  selected_recipe_ids:
+  - webgl_clean_base_v1
+  - webgl_thin_edge_partial_v1
+  - webgl_hard_negative_replay_v1
+  - webgl_back_side_confusion_v1
+  selected_prefixes:
+  - data/synthetic/cashsnap_webgl_clean_base_candidate_v1/
+  - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/
+  - data/synthetic/cashsnap_webgl_hard_negative_candidate_v1/
+  - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/
+  rejected_recipe_ids:
+    webgl_overlap_stack_v1: failed real-only global mAP50-95 gate
+    webgl_fan_fullschema_v1: failed real-only global mAP50-95 gate
+    webgl_hand_occlusion_fragments_v1: failed real-only global mAP50-95 gate
+cashsnap_webgl_staged_dose:
+  base_config: configs/archive/housekeeping_2026-06-09/root_configs/cashsnap_v1_plus_webgl_accepted_nowarmup_probe.yaml
+  base_train_list: configs/archive/housekeeping_2026-06-09/generated_lists/root/cashsnap_v1_plus_webgl_accepted_nowarmup_probe_train.txt
+  dose_root: data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1
+  dose_recipe_id: webgl_real_scale_stack_pose_selected_geometry_current_camera_v1
+  stem_prefix: cashsnap_v1_plus_webgl_accepted_selected_geometry_stack
+  dose_image_rows:
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1964.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1967.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1968.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1974.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1975.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1976.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1977.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1984.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1989.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1993.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_1996.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2000.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2001.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2005.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2010.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2012.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2016.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2017.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2021.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2023.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2033.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2036.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2037.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2038.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2160.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2164.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2165.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2173.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2175.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2177.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2183.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2187.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2188.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2193.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2207.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2222.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2231.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2239.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2242.png
+  - data/synthetic/cashsnap_webgl_real_scale_stack_pose_selected_geometry_current_camera_v1/images/train/variant_2246.png
+  source: visible_boxes.physical_visible_instances
+  classes:
+  - USD_1
+  - USD_5
+  - USD_10
+  - USD_20
+  - USD_50
+  - USD_100
+  - KHR_500
+  - KHR_1000
+  - KHR_2000
+  - KHR_5000
+  - KHR_10000
+  - KHR_20000
+  - KHR_50000
+  dose_images: 40
+  search:
+    method: exact_combinations
+    combinations_checked: 1
+    max_combinations: 500000
+  selected_variants:
+  - 1964
+  - 1967
+  - 1968
+  - 1974
+  - 1975
+  - 1976
+  - 1977
+  - 1984
+  - 1989
+  - 1993
+  - 1996
+  - 2000
+  - 2001
+  - 2005
+  - 2010
+  - 2012
+  - 2016
+  - 2017
+  - 2021
+  - 2023
+  - 2033
+  - 2036
+  - 2037
+  - 2038
+  - 2160
+  - 2164
+  - 2165
+  - 2173
+  - 2175
+  - 2177
+  - 2183
+  - 2187
+  - 2188
+  - 2193
+  - 2207
+  - 2222
+  - 2231
+  - 2239
+  - 2242
+  - 2246
+  selected_counts:
+    total: 169
+    by_class:
+      USD_1: 13
+      USD_5: 13
+      USD_10: 13
+      USD_20: 14
+      USD_50: 13
+      USD_100: 14
+      KHR_500: 13
+      KHR_1000: 13
+      KHR_2000: 13
+      KHR_5000: 12
+      KHR_10000: 12
+      KHR_20000: 13
+      KHR_50000: 13
+    min_per_class: 12
+    max_per_class: 14
+    class_spread: 2
+    max_to_min_ratio: 1.166667
+cashsnap_domain_gap_gate:
+  status: fail
+  preset: accepted_blend_v1
+  summary: runs/cashsnap/domain_gap_cashsnap_v1_plus_webgl_accepted_selected_geometry_stack_dose40_train.json

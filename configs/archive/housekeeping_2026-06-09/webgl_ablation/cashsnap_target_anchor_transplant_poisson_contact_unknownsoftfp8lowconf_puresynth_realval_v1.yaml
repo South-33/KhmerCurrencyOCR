@@ -1,0 +1,197 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_unknownsoftfp8lowconf_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth TSTR probe adding zero-label negatives selected from donor
+    false positives
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_v1
+  promotion_rule: reject unless mined negatives reduce real-empty FPs while preserving
+    full, clean-visible, labeled, stress, and protected positive guardrails
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260607
+  per_class: 96
+  images: 1248
+  class_counts:
+    KHR_1000: 96
+    KHR_10000: 96
+    KHR_2000: 96
+    KHR_20000: 96
+    KHR_500: 96
+    KHR_5000: 96
+    KHR_50000: 96
+    USD_1: 96
+    USD_10: 96
+    USD_100: 96
+    USD_20: 96
+    USD_5: 96
+    USD_50: 96
+  background_source_images: 25
+  background_root: data/backgrounds/cashsnap_v1_no_note_patches_strict_v1
+  background_split: train
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 25
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  unique_geometry_sources_used: 1134
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: poisson_mixed
+  shadow_policy: contact
+  box_scale: 1.0
+  box_scale_jitter: 0.0
+  pose_policy: current
+  min_render_short_px: 0.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 128
+  foreground_style_samples_by_class:
+    USD_1: 128
+    USD_5: 128
+    USD_10: 128
+    USD_20: 128
+    USD_50: 128
+    USD_100: 128
+    KHR_500: 128
+    KHR_1000: 128
+    KHR_2000: 128
+    KHR_5000: 128
+    KHR_10000: 128
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2066.085693359375
+    sharpness_p50: 3087.6484375
+    sharpness_p75: 4449.904296875
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_v1/metadata/train.jsonl
+cashsnap_sources:
+  fp_mined_negative_dose_base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_puresynth_realval_v1.yaml
+  fp_mined_negative_probe_json: runs/cashsnap/background_fp_poisson_contact_b8_unknownsoft_conf0005.json
+  fp_mined_negative_image_root: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train
+cashsnap_fp_mined_negative_dose:
+  schema: cashsnap_fp_mined_negative_dose_v1
+  base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_puresynth_realval_v1.yaml
+  base_train_sources:
+  - data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_v1/images/train
+  probe_json: runs/cashsnap/background_fp_poisson_contact_b8_unknownsoft_conf0005.json
+  probe_schema: cashsnap_yolo_background_false_positive_probe_v1
+  model_label: poisson_contact_b8
+  model: runs/cashsnap/fixed_step_target_anchor_poisson_contact_v1_from_clean_e50_i416_b8_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0/weights/last.pt
+  image_root: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train
+  conf: 0.005
+  replace_existing_root: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train
+  requested_count: 8
+  removed_existing_rows: 0
+  insert_at: 1248
+  base_images: 1248
+  selected_fp_mined_negative_images: 8
+  combined_images: 1256
+  source_top_detections: 64
+  unique_fp_images_in_top: 11
+  selected_images:
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0002.png
+    detections_in_top: 19
+    max_confidence: 0.040267
+    classes:
+      KHR_20000: 4
+      KHR_500: 2
+      KHR_5000: 1
+      KHR_50000: 7
+      USD_20: 5
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0012.png
+    detections_in_top: 10
+    max_confidence: 0.02984
+    classes:
+      USD_10: 1
+      USD_100: 4
+      USD_20: 1
+      USD_5: 3
+      USD_50: 1
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0001.png
+    detections_in_top: 11
+    max_confidence: 0.029546
+    classes:
+      KHR_20000: 3
+      KHR_50000: 3
+      USD_100: 1
+      USD_20: 4
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0011.png
+    detections_in_top: 6
+    max_confidence: 0.025249
+    classes:
+      KHR_20000: 3
+      KHR_50000: 2
+      USD_100: 1
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0007.png
+    detections_in_top: 1
+    max_confidence: 0.016024
+    classes:
+      USD_20: 1
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0010.png
+    detections_in_top: 5
+    max_confidence: 0.012747
+    classes:
+      KHR_50000: 1
+      USD_10: 1
+      USD_100: 3
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0013.png
+    detections_in_top: 7
+    max_confidence: 0.011112
+    classes:
+      KHR_20000: 1
+      KHR_50000: 3
+      USD_20: 1
+      USD_5: 2
+  - image: data/synthetic/cashsnap_webgl_unknown_currency_soft_negative_smoke_v1/images/train/variant_0000.png
+    detections_in_top: 2
+    max_confidence: 0.008737
+    classes:
+      KHR_50000: 2

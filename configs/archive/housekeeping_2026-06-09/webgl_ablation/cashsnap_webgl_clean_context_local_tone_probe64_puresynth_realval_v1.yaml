@@ -1,0 +1,28 @@
+path: ../..
+train: data/synthetic/cashsnap_webgl_clean_context_local_tone_probe64_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  synthetic_train: data/synthetic/cashsnap_webgl_clean_context_local_tone_probe64_v1
+  crop_visual_gap: runs/cashsnap/crop_visual_gap_clean_context_local_tone_probe64_vs_realtrain_v1.json
+  real_val: data/cashsnap_v1/images/val
+  real_test: data/cashsnap_v1/images/test
+cashsnap_policy:
+  intended_use: pure-synth clean-context local-tone TSTR diagnostic
+  phase: clean-visible appearance/context go-stop probe before any larger clean-context scale-up
+  promotion_rule: reject unless it materially beats prior clean-topdown WebGL TSTR references and does not collapse protected KHR/USD classes
+  known_limit: 64 synthetic rows only; diagnostic go-stop, not promotion evidence

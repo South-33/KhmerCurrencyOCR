@@ -1,0 +1,27 @@
+path: ../..
+train:
+  - data/synthetic/cashsnap_webgl_clean_context_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/train
+val:
+  - data/synthetic/cashsnap_webgl_clean_context_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/val
+test:
+  - data/synthetic/cashsnap_webgl_clean_context_single_smoke_v1/images/train
+  - data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: Diagnostic-only crop visual gap config pairing the 8-image clean-context WebGL smoke with real CashSnap splits.
+  promotion_rule: Do not train from this mixed audit config; use only to decide whether the clean-context recipe deserves a larger balanced diagnostic render.

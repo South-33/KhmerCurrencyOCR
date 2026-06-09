@@ -18,6 +18,118 @@
       "checks": ["exists"]
     },
     {
+      "id": "cashsnap_strictbest_target_reject_proposal_gate_current_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_target_reject_current_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Current-domain target-vs-reject MobileNet proposal-gate crop dataset from strict-best YOLO proposals; uses labeled real train/val positives plus class-13 WebGL UNKNOWN props as reject evidence.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_background_proposal_gate_current_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_current_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Current-domain banknote-vs-background MobileNet proposal-gate crop dataset from strict-best YOLO proposals; treats operational and class-13 UNKNOWN labels as banknote evidence while low-IoU/random crops are reject/background.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_background_edgepos_proposal_gate_current_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_edgepos_current_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Current-domain banknote-vs-background proposal-gate crop dataset with extra full-GT and thin/partial edge-positive crops to prevent gates from rejecting real partial USD/KHR notes.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_background_edgepos_trueempty_proposal_gate_current_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_edgepos_trueempty_current_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Current-domain banknote-vs-background proposal-gate crop dataset with edge-positive target support plus reject proposals/random crops from semantic likely-true-empty train images.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_synthtrain_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_synthtrain_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset with train crops from the current strict-best synthetic train mix and validation crops from real CashSnap val; diagnostic for crop-level synthetic transfer and proposal reranking.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_usdweakalpha317_synthtrain_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_usdweakalpha317_synthtrain_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset with train crops from the strict-best synthetic mix plus teacher-accepted weak-USD alpha positives, validated on real CashSnap val; diagnostic for pure-synth USD denomination transfer.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_usdweakalpha317_synthtrain_fragtrain_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_usdweakalpha317_synthtrain_fragtrain_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset with weak-USD-augmented synthetic train crops plus train-only edge/fragment variants, validated on real CashSnap val; diagnostic for pure-synth fragment-shaped denomination transfer.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_realtrain_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_realtrain_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset with real CashSnap train crops and real val crops; diagnostic upper bound for proposal reclassification, not synthetic-transfer proof.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_realtrain24_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_realtrain24_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset with up to 24 real CashSnap train crops per class and real val crops; diagnostic small-real calibration baseline.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_synthtrain_realtrain24_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_synthtrain_realtrain24_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset combining current strict-best synthetic train crops with up to 24 real CashSnap train crops per class, validated on real CashSnap val; diagnostic for whether synthetic crops help after a small real-style anchor.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_usdweakalpha317_synthtrain_realtrain24_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_usdweakalpha317_synthtrain_realtrain24_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset combining strict-best plus weak-USD synthetic crops with up to 24 real CashSnap train crops per class, validated on real CashSnap val; diagnostic for weak-USD support after a small real-style anchor.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_usdweakalpha317_synthtrain_realtrain24_fragtrain_realval_denoms13_crop_classifier_v1",
+      "path": "data/fragment_classifier/cashsnap_strictbest_usdweakalpha317_synthtrain_realtrain24_fragtrain_realval_denoms13_v1",
+      "state": "diagnostic",
+      "kind": "denomination_crop_imagefolder_dataset",
+      "purpose": "Thirteen-class denomination crop classifier dataset combining strict-best plus weak-USD synthetic crops with up to 24 real CashSnap train crops per class, adding deterministic train-only edge/fragment crops to match detector proposal fragments; validated on real CashSnap val.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_empty_label_teacher_pseudo_targets_train_v1",
+      "path": "data/processed/cashsnap_empty_label_teacher_pseudo_targets_train_v1",
+      "state": "diagnostic",
+      "kind": "real_teacher_pseudo_label_bridge",
+      "purpose": "Teacher-pseudo-labeled train-split target-positive bridge mined from empty-label rows classified as suspect unlabeled USD/KHR targets; diagnostic anchor only until visual QA and transfer gates pass.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1",
+      "path": "data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1",
+      "state": "rejected",
+      "kind": "single_class_banknote_yolo_view",
+      "purpose": "Rejected class-agnostic BANKNOTE detector view from current strict-best synthetic train mix plus real CashSnap val/test labels remapped to one class; same-budget test worsened product recall 0.7809 -> 0.6952 and no-box FNs 129 -> 196 despite cleaner precision/counts.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
       "id": "roboflow_khmer_us_currency_v3_raw",
       "path": "data/raw_datasets/roboflow_khmer_us_currency",
       "state": "intake",
@@ -71,6 +183,14 @@
       "state": "diagnostic",
       "kind": "target_banknote_cutouts",
       "purpose": "Official-scope any-status cutout candidate bank; covers all 21 official classes but KHR_50 is out-of-circulation and not trainable without status resolution.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_real_flat_bill_cutout_bank_probe_v1",
+      "path": "data/asset_candidates/cashsnap_real_flat_bill_cutout_bank_probe_v1",
+      "state": "diagnostic",
+      "kind": "real_train_flat_bill_cutouts",
+      "purpose": "Train-split CashSnap real flat/full-bill cutout mining root; BEN2-transparent and alpha-rectified assets are probe-only until visual QA, source/label leakage review, and real-transfer gates pass.",
       "checks": ["exists"]
     },
     {
@@ -154,6 +274,182 @@
       "checks": ["exists"]
     },
     {
+      "id": "cashsnap_multi_instance_replacement_context_phone_balanced_poissonedge_inpainttone_scale100_notiny_probe_v1",
+      "path": "data/synthetic/cashsnap_multi_instance_replacement_context_phone_balanced_poissonedge_inpainttone_scale100_notiny_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Real train-scene all-banknote replacement probe with balanced-cycle target assets, phone-source filtering, Poisson edge blend, inpaint tone, and no tiny visible labels; diagnostic only until source-remnant and real-transfer checks pass.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_multi_instance_replacement_context_phone_sameclass_balancedsource_min1_minshort80_probe_v1",
+      "path": "data/synthetic/cashsnap_multi_instance_replacement_context_phone_sameclass_balancedsource_min1_minshort80_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Same-source class-preserving phone-context replacement probe using balanced real-source scene selection with single-box scenes allowed; diagnostic until teacher-agreement and real-transfer checks decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_smoke_v1",
+      "path": "data/synthetic/cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Tiny harness smoke for source-group-filtered same-source replacement on the USD trouble source groups (`usd_total`, `billsbank`); validates source-group accounting before any real-context rebuild.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_acceptsrc_bal16_probe_v1",
+      "path": "data/synthetic/cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_acceptsrc_bal16_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Medium accepted-source same-class replacement probe for USD trouble source groups (`usd_total`, `billsbank`), balanced at 16 rows per USD class per source group; must pass teacher/visual gates before any same-budget transfer probe.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_single_replacement_context_phone_sameclass_balancedsource_max1_minshort80_bal8_probe_v1",
+      "path": "data/synthetic/cashsnap_single_replacement_context_phone_sameclass_balancedsource_max1_minshort80_bal8_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Single-box phone-context same-source replacement probe for the non-overlap base phase; exactly balanced at 8 labels/class and diagnostic until teacher agreement and transfer probes decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_single_replacement_context_phone_sameclass_reuse_minshort80_bal96_probe_v1",
+      "path": "data/synthetic/cashsnap_single_replacement_context_phone_sameclass_reuse_minshort80_bal96_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Bal96 single-box phone-context same-source replacement probe with explicit rare-context source reuse for non-overlap transfer testing; diagnostic until teacher diagnostics and fixed-step real transfer decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Balanced20 target-anchor appearance/contact probe with Poisson mixed blending, contact shadows, geometry scale 2.05, and minimum rendered short side 190 px; diagnostic only pending real-transfer and FP guardrails.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Balanced96 scaled target-anchor appearance/contact probe matching the old target-anchor leader row budget with Poisson mixed blending, contact shadows, geometry scale 2.05, and minimum rendered short side 190 px; diagnostic only until base-init and clean-checkpoint transfer checks pass.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_usd_extentfull_bal32_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_usd_extentfull_bal32_probe_v1",
+      "state": "rejected",
+      "kind": "synthetic_probe_root",
+      "purpose": "Rejected/incomplete USD-only full-frame support render; the too-strict 0.50 area floor aborted after 58 rows without summary/data.yaml, so do not train from this root.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_usd_extentheavy_bal32_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_usd_extentheavy_bal32_probe_v1",
+      "state": "rejected",
+      "kind": "synthetic_probe_root",
+      "purpose": "Rejected USD-only 32/class extent-heavy support pack: same-budget strictbest replacement improved localization/no-box modestly but lost full-test mAP50-95 0.5035 -> 0.4975, failed KHR guards, and worsened pre-gate background FPs.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal2_phoneisp_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal2_phoneisp_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Tiny phone-ISP smoke using the current scaled Poisson/contact target-anchor recipe; diagnostic visual/code-path check before the full balanced96 candidate.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_phoneisp_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_phoneisp_probe_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Balanced96 phone-ISP target-anchor candidate matching the current strict leader except for final camera/ISP postprocess; diagnostic until fixed-step real transfer and FP guardrails decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_current_obligation_usdweak_safeunknown_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_current_obligation_usdweak_safeunknown_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Current strict-best obligation smoke: weak USD target positives rendered on safe asian_currency/cashcountingxl unknown-style train backgrounds with billsbank train geometry anchors; diagnostic until visual QA and transfer/FP guards decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Current strict-best obligation smoke: weak USD target positives rendered on strict no-note patches with billsbank train geometry/foreground-style anchors; pairs with unknown pressure only through a separate mix gate.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_alpha_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_alpha_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Current strict-best obligation alpha/preserve-luma smoke for weak USD positives on clean no-note patches; diagnostic label-preservation check against the Poisson cleanbg smoke.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_alpha_bal96_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_alpha_bal96_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Scaled 96/class alpha/preserve-luma weak-USD obligation pack using clean no-note backgrounds and billsbank train geometry; must be teacher-filtered before any transfer probe.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_safeunknown80_recallrepair_cleanbg_alpha_bal96_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_safeunknown80_recallrepair_cleanbg_alpha_bal96_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Alpha/preserve-luma clean-background recall-repair pack seeded from safeunknown80 train-side positive analogs for classes/source groups suppressed by unknown pressure; must be teacher-filtered before transfer probing.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Smoke target-positive scenes rendered onto six manually vetted foreign-note train negatives; diagnostic paired target/unknown anti-shortcut test, not trainable until visual, teacher, and transfer gates pass.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Balanced16 target-positive scenes rendered beside six manually vetted foreign-note train negatives with avoid-box placement; diagnostic paired target/unknown anti-shortcut probe, teacher-filter before transfer testing.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_unknown14_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_bal16_unknown14_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Teacher-accepted free-side paired foreign-note rows rematerialized with an explicit UNKNOWN_FOREIGN_NOTE class; structural target-vs-unknown objective probe, not promotable unless filtered-unknown transfer and background-FP guards pass.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_semtrueemptybg_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_semtrueemptybg_probe_v1",
+      "state": "rejected",
+      "kind": "synthetic_probe_root",
+      "purpose": "Rejected Balanced96 target-anchor appearance/contact probe that replaced the 25-patch background bank with train-split semantic likely-true-empty full-frame CashSnap backgrounds; semantic true-empty background replacement damaged real transfer, so keep only as archive evidence unless a new objective is designed.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_realflat90_poisson_contact_geoscale205_minshort190_bal96_probe_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_realflat90_poisson_contact_geoscale205_minshort190_bal96_probe_v1",
+      "state": "rejected",
+      "kind": "synthetic_probe_root",
+      "purpose": "Rejected full 90-asset real-flat train-split cutout bank ablation using current poisson/contact/tone target-anchor settings; dropped strict-base test mAP50-95 0.5035 -> 0.3228 and increased guarded no-box misses 129 -> 215, so do not tune this branch without a new renderer/objective.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
       "id": "unknown_currency_negative_smoke_v1",
       "path": "data/synthetic/cashsnap_webgl_unknown_currency_negative_smoke_v1",
       "state": "diagnostic",
@@ -167,6 +463,54 @@
       "state": "diagnostic",
       "kind": "synthetic_hard_negative_root",
       "purpose": "Zero-label soft unknown-currency diagnostic root.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "unknown_currency_labeled_smoke_v1",
+      "path": "data/synthetic/cashsnap_webgl_unknown_currency_labeled_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_hard_negative_root",
+      "purpose": "Negative WebGL unknown-banknote props exported as UNKNOWN_FOREIGN_NOTE boxes; renderer/label smoke for proposal or unknown-objective experiments only.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "unknown_currency_labeled_broad512_v1",
+      "path": "data/synthetic/cashsnap_webgl_unknown_currency_labeled_broad512_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_hard_negative_root",
+      "purpose": "Medium WebGL negative root with unknown-banknote props exported as UNKNOWN_FOREIGN_NOTE boxes for direct unknown-objective go/stop probes; not target-positive training data by itself.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "webgl_clean_context_single_smoke_v1",
+      "path": "data/synthetic/cashsnap_webgl_clean_context_single_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_webgl_smoke_dataset",
+      "purpose": "Small clean-context single-note WebGL smoke root for testing readable target notes with surrounding shop/table context before any trainable scale-up.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "webgl_clean_context_bridge_tone_single_smoke_v1",
+      "path": "data/synthetic/cashsnap_webgl_clean_context_bridge_tone_single_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_webgl_smoke_dataset",
+      "purpose": "Small bridge-tone clean-context single-note WebGL smoke root testing real-bridge print contrast and camera dynamic-range repair after the flat clean-context smoke failed luma_p95.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "webgl_clean_context_local_tone_single_smoke_v1",
+      "path": "data/synthetic/cashsnap_webgl_clean_context_local_tone_single_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_webgl_smoke_dataset",
+      "purpose": "Small local-tone clean-context single-note WebGL smoke root testing lighter print dynamic-range repair after off/default was flat and bridge-tone overcorrected.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "webgl_clean_context_local_tone_probe64_v1",
+      "path": "data/synthetic/cashsnap_webgl_clean_context_local_tone_probe64_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_webgl_probe_root",
+      "purpose": "64-image local-tone clean-context single-note diagnostic root to verify the smoke crop visual-gap pass across broader class/variant coverage before any model probe.",
       "checks": ["exists"]
     },
     {

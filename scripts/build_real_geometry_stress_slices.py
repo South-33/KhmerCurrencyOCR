@@ -19,7 +19,7 @@ DEFAULT_DATA = (
     ROOT
     / "configs"
     / "webgl_ablation"
-    / "cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_puresynth_realval_v1.yaml"
+    / "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_puresynth_realval_v1.yaml"
 )
 DEFAULT_OUT_DIR = ROOT / "runs" / "cashsnap" / "real_geometry_stress_slices_v1"
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}

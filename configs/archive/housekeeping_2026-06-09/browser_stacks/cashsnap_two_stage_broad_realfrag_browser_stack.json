@@ -1,0 +1,63 @@
+{
+  "name": "cashsnap_two_stage_broad_realfrag_browser_stack",
+  "status": "diagnostic_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/yolo26n_cashsnap_current_thin_legacy_clean_v1_e20_i416_b8/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": true
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/archive/housekeeping_2026-06-09/fragment_classifier_legacy/mobilenet_v3_cashsnap_realfrag_pretrained_balanced_e10/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.0,
+    "classes": [
+      "KHR_1000",
+      "KHR_10000",
+      "KHR_2000",
+      "KHR_20000",
+      "KHR_500",
+      "KHR_5000",
+      "KHR_50000",
+      "USD_1",
+      "USD_10",
+      "USD_100",
+      "USD_20",
+      "USD_5",
+      "USD_50",
+      "background"
+    ],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.17,
+    "nms_iou": 0.65,
+    "nms_score": "detector_conf"
+  },
+  "known_limits": [
+    "Diagnostic stack for testing the existing 14-class real-fragment classifier with all detector classes plus background.",
+    "Earlier broad classifier/currency-gate attempts did not transfer cleanly to shop-overlap probes.",
+    "Requires browser stress proof before any default-stack use."
+  ]
+}

@@ -1,0 +1,72 @@
+path: ../../data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: BANKNOTE
+cashsnap_single_class_view:
+  schema: cashsnap_single_class_view_v1
+  source_train_config: configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_puresynth_realval_v1.yaml
+  source_eval_config: configs/cashsnap_v1.yaml
+  single_class_name: BANKNOTE
+  summary:
+    train:
+      images: 1254
+      labeled_images: 1248
+      empty_images: 6
+      boxes: 1248
+      source_class_counts:
+        KHR_1000: 96
+        KHR_10000: 96
+        KHR_2000: 96
+        KHR_20000: 96
+        KHR_500: 96
+        KHR_5000: 96
+        KHR_50000: 96
+        USD_1: 96
+        USD_10: 96
+        USD_100: 96
+        USD_20: 96
+        USD_5: 96
+        USD_50: 96
+      manifest: data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1/metadata/train.jsonl
+    val:
+      images: 2103
+      labeled_images: 988
+      empty_images: 1115
+      boxes: 991
+      source_class_counts:
+        KHR_1000: 79
+        KHR_10000: 52
+        KHR_2000: 45
+        KHR_20000: 21
+        KHR_500: 48
+        KHR_5000: 79
+        KHR_50000: 37
+        USD_1: 96
+        USD_10: 126
+        USD_100: 119
+        USD_20: 96
+        USD_5: 97
+        USD_50: 96
+      manifest: data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1/metadata/val.jsonl
+    test:
+      images: 1562
+      labeled_images: 814
+      empty_images: 748
+      boxes: 817
+      source_class_counts:
+        KHR_1000: 35
+        KHR_10000: 27
+        KHR_2000: 20
+        KHR_20000: 17
+        KHR_500: 31
+        KHR_5000: 37
+        KHR_50000: 10
+        USD_1: 80
+        USD_10: 128
+        USD_100: 119
+        USD_20: 110
+        USD_5: 99
+        USD_50: 104
+      manifest: data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1/metadata/test.jsonl

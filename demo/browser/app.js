@@ -1,4 +1,4 @@
-const STACK_CONFIG_URL = "/configs/cashsnap_two_stage_oldcommon_browser_stack.json";
+const STACK_CONFIG_URL = "/configs/cashsnap_two_stage_strictbest_trueempty_proposal_gate_browser_stack.json";
 const DEFAULT_CLASS_NAMES = [
   "USD_1",
   "USD_5",

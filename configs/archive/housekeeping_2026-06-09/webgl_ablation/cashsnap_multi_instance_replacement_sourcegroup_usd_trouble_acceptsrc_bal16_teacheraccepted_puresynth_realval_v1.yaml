@@ -1,0 +1,26 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_acceptsrc_bal16_teacheragree_overlapdupok_conf005_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+nc: 13
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_synthetic_policy:
+  generator: build_cashsnap_multi_instance_replacement.py
+  source_root: data/synthetic/cashsnap_multi_instance_replacement_sourcegroup_usd_trouble_acceptsrc_bal16_probe_v1
+  source_manifest: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/realtrain_usd_total_billsbank_full_teacheragree_overlapdupok_conf005_v1_train.txt
+  teacher_gate: runs/cashsnap/teacher_label_agreement_sourcegroup_usd_trouble_acceptsrc_bal16_clean_teacher_conf005_overlapdupok_v1.json
+  status: diagnostic_only
+  reason: Teacher-accepted USD trouble source-context support rows; not trainable except through a guarded same-budget replacement probe.

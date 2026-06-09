@@ -21,7 +21,7 @@ DEFAULT_BASE = (
     ROOT
     / "configs"
     / "webgl_ablation"
-    / "cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_hardnegold8_topdownsupport10_puresynth_realval_v1.yaml"
+    / "cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_puresynth_realval_v1.yaml"
 )
 
 

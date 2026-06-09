@@ -1,0 +1,235 @@
+path: ../..
+train: data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_smoke_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth target-anchored transplant TSTR probe using train-only
+    CashSnap no-note background patches and synthetic cutout-bank note labels
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_smoke_v1
+  promotion_rule: reject unless fixed-step full real transfer jumps materially over
+    filtered185/repair baselines without worse empty-frame behavior
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 0
+  per_class: 2
+  class_include:
+  - USD_1
+  - USD_5
+  - USD_10
+  - USD_20
+  - USD_50
+  - USD_100
+  - KHR_500
+  - KHR_1000
+  - KHR_2000
+  - KHR_5000
+  - KHR_10000
+  - KHR_20000
+  - KHR_50000
+  images: 26
+  class_counts:
+    KHR_1000: 2
+    KHR_10000: 2
+    KHR_2000: 2
+    KHR_20000: 2
+    KHR_500: 2
+    KHR_5000: 2
+    KHR_50000: 2
+    USD_1: 2
+    USD_10: 2
+    USD_100: 2
+    USD_20: 2
+    USD_5: 2
+    USD_50: 2
+  background_source_images: 6
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_avoid_boxes: configs/manual_lists/webgl_ablation/cashsnap_fp8_foreign_hardneg6_manual_avoid_boxes_v1.csv
+  background_avoid_box_count: 6
+  background_avoid_placement_policy: free_side
+  max_background_avoid_overlap_fraction: 0.03
+  max_background_avoid_iou: 0.02
+  background_root: configs/manual_lists/webgl_ablation/cashsnap_fp8_foreign_hardneg6_manual_v1.txt
+  background_split: manifest_train_anchor_positive
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 4
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest: null
+  unique_geometry_sources_used: 26
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 16
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: alpha
+  shadow_policy: contact
+  box_scale: 0.95
+  box_scale_jitter: 0.0
+  geometry_size_jitter: 0.08
+  position_jitter_fraction: 0.0
+  warp_alpha_feather_px: 0.0
+  tone_match_policy: preserve_luma
+  camera_isp_policy: legacy
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: current
+  min_render_short_px: 90.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  min_render_margin_px: 24.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 256
+    USD_5: 256
+    USD_10: 256
+    USD_20: 256
+    USD_50: 256
+    USD_100: 256
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2056.587158203125
+    sharpness_p50: 3096.13330078125
+    sharpness_p75: 4444.71923828125
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 26
+      min: 0.03943600133061409
+      p05: 0.04313499853014946
+      p25: 0.06250675022602081
+      p50: 0.08774250000715256
+      p75: 0.10436375439167023
+      p95: 0.15321074426174164
+      max: 0.15681399405002594
+    inpaint_source_box_fraction:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 26
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_pair_foreignhardneg6_alpha_smoke_v1/metadata/train.jsonl

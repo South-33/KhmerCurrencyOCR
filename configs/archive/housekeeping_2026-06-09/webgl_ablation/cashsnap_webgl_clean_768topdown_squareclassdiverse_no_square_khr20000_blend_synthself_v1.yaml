@@ -1,0 +1,22 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend185_v1_train.txt
+val: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend185_v1_train.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  synthetic_self_eval: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend185_v1_train.txt
+cashsnap_policy:
+  intended_use: synthetic self-eval for filtered no-square-KHR_20000 blend
+  known_limit: self-eval helper only; real transfer uses cashsnap_webgl_clean_768topdown_squareclassdiverse_no_square_khr20000_blend_puresynth_realval_v1.yaml

@@ -1,0 +1,59 @@
+{
+  "name": "cashsnap_two_stage_strictbest_trueempty_proposal_gate_browser_stack",
+  "status": "diagnostic_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/fixed_step_scaled_foreignhardneg6_from_yolo26n_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps1000_seed0/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_strictbest_current_v1_e4_pre_lr3e4_b64w2/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["reject", "target"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.05,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["reject"],
+    "reject_fragment_class_min_conf": 0.99,
+    "reject_after_nms": true
+  },
+  "evidence": {
+    "real_val_probe": "runs/cashsnap/proposal_gate_strictbest_banknotebg_edgepos_trueempty_pre_realval_i416_conf005_det70_match50_batch1_rej099_v1.json",
+    "real_test_probe": "runs/cashsnap/proposal_gate_strictbest_banknotebg_edgepos_trueempty_pre_realtest_i416_conf005_det70_match50_batch1_rej099_v1.json",
+    "summary": "Current-domain pretrained true-empty proposal gate at reject>=0.99 preserved real val/test recall exactly, improved test precision 0.2316 -> 0.3809, cut test background-FP images 533/748 -> 87/748, improved count MAE 1.0423 -> 0.4763, and raised exact-value test images 491 -> 945."
+  },
+  "known_limits": [
+    "Diagnostic stack only; it is a proposal rejection gate, not a detector mAP improvement.",
+    "The gate was trained with semantic likely-true-empty rows and edge-positive target support; do not replace those source policies with the raw empty-label bucket.",
+    "Use reject>=0.99 as the safe operating point from current evidence. reject>=0.95 cuts more FPs but rejected one TP-like proposal on val and one on test.",
+    "This gate suppresses background-like proposals but does not solve denomination confusion or out-of-scope foreign-note routing by itself."
+  ]
+}

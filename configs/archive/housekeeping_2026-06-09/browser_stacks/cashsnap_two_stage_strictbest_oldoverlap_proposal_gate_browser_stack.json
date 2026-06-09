@@ -1,0 +1,58 @@
+{
+  "name": "cashsnap_two_stage_strictbest_oldoverlap_proposal_gate_browser_stack",
+  "status": "diagnostic_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/fixed_step_scaled_foreignhardneg6_from_yolo26n_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps1000_seed0/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/archive/housekeeping_2026-06-09/fragment_classifier_legacy/mobilenet_v3_proposal_gate_oldoverlap_v1_e6/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["background", "banknote"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.05,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["background"],
+    "reject_fragment_class_min_conf": 0.0,
+    "reject_after_nms": true
+  },
+  "evidence": {
+    "real_test_probe": "runs/cashsnap/proposal_gate_strictbest_oldoverlap_gate_realtest_i416_conf005_det70_match50_batch1_v2.json",
+    "real_val_probe": "runs/cashsnap/proposal_gate_strictbest_oldoverlap_gate_realval_i416_conf005_det70_match50_batch1_v1.json",
+    "summary": "On real test, preserved recall 0.6438 while improving precision 0.2316 -> 0.3076, background-FP images 533/748 -> 329/748, count MAE 1.0423 -> 0.6959, and exact-value images 491 -> 703."
+  },
+  "known_limits": [
+    "Diagnostic stack only; the gate is archived old-overlap training, not a current-domain promoted classifier.",
+    "Gate is banknote/background, so it suppresses clutter but does not route foreign/unknown banknotes away from target denominations.",
+    "Naive current-domain target-vs-reject, banknote/background, and edge-positive gate retrains over-rejected real target proposals on val."
+  ]
+}

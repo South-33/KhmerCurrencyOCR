@@ -1,0 +1,382 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_fpminedreal25_bal20_probe_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth TSTR probe adding zero-label negatives selected from donor
+    false positives
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1
+  promotion_rule: reject unless mined negatives reduce real-empty FPs while preserving
+    full, clean-visible, labeled, stress, and protected positive guardrails
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260614
+  per_class: 20
+  images: 260
+  class_counts:
+    KHR_1000: 20
+    KHR_10000: 20
+    KHR_2000: 20
+    KHR_20000: 20
+    KHR_500: 20
+    KHR_5000: 20
+    KHR_50000: 20
+    USD_1: 20
+    USD_10: 20
+    USD_100: 20
+    USD_20: 20
+    USD_5: 20
+    USD_50: 20
+  background_source_images: 25
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_root: data/backgrounds/cashsnap_v1_no_note_patches_strict_v1
+  background_split: train
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 25
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest: null
+  unique_geometry_sources_used: 257
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: alpha
+  shadow_policy: contact
+  box_scale: 2.05
+  box_scale_jitter: 0.08
+  geometry_size_jitter: 0.14
+  position_jitter_fraction: 0.045
+  warp_alpha_feather_px: 0.0
+  tone_match_policy: background
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 190.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 256
+    USD_5: 256
+    USD_10: 256
+    USD_20: 256
+    USD_50: 256
+    USD_100: 256
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2008.8682861328125
+    sharpness_p50: 3108.71142578125
+    sharpness_p75: 4423.31787109375
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 260
+      min: 0.04054199904203415
+      p05: 0.08099700510501862
+      p25: 0.1267072558403015
+      p50: 0.19815900921821594
+      p75: 0.28546950221061707
+      p95: 0.500582754611969
+      max: 0.5624579787254333
+    inpaint_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1/metadata/train.jsonl
+cashsnap_sources:
+  fp_mined_negative_dose_base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  fp_mined_negative_probe_json: runs/cashsnap/background_fp_alpha_geoscale_trainval_conf001_v1.json
+  fp_mined_negative_image_root: data/cashsnap_v1/data.yaml#train:empty-label
+cashsnap_fp_mined_negative_dose:
+  schema: cashsnap_fp_mined_negative_dose_v1
+  base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  base_train_sources:
+  - data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1/images/train
+  probe_json: runs/cashsnap/background_fp_alpha_geoscale_trainval_conf001_v1.json
+  probe_schema: cashsnap_yolo_background_false_positive_probe_v1
+  model_label: alpha_geoscale205_minshort190_b20
+  model: runs/cashsnap/fixed_step_alpha_geoscale205_minshort190_b20_trainonly_from_clean_e50_i320_b1_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps1000_seed0/weights/best.pt
+  image_root: data/cashsnap_v1/data.yaml#train:empty-label
+  conf: 0.01
+  replace_existing_root: data/cashsnap_v1/data.yaml#train:empty-label
+  requested_count: 25
+  removed_existing_rows: 0
+  insert_at: 260
+  base_images: 260
+  selected_fp_mined_negative_images: 25
+  combined_images: 285
+  source_top_detections: 120
+  unique_fp_images_in_top: 29
+  selected_images:
+  - image: data/cashsnap_v1/images/train/cashcountingxl_AF1DB384-7512-4824-BC2D-3EE3E0EF17F9.rf.1e92392e6ff238594b14f5dc4371e45c.jpg
+    detections_in_top: 17
+    max_confidence: 0.387145
+    classes:
+      KHR_2000: 1
+      KHR_20000: 10
+      USD_50: 6
+  - image: data/cashsnap_v1/images/train/cashcountingxl_5497D063-7537-45B1-88F4-F90BE2E4212D.rf.56a8ad889b68c3426ec649fccb183262.jpg
+    detections_in_top: 13
+    max_confidence: 0.341301
+    classes:
+      KHR_20000: 10
+      KHR_500: 1
+      USD_50: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_A37163BF-4EDB-466E-92A4-464B36E7B555.rf.6535c7b2bb738e9df1ca1a12cae7643e.jpg
+    detections_in_top: 7
+    max_confidence: 0.260112
+    classes:
+      KHR_20000: 4
+      KHR_500: 1
+      USD_50: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_btwo-f33_jpg.rf.b715ea85378e774aff5faaaa671291c8.jpg
+    detections_in_top: 7
+    max_confidence: 0.257547
+    classes:
+      KHR_20000: 5
+      USD_50: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_btw-f33_jpg.rf.fbe315a172f747e203c289708f50d6e3.jpg
+    detections_in_top: 6
+    max_confidence: 0.254314
+    classes:
+      KHR_20000: 6
+  - image: data/cashsnap_v1/images/train/cashcountingxl_6C1CA25C-9D49-473A-BFB4-5D09F58F09BF.rf.bf14b9007877119ea6b18e5fb9b5559e.jpg
+    detections_in_top: 6
+    max_confidence: 0.219147
+    classes:
+      KHR_2000: 1
+      KHR_20000: 4
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_1619A7D8-C145-4FBF-85EB-135A057A00DF.rf.7b579c8a5ccc90ac3dbe8b7d4703f27e.jpg
+    detections_in_top: 6
+    max_confidence: 0.195545
+    classes:
+      KHR_20000: 6
+  - image: data/cashsnap_v1/images/train/cashcountingxl_58B968BB-1F10-4098-BF41-1AB810AD3D0D.rf.653941d560ff7ecdeccb3c3ef42817fe.jpg
+    detections_in_top: 7
+    max_confidence: 0.195256
+    classes:
+      KHR_20000: 6
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_6444DE52-4826-4266-8A44-A397EE135412.rf.9cb51bf16cd5e130f4cf3126f35811b1.jpg
+    detections_in_top: 7
+    max_confidence: 0.192177
+    classes:
+      KHR_2000: 1
+      KHR_20000: 4
+      KHR_500: 1
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_btwo-f25_jpg.rf.51cbaa5cd7bd3f91e0a905dea146a236.jpg
+    detections_in_top: 3
+    max_confidence: 0.189899
+    classes:
+      KHR_20000: 3
+  - image: data/cashsnap_v1/images/train/cashcountingxl_7485AC99-FC89-43F6-81B3-2C16B9CE0597.rf.5c9547556be651e833349d00ce584bff.jpg
+    detections_in_top: 3
+    max_confidence: 0.187361
+    classes:
+      KHR_20000: 3
+  - image: data/cashsnap_v1/images/train/cashcountingxl_0032BF6B-73DA-4083-9B53-A3F0308AA76E.rf.70a2bf88f6a2b4ef1213dabccae6ff5a.jpg
+    detections_in_top: 5
+    max_confidence: 0.186826
+    classes:
+      KHR_2000: 1
+      KHR_20000: 4
+  - image: data/cashsnap_v1/images/train/cashcountingxl_6232FFA7-F947-407E-8C58-5F5489BCF053.rf.a0e97b5ec263502d0eded65d6328c6e4.jpg
+    detections_in_top: 5
+    max_confidence: 0.175067
+    classes:
+      KHR_2000: 1
+      KHR_20000: 3
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_btwo-f13_jpg.rf.2fbeffca875f9825729ad94e81a26748.jpg
+    detections_in_top: 4
+    max_confidence: 0.168834
+    classes:
+      KHR_20000: 4
+  - image: data/cashsnap_v1/images/train/cashcountingxl_3822D073-29D0-4A52-827F-4AE4ED03F604.rf.c828178580bac1ff49d4c0775ad4f34c.jpg
+    detections_in_top: 2
+    max_confidence: 0.160961
+    classes:
+      KHR_20000: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_12CE7F64-4B37-4C5A-BB9A-385A89418C1D.rf.de1e99e1cd52bbc22be19d38402f6f22.jpg
+    detections_in_top: 2
+    max_confidence: 0.15747
+    classes:
+      KHR_20000: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_19218250-645E-4E6F-850E-44D76308FD9C.rf.ef3807c1e6df1124e0785d03e0cc330b.jpg
+    detections_in_top: 2
+    max_confidence: 0.149551
+    classes:
+      KHR_20000: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_A4944B33-A948-4976-B544-387A637A0353.rf.d13885754129efbe991b7a0688c60a01.jpg
+    detections_in_top: 2
+    max_confidence: 0.148878
+    classes:
+      KHR_20000: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_45E919FB-F4B6-4822-BF8F-C6F7F9DAAE5F.rf.6997c5baae16d48956f11e13e2bdc987.jpg
+    detections_in_top: 1
+    max_confidence: 0.136456
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_35569C32-6DF5-43FB-A790-5278B2CE686C.rf.ab13bc7d9a9a7dfc341e2fc6c98bb73d.jpg
+    detections_in_top: 1
+    max_confidence: 0.134737
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_66EA0087-4E1C-4F23-B82E-F3950317B6C1.rf.c7cb3390746d80b3370dc26f1fc3134e.jpg
+    detections_in_top: 2
+    max_confidence: 0.129975
+    classes:
+      KHR_20000: 2
+  - image: data/cashsnap_v1/images/train/cashcountingxl_2B4B50B5-D967-453E-ABD3-8FE0D18BEDB5.rf.02bdd660fe8c8f6e1b97a0f5615639d7.jpg
+    detections_in_top: 3
+    max_confidence: 0.129803
+    classes:
+      KHR_20000: 2
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_2814990D-749F-4237-BDC0-3E73291EC361.rf.c20f0394d5d1fb8c3de2fe9db04df749.jpg
+    detections_in_top: 1
+    max_confidence: 0.128384
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_02E7F6D1-A1E5-4FD1-B072-E77C53F55351.rf.da5748069cbf5a70ce2933493328a753.jpg
+    detections_in_top: 1
+    max_confidence: 0.128102
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_btwo-f16_jpg.rf.b70600dec48248145d07d90a3f118de5.jpg
+    detections_in_top: 3
+    max_confidence: 0.127262
+    classes:
+      KHR_2000: 2
+      KHR_20000: 1

@@ -1,0 +1,400 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_fpminedreal32spread_bal20_probe_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth TSTR probe adding zero-label negatives selected from donor
+    false positives
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_v1
+  promotion_rule: reject unless mined negatives reduce real-empty FPs while preserving
+    full, clean-visible, labeled, stress, and protected positive guardrails
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260609
+  per_class: 20
+  images: 260
+  class_counts:
+    KHR_1000: 20
+    KHR_10000: 20
+    KHR_2000: 20
+    KHR_20000: 20
+    KHR_500: 20
+    KHR_5000: 20
+    KHR_50000: 20
+    USD_1: 20
+    USD_10: 20
+    USD_100: 20
+    USD_20: 20
+    USD_5: 20
+    USD_50: 20
+  background_source_images: 25
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_root: data/backgrounds/cashsnap_v1_no_note_patches_strict_v1
+  background_split: train
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 25
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest: null
+  unique_geometry_sources_used: 255
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: poisson_mixed
+  shadow_policy: contact
+  box_scale: 2.05
+  box_scale_jitter: 0.08
+  geometry_size_jitter: 0.14
+  position_jitter_fraction: 0.045
+  warp_alpha_feather_px: 0.0
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 190.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 256
+    USD_5: 256
+    USD_10: 256
+    USD_20: 256
+    USD_50: 256
+    USD_100: 256
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2051.5830078125
+    sharpness_p50: 3129.20458984375
+    sharpness_p75: 4444.64794921875
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 260
+      min: 0.044450998306274414
+      p05: 0.08126024901866913
+      p25: 0.12138000130653381
+      p50: 0.1883009970188141
+      p75: 0.2767474949359894
+      p95: 0.4548582136631012
+      max: 0.5546309947967529
+    inpaint_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_v1/metadata/train.jsonl
+cashsnap_sources:
+  fp_mined_negative_dose_base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  fp_mined_negative_probe_json: runs/cashsnap/background_fp_train_empty_poisson_contact_geoscale205_minshort190_bal20_b64_conf005_v1.json
+  fp_mined_negative_image_root: configs/cashsnap_v1.yaml#train:empty-label
+cashsnap_fp_mined_negative_dose:
+  schema: cashsnap_fp_mined_negative_dose_v1
+  base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  base_train_sources:
+  - data/synthetic/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal20_probe_v1/images/train
+  probe_json: runs/cashsnap/background_fp_train_empty_poisson_contact_geoscale205_minshort190_bal20_b64_conf005_v1.json
+  probe_schema: cashsnap_yolo_background_false_positive_probe_v1
+  model_label: poisson_contact_geoscale205_minshort190_bal20_b64
+  model: runs/cashsnap/fixed_step_poisson_contact_geoscale205_minshort190_bal20_b64_contactctrl_from_clean_e50_i416_b64_w0_auto_lr1e2_warmup3_amp_cachefalse_steps150_seed0/weights/best.pt
+  image_root: configs/cashsnap_v1.yaml#train:empty-label
+  conf: 0.05
+  replace_existing_root: configs/cashsnap_v1.yaml#train:empty-label
+  requested_count: 32
+  selection: spread
+  seed: 20260608
+  removed_existing_rows: 0
+  insert_at: 260
+  base_images: 260
+  selected_fp_mined_negative_images: 32
+  combined_images: 292
+  source_top_detections: 500
+  unique_fp_images_in_top: 499
+  selected_images:
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5685_jpg.rf.79398ff1ecb0c065b7f3611b01c083ea.jpg
+    detections_in_top: 1
+    max_confidence: 0.986748
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5718_jpg.rf.68e71c759aad874db2ac70b1a4a3ae42.jpg
+    detections_in_top: 1
+    max_confidence: 0.971711
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5733_jpg.rf.08638bee8e0e10dfd9aee90a97f902b4.jpg
+    detections_in_top: 1
+    max_confidence: 0.958853
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5787_jpg.rf.a7c728e76afe3d54058df9eb20ba7609.jpg
+    detections_in_top: 1
+    max_confidence: 0.947556
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6056_jpg.rf.31b57b6f44e6c3c3483dad3138ce299d.jpg
+    detections_in_top: 1
+    max_confidence: 0.939397
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6011_jpg.rf.8b84abdf41c6e50885428dd51d72ae6b.jpg
+    detections_in_top: 1
+    max_confidence: 0.930676
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6422_jpg.rf.a9153e1d2bbc7c2f8f1dc776c1265066.jpg
+    detections_in_top: 1
+    max_confidence: 0.917573
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S26_jpg.rf.7b4351ea0e970944e131bd9367ef02e4.jpg
+    detections_in_top: 1
+    max_confidence: 0.910942
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5823_jpg.rf.17a87652e3e029583f12ec6e19bc8ebd.jpg
+    detections_in_top: 1
+    max_confidence: 0.901717
+    classes:
+      KHR_2000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6076_jpg.rf.d88b1f34b29f7106a82f36d8b684eeea.jpg
+    detections_in_top: 1
+    max_confidence: 0.895303
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_4683_jpg.rf.9e5b472ebba1805f728022cf3fd771ce.jpg
+    detections_in_top: 1
+    max_confidence: 0.883438
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6319_jpg.rf.63c3f0e6f96c70b83326d59dbc63c50a.jpg
+    detections_in_top: 1
+    max_confidence: 0.875151
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5675_jpg.rf.b56a3481646fee9a333c744d26c441ea.jpg
+    detections_in_top: 1
+    max_confidence: 0.8648
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5448_jpg.rf.f623a45a4df1db98774cd86f3a63b32e.jpg
+    detections_in_top: 1
+    max_confidence: 0.859441
+    classes:
+      KHR_10000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5476_jpg.rf.5743874dacca24836ff17774eecdefc9.jpg
+    detections_in_top: 1
+    max_confidence: 0.8505
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_IMG_2509_MP4-0690_jpg.rf.9683cbded24128b84617511cdd12c085.jpg
+    detections_in_top: 1
+    max_confidence: 0.842963
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_4671_jpg.rf.9ae0a9e75022c1744b21b7ceb61536b5.jpg
+    detections_in_top: 1
+    max_confidence: 0.837112
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6005_jpg.rf.bf047f68ee2da2c237cd56a15943cf6c.jpg
+    detections_in_top: 1
+    max_confidence: 0.825819
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6358_jpg.rf.e32c1415e6dbf44f1cb9e76e07c16631.jpg
+    detections_in_top: 1
+    max_confidence: 0.817548
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_96_jpeg_jpg.rf.c626533de6ffd452860024096db73674.jpg
+    detections_in_top: 1
+    max_confidence: 0.811927
+    classes:
+      USD_100: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5994_jpg.rf.8229eac792fbfe72c3a4f30076bea23e.jpg
+    detections_in_top: 1
+    max_confidence: 0.803342
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_4532_jpg.rf.b88fd2623ae2d3462a44b026dace70f2.jpg
+    detections_in_top: 1
+    max_confidence: 0.795362
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5912_jpg.rf.2bc515d78f81c2604e592ad7f78d1604.jpg
+    detections_in_top: 1
+    max_confidence: 0.790106
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_IMG_2501_MP4-0789_jpg.rf.ddc0f45cb01d6f0479c50a7239066fcf.jpg
+    detections_in_top: 1
+    max_confidence: 0.783016
+    classes:
+      KHR_10000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6004_jpg.rf.901f33e1ca48fd294e25584ec8a12378.jpg
+    detections_in_top: 1
+    max_confidence: 0.776073
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_4618_jpg.rf.fae9cceaadbce7d50801bce659f1c9c5.jpg
+    detections_in_top: 1
+    max_confidence: 0.768032
+    classes:
+      KHR_2000: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_29_jpg.rf.68da02493da37e0ae58e2ecda8535db9.jpg
+    detections_in_top: 1
+    max_confidence: 0.760066
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5771_jpg.rf.c8e08f129477a318bf23cdb1a48c5b1e.jpg
+    detections_in_top: 1
+    max_confidence: 0.754938
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/cambodia_currency_project_IMG_5747_png.rf.8b53d4c447cdc17084fcc8f4bc735dcf.jpg
+    detections_in_top: 1
+    max_confidence: 0.749332
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5770_jpg.rf.e3b875b299e27c7a6d1930868fa01b89.jpg
+    detections_in_top: 1
+    max_confidence: 0.744184
+    classes:
+      KHR_500: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_5369_jpg.rf.cfdbcd727261b767cde09d121f68b9ac.jpg
+    detections_in_top: 1
+    max_confidence: 0.736097
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6389_jpg.rf.cc6d12966fb9c3bc004ca41bfb40533a.jpg
+    detections_in_top: 1
+    max_confidence: 0.729541
+    classes:
+      KHR_50000: 1

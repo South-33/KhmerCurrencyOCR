@@ -1,0 +1,239 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_webglfullframedark4_bal20_probe_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth TSTR probe adding four teacher-aligned dark WebGL full-frame
+    unknown-currency negatives to test background/full-frame FP repair without losing
+    the tiny bounded-real positive signal
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1
+  promotion_rule: reject unless fixed-step self-eval, bounded real positives, and
+    real-empty FP guardrails improve or preserve the alpha/geoscale reference
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260614
+  per_class: 20
+  images: 260
+  class_counts:
+    KHR_1000: 20
+    KHR_10000: 20
+    KHR_2000: 20
+    KHR_20000: 20
+    KHR_500: 20
+    KHR_5000: 20
+    KHR_50000: 20
+    USD_1: 20
+    USD_10: 20
+    USD_100: 20
+    USD_20: 20
+    USD_5: 20
+    USD_50: 20
+  background_source_images: 25
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_root: data/backgrounds/cashsnap_v1_no_note_patches_strict_v1
+  background_split: train
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 25
+  real_geometry_samples_by_class:
+    USD_1: 627
+    USD_5: 753
+    USD_10: 1009
+    USD_20: 894
+    USD_50: 911
+    USD_100: 976
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 18
+  geometry_manifest: null
+  unique_geometry_sources_used: 257
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 26
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: alpha
+  shadow_policy: contact
+  box_scale: 2.05
+  box_scale_jitter: 0.08
+  geometry_size_jitter: 0.14
+  position_jitter_fraction: 0.045
+  warp_alpha_feather_px: 0.0
+  tone_match_policy: background
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 190.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 256
+    USD_5: 256
+    USD_10: 256
+    USD_20: 256
+    USD_50: 256
+    USD_100: 256
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 18
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 2008.8682861328125
+    sharpness_p50: 3108.71142578125
+    sharpness_p75: 4423.31787109375
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 260
+      min: 0.04054199904203415
+      p05: 0.08099700510501862
+      p25: 0.1267072558403015
+      p50: 0.19815900921821594
+      p75: 0.28546950221061707
+      p95: 0.500582754611969
+      max: 0.5624579787254333
+    inpaint_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 260
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1/metadata/train.jsonl
+cashsnap_sources:
+  hard_negative_dose_base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  hard_negative_dose_root: data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train
+cashsnap_webgl_hard_negative_dose:
+  schema: cashsnap_webgl_hard_negative_dose_v1
+  base_config: configs/archive/housekeeping_2026-06-09/webgl_ablation/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_puresynth_realval_v1.yaml
+  base_train_sources:
+  - data/synthetic/cashsnap_target_anchor_transplant_alpha_contact_geoscale205_minshort190_bal20_probe_v1/images/train
+  hard_negative_root: data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train
+  filename_contains: ''
+  replace_existing_root: data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train
+  selection: spread
+  seed: 20260618
+  requested_count: 4
+  removed_existing_rows: 0
+  insert_at: 260
+  base_images: 260
+  selected_hard_negative_images: 4
+  combined_images: 264
+  selected_image_rows:
+  - data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train/variant_0000.png
+  - data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train/variant_0005.png
+  - data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train/variant_0010.png
+  - data/synthetic/cashsnap_webgl_unknown_currency_fullframe_dark_negative_probe_v1/images/train/variant_0015.png

@@ -1,0 +1,53 @@
+{
+  "name": "cashsnap_two_stage_oldoverlap_proposal_gate_synpartial_browser_stack",
+  "status": "diagnostic_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/yolo26n_pristine_overlap_e2_i416_b8/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": true
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/archive/housekeeping_2026-06-09/fragment_classifier_legacy/mobilenet_v3_proposal_gate_oldoverlap_synpartial_v2_e6/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["background", "banknote"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.17,
+    "nms_iou": 0.65,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["background"],
+    "reject_fragment_class_min_conf": 0.0,
+    "reject_after_nms": true
+  },
+  "known_limits": [
+    "Diagnostic binary proposal gate trained with additional WebGL clean/overlap/fan/hand/thin positive proposal crops.",
+    "Classifier is used only to reject background-like proposals; accepted proposals keep detector denominations.",
+    "This tests whether synthetic partial positives can recover proposal-gate recall without losing hard-negative restraint."
+  ]
+}

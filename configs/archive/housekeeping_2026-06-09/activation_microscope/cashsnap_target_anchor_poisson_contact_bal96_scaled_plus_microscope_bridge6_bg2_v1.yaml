@@ -1,0 +1,48 @@
+path: ../..
+train: configs/archive/housekeeping_2026-06-09/generated_lists/activation_microscope/cashsnap_target_anchor_poisson_contact_bal96_scaled_plus_microscope_bridge6_bg2_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  schema: cashsnap_activation_failure_bridge_v1
+  selection_note: test-guided activation microscope train bridge; diagnostic upper-bound,
+    not promotion-safe until rebuilt from val/train-only selection
+  source_data: configs/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_probe_puresynth_realval_v1.yaml
+  real_data: data/cashsnap_v1/data.yaml
+  analog_csvs:
+  - runs/cashsnap/activation_microscope_poisson_contact_bal96_realtest_mpc15_v1/strict0149_train_analogs/query_to_train_analogs.csv
+  - runs/cashsnap/activation_microscope_poisson_contact_bal96_realtest_mpc15_v1/repair0747_train_analogs/query_to_train_analogs.csv
+  source_train_rows: 1248
+  positive_unique_images: 98
+  positive_repeat: 6
+  positive_rows_added: 588
+  positive_unique_by_class:
+    KHR_10000: 25
+    KHR_2000: 3
+    KHR_500: 13
+    USD_10: 9
+    USD_100: 5
+    USD_20: 10
+    USD_5: 15
+    USD_50: 18
+  empty_background_unique_images: 128
+  background_repeat: 2
+  background_rows_added: 256
+  total_train_rows: 2092
+  unique_train_rows: 1474
+  duplicate_rows: 618
+  seed: 20260608
+  train_list_fingerprint: 11a4ef40a08c070d4a182a44b6d7d45d23d7545e8d05db888c2b4b720f572057
