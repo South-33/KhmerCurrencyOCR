@@ -572,6 +572,32 @@ with fewer FPs). Read: do not train or promote from the unreviewed queue, and do
 not treat the all-120 diagnostic as a held-out failure. The next detector dose
 needs reviewed bbox/tight-pair train anchors and a reviewed USD cash-counting
 eval pocket, while preserving the champion's lower FP behavior.
+
+Focused follow-up packet
+`runs/cashsnap/real_overlap_focus_review_packet_v1/focus_review_packet_v1.csv`
+is built by `scripts/build_real_overlap_focus_review_packet.py` from the
+annotated first-packet triage. It has `43` rows: `14` train bbox-overlap anchor
+candidates, `9` train tight-pair anchor candidates, `8` `khmer_us_currency`
+tight-pair flat-source policy rows suggested as `exclude_duplicate_or_flat`, `7`
+held-out cashcountingxl USD eval candidates, `4` held-out multi-note smoke eval
+candidates, and `1` held-out `khmer_us_currency` multi-note flat-source policy
+row, with sheet `focus_review_packet_v1_sheet.jpg`. The script adds
+`suggested_usable_as` and `suggested_final_route` but leaves
+`review_decision`/`usable_as` blank; the materializer correctly refuses it unless
+rows receive explicit accepted review decisions. Use this as the next review
+entrypoint before any overlap dose, and do not let flat front/back catalog pairs
+stand in for real overlap/fan anchors.
+
+The same builder writes diagnostic route views, still not accepted materialized
+data: `suggested_eval_view_v1_data.yaml` (`11` held-out candidates),
+`suggested_train_anchor_view_v1_data.yaml` (`23` train-anchor candidates), and
+`flat_source_policy_view_v1_data.yaml` (`9` likely flat/catalog policy rows).
+On suggested eval, balanced-real versus p24 synth+real is `10/16` TP, `25` FP
+versus `9/16` TP, `16` FP, so the champion is quieter but loses one TP
+(`KHR_1000`, `USD_1`, `USD_5` pockets). On suggested train anchors, the recall
+hole survives flat-source removal: `48/60` TP, `39` FP versus `41/60` TP, `29`
+FP, led by `KHR_5000` (`11/12 -> 5/12`). This makes reviewed `KHR_5000`
+overlap/fan anchors the highest-value train-side question.
 Threshold probing on the same packet says this is not fixed by a simple global
 confidence knob: champion `conf=0.05` gives recall/precision `0.7688/0.6245`,
 `0.03` gives `0.8172/0.5547`, `0.02` gives `0.8333/0.4874`, and `0.01` gives
