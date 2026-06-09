@@ -89,6 +89,14 @@ is the model-side recipe to beat; detector+gate/browser behavior is adjacent
 diagnostic evidence only unless the phase explicitly switches back to product
 selection.
 
+Deployability smoke: the same checkpoint has a compact ONNX export
+`weights/last.onnx` and passes a CPU ONNX detector smoke on
+`asian_currency_IMG_6451...` with one `KHR_5000` proposal matching the CUDA smoke
+closely (`0.907686` confidence,
+`runs/cashsnap/browser_stack_onnx_detector_cpu_smoke_real_synth_p24_latest.json`).
+This only proves the foundation can load on a CPU-style ONNX path; it is not a
+browser/product promotion and does not address overlap/fan/hand readiness.
+
 Seed repeat strengthens the synth+real recipe but does not promote seed1 as the
 checkpoint. Seed1 fixed-step A/B, same b2/e1/steps318 recipe, beats duplicate
 real control on full real `0.827864 -> 0.858237` (`+0.030374`, worst protected
