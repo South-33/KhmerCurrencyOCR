@@ -1,0 +1,107 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_production_pilot_v3_broad_unknown_guard_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_production_pilot:
+  schema: cashsnap_production_pilot_config_v1
+  tag: cashsnap_production_pilot_v3_broad_unknown_guard
+  base_reference_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  recommended_init_checkpoint: runs/cashsnap/fixed_step_countsafe_vis70_p24_from_last_e50_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_steps318_seed0/weights/last.pt
+  component_sources:
+    clean_real_replay:
+    - configs/generated_lists/webgl_ablation/cashsnap_v1_balanced_real_only_probe_train.txt
+    strictbest_synth_replay:
+    - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+    - 'derived: rows not in clean_real_replay'
+    countable_partial_replay:
+    - configs/generated_lists/webgl_ablation/cashsnap_countsafe_vis70_p24_v1_extra.txt
+    - configs/generated_lists/webgl_ablation/cashsnap_countsafe_vis70_plus_center50_p24_v1_extra.txt
+    - configs/generated_lists/webgl_ablation/cashsnap_reviewed_countable_khr_borderpartial24_v1_extra.txt
+    - configs/generated_lists/webgl_ablation/cashsnap_reviewed_visibleevidence_obvioussafe_v1_extra.txt
+    - runs/cashsnap/visible_evidence_qa_mined_partialstress_cap8_v1/strict_partial_khr_codex_reviewed_v1_images.txt
+    - runs/cashsnap/real_overlap_focus_materialized_reviewed_v1/train_anchor_candidate_images.txt
+    train_safe_hard_negative_replay:
+    - runs/cashsnap/visible_evidence_qa_lowrisk_empty_candidates_v1/coin_hardneg12_codex_reviewed_v1_images.txt
+    - configs/generated_lists/webgl_ablation/cashsnap_reviewed_foreignhardneg_koreanwon24_v1_extra.txt
+    - configs/generated_lists/audit/cashsnap_foreign_asian_currency_top33_from_bgfp_v1.txt
+    - configs/generated_lists/audit/cashsnap_countable_center50_fpneg32_added_negative_v1.txt
+    - configs/generated_lists/audit/cashsnap_zero_label_money_train_hardneg_broad240_v1.txt
+    - runs/cashsnap/ve_v4_trainanchors_guard_v2/champion_train_empty_fp_analogs_allclasses_conf015_v1.json
+    high_risk_class_protectors:
+    - configs/generated_lists/webgl_ablation/cashsnap_v1_balanced_real_only_probe_train.txt
+    - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  summary:
+    seed: 20260611
+    rows: 3406
+    unique_rows: 1277
+    duplicate_exposures: 2129
+    empty_rows: 1089
+    component_rows:
+      clean_real_replay: 951
+      strictbest_synth_replay: 636
+      countable_partial_replay: 634
+      train_safe_hard_negative_replay: 1005
+      high_risk_class_protectors: 180
+    component_unique_rows:
+      clean_real_replay: 317
+      strictbest_synth_replay: 318
+      countable_partial_replay: 317
+      train_safe_hard_negative_replay: 335
+      high_risk_class_protectors: 173
+    component_percent:
+      clean_real_replay: 0.2792
+      strictbest_synth_replay: 0.1867
+      countable_partial_replay: 0.1861
+      train_safe_hard_negative_replay: 0.2951
+      high_risk_class_protectors: 0.0528
+    class_counts:
+      USD_1: 174
+      USD_5: 154
+      USD_10: 154
+      USD_20: 150
+      USD_50: 213
+      USD_100: 196
+      KHR_500: 248
+      KHR_1000: 206
+      KHR_2000: 166
+      KHR_5000: 214
+      KHR_10000: 274
+      KHR_20000: 189
+      KHR_50000: 195
+    clean_real_unique: 317
+    strict_synth_unique: 318
+    partial_generated_available: 370
+    partial_generated_selected: 240
+    reviewed_positive_unique: 77
+    partial_total_unique: 317
+    hardneg_unique: 335
+    protector_pool_unique: 173
+  label_policy:
+  - Train from existing train-split/list-backed rows only; no new data root is introduced.
+  - Human-countable partial positives are allowed; unreviewed corner_*.vis0p5 rows
+    are blocked.
+  - Hard-negative rows must be zero-label train-split rows.
+  - Eval/failure-slice-mined rows are kept out of hard-negative training unless they
+    are train-split analogs.
+cashsnap_policy:
+  intended_use: 'Production Pilot v1 one-detector training recipe: clean replay plus
+    strictbest synth, countable partial/visible-evidence positives, train-safe hard
+    negatives, and protected high-risk class replay.'
+  promotion_rule: Compare against the p24 synth+real champion and p24 vis70 clue on
+    full real, strict clean, source-excluded clean, filtered countable partial, source-FP
+    review queue, hard-slice count/value, and per-class guards; kill if gains come
+    from duplicate or wrong-denomination boxes.

@@ -60,6 +60,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--partial-generated-max", type=int, default=240)
     parser.add_argument("--partial-repeat", type=int, default=2)
     parser.add_argument("--hardneg-repeat", type=int, default=6)
+    parser.add_argument(
+        "--extra-hardneg-list",
+        type=Path,
+        action="append",
+        default=[],
+        help="Additional train-split zero-label image list to include in hard-negative replay.",
+    )
     parser.add_argument("--protector-exposures", type=int, default=180)
     parser.add_argument("--dry-run", action="store_true")
     return parser.parse_args()
@@ -340,6 +347,8 @@ def main() -> int:
     hardneg_rows: list[str] = []
     for source in HARDNEG_LISTS:
         hardneg_rows.extend(read_list(source))
+    for source in args.extra_hardneg_list:
+        hardneg_rows.extend(read_list(source))
     hardneg_rows.extend(train_empty_fp_rows(TRAIN_EMPTY_FP_ANALOGS))
     hardneg_rows = ordered_unique(hardneg_rows)
     validate_hardneg(hardneg_rows)
@@ -396,6 +405,7 @@ def main() -> int:
         ],
         "train_safe_hard_negative_replay": [
             *[repo_rel(resolve(source)) for source in HARDNEG_LISTS],
+            *[repo_rel(resolve(source)) for source in args.extra_hardneg_list],
             repo_rel(resolve(TRAIN_EMPTY_FP_ANALOGS)),
         ],
         "high_risk_class_protectors": [repo_rel(resolve(BASE_REAL_LIST)), repo_rel(resolve(BASE_MIX_LIST))],

@@ -70,11 +70,11 @@ Baselines: full real mAP50-95 `0.852767`, strict semantic+leakage-clean
 `0.860743`, source-excluded strict-clean around `0.78`. It is the clean
 foundation to protect, not the final partial/overlap answer.
 
-Pilot initialization posture: do not restart from raw `yolo26n.pt` unless both
-strong initializations fail or a control is explicitly needed. First use the
-existing learned CashSnap foundations. The conservative init is the clean p24
-synth+real champion above; the visible-evidence challenger init is the p24 vis70
-candidate:
+Pilot initialization result: clean champion init and p24 vis70 init were
+effectively tied once trained through the same pilot blend, so initialization is
+not the main bottleneck right now. The conservative init is still the clean p24
+synth+real champion above; the visible-evidence challenger init was the p24
+vis70 candidate:
 `runs/cashsnap/fixed_step_countsafe_vis70_p24_from_last_e50_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_steps318_seed0/weights/last.pt`.
 It was only a 318-batch head tune over `927` unique rows (`323` original real,
 `312` strictbest synthetic, `292` source-clean `vis0p7` partial crops), but it is
@@ -82,18 +82,18 @@ the best current compromise signal: full real `0.854178`, strict clean
 `0.865306`, source-excluded clean `0.795336`, unfiltered partial test
 `0.660102`, filtered countable-partial test recall/precision `0.8857/0.5569`.
 It is not production-safe by itself because source/unknown-money and
-wrong-denomination proposal issues remain. If time allows, run both inits on the
-same pilot blend: champion-init protects clean behavior, vis70-init tests whether
-the partial clue survives hard-negative and clean replay pressure.
+wrong-denomination proposal issues remain.
 
-Production Pilot v1 artifact exists but is untrained:
-`configs/webgl_ablation/cashsnap_production_pilot_v1.yaml`, built by
-`scripts/build_cashsnap_production_pilot_config.py`, has `2665` exposure rows
-and `986` unique images: clean real `35.68%`, strictbest synth `23.86%`,
-countable partial `23.79%`, train-safe hard negatives `9.91%`, and high-risk
-class protectors `6.75%`. It uses existing list-backed/train-split rows only,
-blocks unreviewed corner-50 partial rows, and keeps eval-mined hard negatives out
-unless they are train-split analogs.
+Current leading pilot candidate is Production Pilot v2 hard-negative guard:
+`runs/cashsnap/production_pilot_v2_hardneg_guard_from_cleanchampion_e3_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.pt`.
+It starts from the clean champion and uses
+`configs/webgl_ablation/cashsnap_production_pilot_v2_hardneg_guard.yaml`, a
+v1-style clean/strictbest/partial blend plus train-split exact-failure
+hard-negative pressure. It is not final, but it is the best balanced checkpoint
+so far: better full/strict clean and partial-positive behavior than A/B, with
+better held-out unknown-money and true-empty behavior than the v1 pilots. Its
+main weakness is still unknown/out-of-schema money hallucination, not clean AP
+or partial recall.
 
 Browser/gate posture: current detector+gate/browser stacks are diagnostic
 product clues, not proof that the detector learned visible-evidence reasoning.
@@ -104,25 +104,34 @@ a detector that creates duplicate or wrong-denomination boxes.
 
 ### Current State
 
-The live goal is one production-pilot detector, but the experiment should compare
-reasonable initializations instead of assuming one. First-run matrix: clean
-champion init, p24 vis70 init, and a YOLO26s capacity check if browser/model-size
-budget allows. The first serious runs should train long enough to see the curated
-blend, roughly `5k-8k` image presentations at `imgsz=416`, `batch=2`, low LR, no
-AMP, cache false, with clean replay and source/unknown pressure. A
-freeze-then-unfreeze schedule is allowed if it produces one final checkpoint and
-does not hide a phase-confounded result.
+The live goal is still one production-pilot detector, and the scorecard now
+needs to be blended like the product: clean/non-overlap positives, countable
+partial/overlap positives, held-out unknown-money negatives, and ordinary
+true-empty negatives. The reusable scorecard artifact is
+`runs/cashsnap/production_pilot_eval_suite_v1/scorecard_summary_A_B_V2_V3_V4.json`;
+the scorecard script is `scripts/summarize_cashsnap_production_pilot_scorecard.py`.
+Do not treat train-split hard-negative rows as held-out proof after adding them
+to a blend.
 
 The pilot is successful only if partial/overlap recall improves for the right
 reason: recognizing countable visible evidence. It is a failure if the gain comes
 from duplicate same-note boxes, wrong-denomination boxes, or target-class
 predictions on unknown/foreign/non-banknote money.
 
-Use the p24 synth+real clean champion as the fallback and guardrail. Use the p24
-vis70 candidate as the best clue that partial-visible positives can transfer.
-Use the filtered countable-partial eval bridge
+Use the p24 synth+real clean champion as the fallback and guardrail. Use Pilot
+v2 as the current production-pilot candidate to beat. Use the p24 vis70
+candidate as a clue, not an init priority. Use the filtered countable-partial
+eval bridge
 `configs/audit/cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_eval_v1.yaml`
 as a cleaner partial yardstick than the old unfiltered vis50/70 split.
+
+Fair held-out unknown-money eval now exists:
+`configs/audit/cashsnap_heldout_zero_label_money_guardrails_v1_*_eval.yaml`
+with val/test rows from zero-label `asian_currency`, `usd_total_2Dollar`, and
+current-schema-unknown `khmer_us_currency_100-riel` splits. The matching
+train-only broad hard-negative sample is
+`configs/generated_lists/audit/cashsnap_zero_label_money_train_hardneg_broad240_v1.txt`;
+use it for training pressure, not promotion proof.
 
 The old unfiltered partial eval contained policy-poison rows: exact USD100
 "misses" that were not human-countable and `corner_*_vis0p5` fragments that were
@@ -130,10 +139,13 @@ often denomination-ambiguous. Future partial rows must be human-countable from
 visible evidence, ignored/excluded if ambiguous, and never silently converted
 into forced denomination labels.
 
-Current hard blockers for promotion are proposal quality and source policy:
+Current hard blockers for promotion are still count safety and source policy:
 duplicate boxes, wrong-denomination overlaps, unknown/foreign/non-banknote money
-leaking into target classes, and possible multi-instance label gaps. The source
-FP review queue for the p24 vis70 candidate remains useful:
+leaking into target classes, and possible multi-instance label gaps. The v2
+checkpoint reduces but does not solve held-out unknown-money hallucination: at
+`conf=0.25`, held-out unknown-money combined detections are `51/237` images
+versus `72` for Pilot A; true-empty detections are `4/441` versus `10`.
+The source FP review queue for the p24 vis70 candidate remains useful:
 `runs/cashsnap/countsafe_vis70_p24_v1/source_fp_review_candidate_vs_dupctrl_v1/`.
 
 ### Tested Ideas
@@ -170,6 +182,26 @@ FP review queue for the p24 vis70 candidate remains useful:
   detector; some bought recall by spending count safety. The pilot uses only
   train-safe zero-label hard negatives and should be judged on count/value and
   source-FP behavior, not just AP.
+- **Production Pilot v2 is the current balanced leader.** Pilot A
+  (clean-champion init) and Pilot B (p24 vis70 init) both reached full real
+  `0.8549`, strict clean about `0.866`, source-excluded about `0.792`, and
+  filtered partial test recall `0.9048`; init was not decisive. V2, from the
+  clean champion with exact train-split hard-negative guard pressure, improved
+  full real to `0.8573`, strict clean to `0.8688`, filtered partial test
+  recall/precision to `0.9238/0.5575`, and reduced held-out unknown-money
+  detections at `conf=0.25` from Pilot A `72` to `51` while reducing true-empty
+  detections from `10` to `4`. The cost is source-excluded clean `0.7889`, a
+  small drop from A/B, and unknown-money hallucination remains too high for
+  launch without further work.
+- **Broad unknown negatives need the right budget.** V3 used the broad 240-row
+  train unknown-money hard-negative sample at a high total dose and is killed:
+  it improved some negative counts but dropped full real to `0.8532`, strict
+  clean to `0.8646`, source-excluded to `0.7865`, and partial test recall to
+  `0.8952`. V4 kept roughly v2's hard-negative exposure budget with broader
+  diversity and is also killed as the main candidate: partial recall rose to
+  `0.9429`, but held-out unknown-money detections worsened versus v2 (`63` vs
+  `51` at `conf=0.25`), true-empty worsened (`8` vs `4`), full real stayed
+  `0.853`, and source-excluded fell to `0.785`.
 - **Thresholds, NMS, and gates are diagnostic, not detector proof.** Narrow KHR
   class floors can improve a filtered slice but are not broadly safe. Lowering
   class-aware YOLO NMS did not change filtered partial results, so ordinary
@@ -189,33 +221,27 @@ FP review queue for the p24 vis70 candidate remains useful:
 
 ### Untested Ideas
 
-- **Train Production Pilot v1 init/capacity matrix.** Run at least A and B under
-  the same pilot config and promotion gates. A starts from the clean p24
-  synth+real champion; B starts from the p24 vis70 candidate. This separates
-  "clean foundation plus curated blend" from "visible-evidence init plus curated
-  blend." Add C for YOLO26s if compute and deployment budget allow. A direct
-  `yolo26s.pt -> pilot` run is only a capacity smoke because it lacks the
-  CashSnap clean foundation; the fair YOLO26s comparison is `yolo26s.pt ->
-  clean p24 synth+real foundation -> pilot`. Judge YOLO26s on accuracy plus
-  phone/browser costs: PyTorch size, ONNX size, CPU/WebGL latency, and whether it
-  actually fixes visible-evidence/counting errors. Do not regenerate all synth
-  data or audit the entire universe from zero; do a targeted audit of pilot
-  ingredients and generate only missing, policy-clear evidence. Suggested
-  vis70-init dry-run command already validated:
-  `scripts/bench_train_with_headroom.py --model <p24-vis70-last.pt> --data configs/webgl_ablation/cashsnap_production_pilot_v1.yaml --epochs 3 --imgsz 416 --batch 2 --workers 0 --device 0 --optimizer AdamW --lr0 0.000005 --lrf 0.2 --warmup-epochs 0 --seed 0 --cache false --freeze 22 --no-amp --no-val --quiet --memory-clean-task CashSnapHiddenMemReduct`.
-  Clean-champion init dry-run is the same command with `--model
-  <clean-champion-last.pt>` and run name
-  `production_pilot_v1_from_cleanchampion_e3_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_seed0`.
-  YOLO26s smoke dry-runs also resolve, but `yolo26s.pt` is not repo-local yet;
-  use `lr0=0.00005`, no freeze, and treat direct `yolo26s.pt -> pilot` as a
-  smoke, not the fair capacity verdict. The fair YOLO26s path first builds a
-  clean p24 synth+real foundation from `yolo26s.pt`, then runs the pilot blend
-  from that checkpoint.
-- **Evaluate the pilot as one model.** Compare against the clean champion and
-  p24 vis70 clue on full real, strict clean, source-excluded clean, filtered
-  countable partial, source-FP review queue, hard-slice count/value, and
-  per-class guards. Do not call the pilot a win until duplicate/wrong-denom and
-  unknown-money behavior are inspected.
+- **Validate v2 before promotion.** V2 is the current candidate, not a final
+  launch model. Next proof should repeat v2 with at least one seed/order variant
+  or a slightly longer but controlled presentation budget, then compare with the
+  same blended scorecard. Kill or demote it if the partial/unknown-money balance
+  does not reproduce, if weak KHR/high-value classes fall, or if duplicate/
+  wrong-denomination review shows the partial gain is count-unsafe.
+- **Fix unknown-money rejection without bluntly spending recall.** V3 and v4
+  show broad hard negatives are not enough by themselves: too much dose hurts
+  clean/partial, and same-budget diversity gives up v2's count safety. Next
+  stronger options are a more surgical unknown-money curriculum, mined
+  high-confidence unknown FPs with class/source balance, or a single-detector
+  UNKNOWN/ignore-objective experiment whose unknown class is filtered at product
+  time. Any UNKNOWN-class experiment must remain one detector checkpoint and must
+  prove it preserves the 13 target classes after filtering unknown predictions.
+- **YOLO26s is a capacity question, not the current bottleneck.** Do not run it
+  just because it is available. Run it only if v2-style data/objectness pressure
+  plateaus and the remaining errors look like capacity/feature limits. A direct
+  `yolo26s.pt -> pilot` run is only a smoke because it lacks the CashSnap clean
+  foundation; the fair comparison is `yolo26s.pt -> clean p24 synth+real
+  foundation -> pilot`, judged on the same blended scorecard plus browser/phone
+  model size and latency.
 - **If Pilot v1 fails, diagnose by mechanism.** Split failures into clean
   regression, partial recall miss, duplicate overproposal, wrong-denomination
   overlap, unknown/foreign/non-banknote leakage, and protected-class collapse.

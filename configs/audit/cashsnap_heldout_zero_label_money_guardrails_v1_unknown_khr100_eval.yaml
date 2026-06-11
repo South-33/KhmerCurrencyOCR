@@ -1,0 +1,26 @@
+path: ../..
+train: images/train
+val: configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_khr100_val.txt
+test: configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_khr100_test.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_heldout_zero_label_guardrail:
+  schema: cashsnap_heldout_zero_label_money_guardrail_eval_v1
+  tag: cashsnap_heldout_zero_label_money_guardrails_v1
+  bucket: unknown_khr100
+  source_data: configs/cashsnap_v1.yaml
+  label_policy: Eval-only held-out zero-label rows; do not include in detector training.
+  promotion_use: Measure target-class hallucinations on foreign, out-of-schema, or
+    unknown-money rows from val/test splits only.

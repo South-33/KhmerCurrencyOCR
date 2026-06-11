@@ -1,0 +1,95 @@
+{
+  "schema": "cashsnap_heldout_zero_label_money_guardrails_v1",
+  "tag": "cashsnap_heldout_zero_label_money_guardrails_v1",
+  "source_data": "configs/cashsnap_v1.yaml",
+  "data_root": "data/cashsnap_v1",
+  "buckets": {
+    "foreign_asian_currency": {
+      "pattern": "asian_currency",
+      "splits": {
+        "val": {
+          "zero_label_rows": 353,
+          "skipped_labeled_rows": 68,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_foreign_asian_currency_val.txt"
+        },
+        "test": {
+          "zero_label_rows": 184,
+          "skipped_labeled_rows": 26,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_foreign_asian_currency_test.txt"
+        }
+      }
+    },
+    "unknown_usd2": {
+      "pattern": "usd_total_2Dollar",
+      "splits": {
+        "val": {
+          "zero_label_rows": 86,
+          "skipped_labeled_rows": 0,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_usd2_val.txt"
+        },
+        "test": {
+          "zero_label_rows": 41,
+          "skipped_labeled_rows": 0,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_usd2_test.txt"
+        }
+      }
+    },
+    "unknown_khr100": {
+      "pattern": "khmer_us_currency_100-riel",
+      "splits": {
+        "val": {
+          "zero_label_rows": 26,
+          "skipped_labeled_rows": 0,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_khr100_val.txt"
+        },
+        "test": {
+          "zero_label_rows": 12,
+          "skipped_labeled_rows": 0,
+          "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_khr100_test.txt"
+        }
+      }
+    }
+  },
+  "combined": {
+    "val": {
+      "zero_label_rows": 465,
+      "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_combined_val.txt"
+    },
+    "test": {
+      "zero_label_rows": 237,
+      "list": "configs/generated_lists/audit/cashsnap_heldout_zero_label_money_guardrails_v1_combined_test.txt"
+    }
+  },
+  "train_hardneg": {
+    "foreign_asian_currency": {
+      "available_zero_label_rows": 3759,
+      "skipped_labeled_rows": 657,
+      "selected_rows": 150,
+      "cap": 150
+    },
+    "unknown_usd2": {
+      "available_zero_label_rows": 306,
+      "skipped_labeled_rows": 0,
+      "selected_rows": 60,
+      "cap": 60
+    },
+    "unknown_khr100": {
+      "available_zero_label_rows": 87,
+      "skipped_labeled_rows": 0,
+      "selected_rows": 30,
+      "cap": 30
+    },
+    "combined": {
+      "selected_rows": 240,
+      "seed": 20260611,
+      "list": "configs/generated_lists/audit/cashsnap_zero_label_money_train_hardneg_broad240_v1.txt",
+      "label_policy": "Train-split zero-label money hard negatives; safe for training, not held-out proof."
+    }
+  },
+  "configs": {
+    "foreign_asian_currency": "configs/audit/cashsnap_heldout_zero_label_money_guardrails_v1_foreign_asian_currency_eval.yaml",
+    "unknown_usd2": "configs/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_usd2_eval.yaml",
+    "unknown_khr100": "configs/audit/cashsnap_heldout_zero_label_money_guardrails_v1_unknown_khr100_eval.yaml",
+    "combined": "configs/audit/cashsnap_heldout_zero_label_money_guardrails_v1_combined_eval.yaml"
+  }
+}

@@ -1,0 +1,12 @@
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_101_jpg.rf.ffbd59e2ee6e022d4c7bd07c41b270e6.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_114_jpg.rf.bd9d3beda11c394b34c76fe814325b7c.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_115_jpg.rf.2155526a4abfa31bb86b016ce9e39d70.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_124_jpg.rf.b407f4d62981c6347ce19e9e5e543f24.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_17_jpg.rf.c32b3df5d49388578a0f755eb5e16ab5.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_2_jpg.rf.b1292c4d41be09ded1672975fd69bd93.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_47_jpg.rf.bb8465d8d46458c9a2e1bdcf1d5d6c02.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_61_jpg.rf.eefcc19e1a9eb9a2f78db0f02d9c112d.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_66_jpg.rf.5ecc2452895ad53fbebf8f9e725dcdf4.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_68_jpg.rf.9126638481800b81fdb7ddbd2905376f.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_6_jpg.rf.570f20c112851afed8613f12e062825a.jpg
+data/cashsnap_v1/images/test/khmer_us_currency_100-riel_98_jpg.rf.3a5fd09634fd875d9fc12a35e8175439.jpg
