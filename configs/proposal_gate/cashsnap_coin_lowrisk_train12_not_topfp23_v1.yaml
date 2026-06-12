@@ -1,0 +1,26 @@
+path: ../..
+train: configs/generated_lists/proposal_gate/cashsnap_coin_lowrisk_train12_not_topfp23_v1_train.txt
+
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+
+cashsnap_policy:
+  schema: cashsnap_proposal_gate_coin_reject_source_v1
+  intended_use: train-only proposal-gate reject crops
+  source_list: configs/generated_lists/proposal_gate/cashsnap_coin_lowrisk_train12_not_topfp23_v1_train.txt
+  source_bucket: lowrisk_empty_cashcountingxl_coin_not_topfp23
+  notes: >
+    Empty-label cashcountingxl US coin images selected from low-risk train-empty
+    candidates, excluding the proposal-mined top-FP coin evaluation packet.

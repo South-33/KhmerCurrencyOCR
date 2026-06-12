@@ -66,6 +66,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lr0", type=float, default=None, help="Initial learning rate override.")
     parser.add_argument("--lrf", type=float, default=None, help="Final learning rate fraction override.")
     parser.add_argument("--optimizer", default=None, help="Ultralytics optimizer override.")
+    parser.add_argument("--box", type=float, default=None, help="Ultralytics box loss gain override.")
+    parser.add_argument("--cls", type=float, default=None, help="Ultralytics class loss gain override.")
+    parser.add_argument("--dfl", type=float, default=None, help="Ultralytics DFL loss gain override.")
     parser.add_argument("--warmup-epochs", type=float, default=None, help="Warmup epochs override.")
     parser.add_argument("--warmup-bias-lr", type=float, default=None, help="Warmup bias learning rate override.")
     parser.add_argument("--warmup-momentum", type=float, default=None, help="Warmup momentum override.")
@@ -85,6 +88,7 @@ def parse_args() -> argparse.Namespace:
         help="Optional Ultralytics torch.compile mode, e.g. default or reduce-overhead.",
     )
     parser.add_argument("--max-train-batches", type=int, default=None, help="Stop after this many train batches.")
+    parser.add_argument("--freeze", type=int, default=None, help="Freeze the first N YOLO layers during training.")
     parser.add_argument("--mosaic", type=float, default=None, help="Mosaic augmentation probability override.")
     parser.add_argument("--erasing", type=float, default=None, help="Random erasing augmentation probability override.")
     parser.add_argument("--hsv-h", type=float, default=None, help="HSV hue augmentation override.")
@@ -111,6 +115,17 @@ def parse_cache(value: str) -> bool | str:
     if value == "true":
         return True
     return value
+
+
+def remove_stale_no_val_checkpoints(project_path: Path, run_name: str) -> None:
+    weights_dir = project_path / run_name / "weights"
+    for filename in ("best.pt", "last.pt"):
+        checkpoint = weights_dir / filename
+        try:
+            checkpoint.unlink()
+        except FileNotFoundError:
+            continue
+        print(f"removed_stale_checkpoint={checkpoint}", flush=True)
 
 
 def main() -> None:
@@ -152,8 +167,14 @@ def main() -> None:
         train_args["lrf"] = args.lrf
     if args.optimizer is not None:
         train_args["optimizer"] = args.optimizer
+    for key in ("box", "cls", "dfl"):
+        value = getattr(args, key)
+        if value is not None:
+            train_args[key] = value
     if args.compile is not None:
         train_args["compile"] = args.compile
+    if args.freeze is not None:
+        train_args["freeze"] = args.freeze
     if args.warmup_epochs is not None:
         train_args["warmup_epochs"] = args.warmup_epochs
     if args.warmup_bias_lr is not None:
@@ -179,6 +200,9 @@ def main() -> None:
         value = getattr(args, key)
         if value is not None:
             train_args[key] = value
+
+    if args.no_val and args.exist_ok:
+        remove_stale_no_val_checkpoints(project_path, args.name)
 
     model = YOLO(resolve_local_model(args.model))
     if args.max_train_batches is not None:

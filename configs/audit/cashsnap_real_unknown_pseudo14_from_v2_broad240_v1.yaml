@@ -1,0 +1,89 @@
+path: ../..
+train: configs/generated_lists/audit/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1_train.txt
+val: configs/generated_lists/audit/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1_train.txt
+test: configs/generated_lists/audit/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1_train.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+  13: UNKNOWN_FOREIGN_NOTE
+cashsnap_policy:
+  intended_use: Train-split real unknown-money pseudo-UNKNOWN diagnostic bridge only.
+  promotion_rule: Never treat this train-split pseudo set as held-out proof; promotion
+    must pass full real, partial, source-excluded, held-out unknown-money, and true-empty
+    guards after filtering UNKNOWN predictions.
+cashsnap_sources:
+  pseudo_unknown_source_list: configs/generated_lists/audit/cashsnap_zero_label_money_train_hardneg_broad240_v1.txt
+  pseudo_unknown_teacher_model: runs/cashsnap/production_pilot_v2_hardneg_guard_from_cleanchampion_e3_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.pt
+  pseudo_unknown_root: data/processed/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1
+cashsnap_real_unknown_pseudo14:
+  schema: cashsnap_real_unknown_pseudo14_v1
+  model: runs/cashsnap/production_pilot_v2_hardneg_guard_from_cleanchampion_e3_i416_b2_w0_adamw_lr5e6_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.pt
+  image_list: configs/generated_lists/audit/cashsnap_zero_label_money_train_hardneg_broad240_v1.txt
+  out_root: data/processed/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1
+  out_list: configs/generated_lists/audit/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1_train.txt
+  out_config: configs/audit/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1.yaml
+  unknown_class_id: 13
+  unknown_class_name: UNKNOWN_FOREIGN_NOTE
+  source_pred_class_ids:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  conf: 0.25
+  iou: 0.7
+  imgsz: 416
+  batch: 1
+  device: '0'
+  max_det: 20
+  max_boxes_per_image: 2
+  min_box_area: 0.02
+  max_box_area: 0.9
+  input_images: 240
+  materialized_images: 71
+  unknown_boxes: 81
+  skipped_no_raw_prediction: 163
+  skipped_no_kept_prediction: 6
+  raw_prediction_count: 89
+  raw_source_class_counts:
+    '0': 14
+    '3': 1
+    '4': 23
+    '5': 16
+    '6': 1
+    '7': 3
+    '8': 2
+    '9': 2
+    '11': 23
+    '12': 4
+  kept_source_class_counts:
+    '0': 12
+    '3': 1
+    '4': 19
+    '5': 14
+    '6': 1
+    '7': 3
+    '8': 2
+    '9': 2
+    '11': 23
+    '12': 4
+  dry_run: false

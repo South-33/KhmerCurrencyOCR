@@ -1,0 +1,12 @@
+data/cashsnap_v1/images/train/cashcountingxl_001__1-4-Dollar_usa_jpg.rf.5a83381a3e59793061ae936591e42cae.jpg
+data/cashsnap_v1/images/train/cashcountingxl_008__5-Cents_usa_jpg.rf.4f43469cacd4e7473c71456ca2b7ba5a.jpg
+data/cashsnap_v1/images/train/cashcountingxl_009__1-4-Dollar_usa_jpg.rf.31668d7ec94326681b3ec5de75476098.jpg
+data/cashsnap_v1/images/train/cashcountingxl_011__1-4-Dollar_usa_jpg.rf.bae16238262d27878ea1c7239381dc74.jpg
+data/cashsnap_v1/images/train/cashcountingxl_011__1-Dime_usa_jpg.rf.9722c45c5476d90f968e9b7c4ba145c8.jpg
+data/cashsnap_v1/images/train/cashcountingxl_016__5-Cents_usa_jpg.rf.5ee64d1867db98ec3189c31a3036e161.jpg
+data/cashsnap_v1/images/train/cashcountingxl_019__1-Dime_usa_jpg.rf.af091253bafaaa92ff2eacb50c8c6220.jpg
+data/cashsnap_v1/images/train/cashcountingxl_020__1-Dime_usa_jpg.rf.23164bd066afa52a2304f6e9d81232c4.jpg
+data/cashsnap_v1/images/train/cashcountingxl_021__1-4-Dollar_usa_jpg.rf.9928b668344f1c03e6bee625c392577d.jpg
+data/cashsnap_v1/images/train/cashcountingxl_026__5-Cents_usa_jpg.rf.f0ef68d2f9ad749402669d0210f95428.jpg
+data/cashsnap_v1/images/train/cashcountingxl_032__5-Cents_usa_jpg.rf.57c40ee7fa13285bf0e7fbc5ae101f4c.jpg
+data/cashsnap_v1/images/train/cashcountingxl_036__5-Cents_usa_jpg.rf.08d5d3eee8ca9146ab66341e1a3ccb0a.jpg

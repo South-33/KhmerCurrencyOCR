@@ -50,6 +50,54 @@
       "checks": ["exists"]
     },
     {
+      "id": "cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_proposal_gate_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Current-domain banknote-vs-background proposal-gate crop dataset adding center50 partial-positive support and held-out-topfp-safe coin reject crops to test unknown-money suppression without center50 recall loss.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_khr100_unknown50_fullfrag_proposal_gate_rejects_v1",
+      "path": "data/proposal_gate/cashsnap_khr100_unknown50_fullfrag_reject_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Train-only reject/unknown crop pack from 50 reviewed KHR_100 current-schema-out-of-scope images; supports proposal-gate unknown-currency calibration without treating official KHR_100 notes as detector background negatives.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_khr100_unknown_proposal_gate_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_khr100_unknown_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Mixed ImageFolder proposal-gate dataset combining the current true-empty/center50/coin banknote-vs-background base with 300 train-only KHR_100 unknown/out-of-scope reject crops for unknown-money calibration.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_khr100_productbridge_unknown68_fullfrag_proposal_gate_rejects_v1",
+      "path": "data/proposal_gate/cashsnap_khr100_productbridge_unknown68_fullfrag_reject_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Train-only reject/unknown crop pack from 68 product-bridge-policy KHR_100 current-schema-out-of-scope train images; expands unknown-currency gate supervision beyond the first reviewed 50-row packet.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_khr100_productbridge_unknown12_test_fullfrag_proposal_gate_rejects_v1",
+      "path": "data/proposal_gate/cashsnap_khr100_productbridge_unknown12_test_fullfrag_reject_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Held-out reject/unknown crop eval pack from 12 product-bridge-policy KHR_100 current-schema-out-of-scope test images; measures unknown-currency gate rejection without mixing official KHR_100 notes into detector background.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_khr100_productbridge_unknown_proposal_gate_v1",
+      "path": "data/proposal_gate/cashsnap_strictbest_banknote_background_edgepos_trueempty_center50_coin_khr100_productbridge_unknown_v1",
+      "state": "diagnostic",
+      "kind": "proposal_gate_imagefolder_dataset",
+      "purpose": "Mixed ImageFolder proposal-gate dataset combining the current true-empty/center50/coin banknote-vs-background base with the 68-row product-bridge KHR_100 unknown/out-of-scope reject crop pack.",
+      "checks": ["exists"]
+    },
+    {
       "id": "cashsnap_strictbest_synthtrain_realval_denoms13_crop_classifier_v1",
       "path": "data/fragment_classifier/cashsnap_strictbest_synthtrain_realval_denoms13_v1",
       "state": "diagnostic",
@@ -122,6 +170,14 @@
       "checks": ["exists", "yolo_dataset"]
     },
     {
+      "id": "cashsnap_real_unknown_pseudo14_from_v2_broad240_v1",
+      "path": "data/processed/cashsnap_real_unknown_pseudo14_from_v2_broad240_v1",
+      "state": "diagnostic",
+      "kind": "real_unknown_money_teacher_pseudo_label_bridge",
+      "purpose": "Train-split zero-label unknown-money rows whose v2 target false-positive boxes are relabeled as UNKNOWN_FOREIGN_NOTE for a single-detector unknown-objective probe; diagnostic only, not held-out proof.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
       "id": "cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1",
       "path": "data/processed/cashsnap_strictbest_banknote_singleclass_train_realvaltest_v1",
       "state": "rejected",
@@ -160,6 +216,62 @@
       "kind": "real_positive_yolo_bridge",
       "purpose": "Deduped v10+v3 Roboflow positive bridge converted to the official 21-class schema; partial source preserving KHR_100 and exposing missing official denominations.",
       "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_official21_khr100_codex_accept3_review_bridge_v1",
+      "path": "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_bridge_codex_accept3_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_review_bridge",
+      "purpose": "Tiny train-only official21 KHR_100 review bridge with 3 Codex-fullsize-inspected accepted proposal boxes; proves the schema materialization path but is not a promoted training root.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_khr100_codex_accept6_review_bridge_v1",
+      "path": "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_bridge_codex_accept6_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_review_bridge",
+      "purpose": "Tiny train-only official21 KHR_100 review bridge with 6 Codex-fullsize-inspected accepted proposal boxes, including hand-occluded visible-evidence examples; not a promoted training root.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_missing_schema_seed_accept11_review_bridge_v1",
+      "path": "runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_review_bridge",
+      "purpose": "Tiny train-only official21 reviewed missing-schema seed with KHR_100 x6, USD_2 x4, and KHR_200 x1 accepted proposal boxes; not large or balanced enough for promotion.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_usd2_top52_codex_visual_accept37_review_bridge_v1",
+      "path": "runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_review_bridge",
+      "purpose": "Train-only official21 USD_2 review bridge with 37 Codex-visual-inspected single-surface accepted proposal boxes; held composite/weak rows are documented in the source review CSV and this root is not promoted by itself.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_usd2_filename_conf015_area025_pseudo_bridge_v1",
+      "path": "runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_pseudo_label_bridge",
+      "purpose": "USD_2 source-filename pseudo-label bridge from CashSnap v1 unlabeled usd_total_2Dollar images using the current detector's top proposal at confidence>=0.15 and area>=0.25; diagnostic only, not hand-reviewed per row.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_current_core13_valtest_eval_bridge_v1",
+      "path": "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_valtest_eval_bridge_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_eval_bridge",
+      "purpose": "Val/test-only current CashSnap core13 eval splits remapped into official21 ids with no promoted KHR_100 proposal boxes; supports official21 model regression checks against the current real eval surface.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_official21_current_core13_accept6_trainvaltest_bridge_v1",
+      "path": "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized",
+      "state": "diagnostic",
+      "kind": "official21_yolo_train_eval_bridge",
+      "purpose": "Current CashSnap core13 train/val/test splits remapped into official21 ids with 6 Codex-fullsize-inspected KHR_100 train boxes appended; diagnostic base for official21 transfer probes, not a promoted replacement dataset.",
+      "checks": ["exists"]
     },
     {
       "id": "numista_current_cutout_bank_v1",
@@ -378,6 +490,22 @@
       "checks": ["exists", "yolo_dataset"]
     },
     {
+      "id": "cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Current real+synth p24 obligation smoke: USD/high-value target positives rendered on safe asian_currency/cashcountingxl/usd_total unknown-style train backgrounds from the full-test overproposal queue; diagnostic until visual QA and transfer/FP guards decide it.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_alpha_smoke_v1",
+      "path": "data/synthetic/cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_alpha_smoke_v1",
+      "state": "diagnostic",
+      "kind": "synthetic_probe_root",
+      "purpose": "Alpha/preserve-luma variant of the current real+synth p24 USD/high-value overproposal smoke; diagnostic compositor check after the Poisson version rendered ghosted/low-readability targets.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
       "id": "cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_smoke_v1",
       "path": "data/synthetic/cashsnap_target_anchor_transplant_current_obligation_usdweak_cleanbg_smoke_v1",
       "state": "diagnostic",
@@ -551,6 +679,134 @@
       "state": "intake",
       "kind": "raw_dataset_intake",
       "purpose": "Raw dataset intake; not a direct training source.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_grid3x3_real6_synth3_p24_diagnostic_v1",
+      "path": "data/processed/cashsnap_grid3x3_real6_synth3_p24_diagnostic_v1",
+      "state": "diagnostic",
+      "kind": "real_synth_grid_collage_yolo_dataset",
+      "purpose": "Diagnostic 3x3 YOLO collage dataset built from the current p24 real+synth train rows with six real one-note tiles and three synthetic one-note tiles per generated image; tests whether multi-bill grid blending exposes useful synth+real signal.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_grid3x3_real9_p24_control_v1",
+      "path": "data/processed/cashsnap_grid3x3_real9_p24_control_v1",
+      "state": "diagnostic",
+      "kind": "real_grid_collage_yolo_dataset",
+      "purpose": "Diagnostic 3x3 YOLO collage control built from nine real one-note p24 train tiles per generated image; controls for grid/multi-bill exposure when judging the real6+synth3 collage probe.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_realcrop_fan_overlap_train24_v1",
+      "path": "data/synthetic/cashsnap_realcrop_fan_overlap_train24_v1",
+      "state": "diagnostic",
+      "kind": "real_crop_fan_overlap_yolo_dataset",
+      "purpose": "Diagnostic half-synthetic fan/overlap dataset generated from the registered p24 real train crop bank and strict no-note CashSnap patches; tests natural multi-note real-derived augmentation after literal grids failed.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_webgl_overlap_stack_candidate_v1",
+      "path": "data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1",
+      "state": "diagnostic",
+      "kind": "webgl_visible_overlap_yolo_dataset",
+      "purpose": "Accepted WebGL trainable-candidate stack/overlap root with exact visible-mask labels; use only through suite gates and matched diagnostic controls.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_webgl_fan_fullschema_candidate_v1",
+      "path": "data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1",
+      "state": "diagnostic",
+      "kind": "webgl_visible_fan_yolo_dataset",
+      "purpose": "Accepted WebGL trainable-candidate fan root with exact visible-mask labels; use only through suite gates and matched diagnostic controls.",
+      "checks": ["exists"]
+    },
+    {
+      "id": "cashsnap_real_partial_visibility_p8_v1",
+      "path": "data/processed/cashsnap_real_partial_visibility_p8_v1",
+      "state": "diagnostic",
+      "kind": "real_derived_partial_visibility_yolo_dataset",
+      "purpose": "Diagnostic partial-visible YOLO dataset generated from single-label real CashSnap train/val/test rows by border-cropping or diagonally occluding bills and relabeling only the visible instance AABB; train split is for controlled partial-visibility dosing and val/test splits are held-out stress eval views.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_borderpartial_visibility_p8_v1",
+      "path": "data/processed/cashsnap_real_borderpartial_visibility_p8_v1",
+      "state": "diagnostic",
+      "kind": "real_derived_border_partial_visibility_yolo_dataset",
+      "purpose": "Cleaner follow-up partial-visible YOLO dataset generated only by cropping single-label real CashSnap rows at image borders, avoiding artificial diagonal occluder fills after the mixed partial p8 dose worsened partial-stress FP pressure.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_bboxocclusion_visibility_p8_v1",
+      "path": "data/processed/cashsnap_real_bboxocclusion_visibility_p8_v1",
+      "state": "diagnostic",
+      "kind": "real_derived_bbox_occlusion_visibility_yolo_dataset",
+      "purpose": "Diagnostic partial-visible YOLO dataset generated from single-label real CashSnap rows by covering part of the source bill bounding box with varied non-banknote blockers and relabeling only the visible instance AABB; tests in-scene occlusion without cropping every bill at an image edge.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_countablepartial_visibility_p6_v1",
+      "path": "data/processed/cashsnap_real_countablepartial_visibility_p6_v1",
+      "state": "rejected",
+      "kind": "real_derived_countable_partial_visibility_yolo_dataset",
+      "purpose": "Rejected raw countable-partial probe: visual QA found unsafe source rows with extra visible unlabeled bills and 30% corner crops that were too tiny/ambiguous to count; superseded by source-clean p6.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_countablepartial_sourceclean_p6_v1",
+      "path": "data/processed/cashsnap_real_countablepartial_sourceclean_p6_v1",
+      "state": "diagnostic",
+      "kind": "real_derived_countable_partial_visibility_yolo_dataset",
+      "purpose": "Source-clean diagnostic partial-visible YOLO dataset generated from single-label usd_total, khmer, and cambodia_currency_project rows using center crops at 30/50% and corner crops only at 50%, with labels clipped to human-countable visible instance AABBs.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_countablepartial_sourceclean_vis50_70_p12_v1",
+      "path": "data/processed/cashsnap_real_countablepartial_sourceclean_vis50_70_p12_v1",
+      "state": "diagnostic",
+      "kind": "real_derived_countable_partial_visibility_yolo_dataset",
+      "purpose": "Stricter source-clean visible-evidence diagnostic root generated from single-label usd_total, khmer, and cambodia_currency_project rows using only 50/70% center and corner crops, to test whether higher-visible partials teach countable evidence with less overproposal than p6 30/50% crops.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_bboxpaste_overlap_eval_v1",
+      "path": "data/processed/cashsnap_real_bboxpaste_overlap_eval_v1",
+      "state": "diagnostic",
+      "kind": "real_bbox_paste_overlap_yolo_dataset",
+      "purpose": "Diagnostic YOLO eval bridge generated by rectangularly pasting real YOLO bbox crops over each other with visible-mask labels; intended for partial/off-frame/overlap/counting stress before any training use.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_bboxpaste_overlap_balanced_eval_v1",
+      "path": "data/processed/cashsnap_real_bboxpaste_overlap_balanced_eval_v1",
+      "state": "diagnostic",
+      "kind": "real_bbox_paste_overlap_yolo_dataset",
+      "purpose": "Class-balanced follow-up to the rectangular real-bbox paste overlap eval bridge; intended to reduce USD/source skew before using the bridge for overlap/counting stress comparisons.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_bboxpaste_overlap_balanced_feather_eval_v1",
+      "path": "data/processed/cashsnap_real_bboxpaste_overlap_balanced_feather_eval_v1",
+      "state": "diagnostic",
+      "kind": "real_bbox_paste_overlap_yolo_dataset",
+      "purpose": "Class-balanced real-bbox paste overlap eval bridge with soft cutout feathering and blurred-source backgrounds to reduce rectangular seam artifacts before any overlap/fan training use.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "cashsnap_real_bboxpaste_overlap_countable_feather_eval_v1",
+      "path": "data/processed/cashsnap_real_bboxpaste_overlap_countable_feather_eval_v1",
+      "state": "diagnostic",
+      "kind": "real_bbox_paste_overlap_yolo_dataset",
+      "purpose": "Stricter human-countable real-bbox paste overlap eval bridge with class balancing, feathered cutouts, blurred-source backgrounds, fewer notes, and higher visible-area/visibility-ratio floors; eval-only until visual QA and real-transfer checks support training use.",
+      "checks": ["exists", "yolo_dataset"]
+    },
+    {
+      "id": "real_overlap_focus_materialized_reviewed_v1",
+      "path": "runs/cashsnap/real_overlap_focus_materialized_reviewed_v1",
+      "state": "diagnostic",
+      "kind": "reviewed_real_overlap_focus_materialization",
+      "purpose": "Reviewed real overlap/fan focus packet materialized into explicit train-anchor, held-out eval, and exclude/flat-policy image lists; diagnostic bridge for controlled overlap/fan evaluation and tiny training-dose probes.",
       "checks": ["exists"]
     },
     {

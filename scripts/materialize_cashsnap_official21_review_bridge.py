@@ -70,7 +70,11 @@ def parse_args() -> argparse.Namespace:
         help="How to mirror images when not in dry-run mode.",
     )
     parser.add_argument("--clean", action="store_true", help="Remove out-root first if it is under data/processed or runs.")
-    parser.add_argument("--proposal-class", default="KHR_100")
+    parser.add_argument(
+        "--proposal-class",
+        default="KHR_100",
+        help="Expected proposed_new_class for accepted rows, or 'any' to accept multiple official21 classes.",
+    )
     parser.add_argument(
         "--accepted-decision",
         default=ACCEPTED_BOX_DECISION,
@@ -338,9 +342,9 @@ def read_reviewed_proposals(
     require_train: bool,
 ) -> tuple[dict[Path, list[ProposalBox]], dict[str, Any]]:
     name_to_id = {name: class_id for class_id, name in official_names.items()}
-    if proposal_class not in name_to_id:
+    any_class = proposal_class.strip().lower() in {"any", "all", "*"}
+    if not any_class and proposal_class not in name_to_id:
         raise SystemExit(f"proposal class {proposal_class!r} is not present in official21 names")
-    proposal_class_id = name_to_id[proposal_class]
     accepted_norm = normalized(accepted_decision)
     proposal_path = resolve(proposal_csv)
     by_image: dict[Path, list[ProposalBox]] = defaultdict(list)
@@ -374,10 +378,15 @@ def read_reviewed_proposals(
             if require_train and not is_train_image(image):
                 raise SystemExit(f"proposal row {row_number} accepted a non-train image: {repo_rel(image)}")
             new_class = str(row.get("proposed_new_class", "")).strip()
-            if new_class != proposal_class:
+            if new_class not in name_to_id:
+                raise SystemExit(
+                    f"proposal row {row_number} accepted class {new_class!r}; not present in official21 names"
+                )
+            if not any_class and new_class != proposal_class:
                 raise SystemExit(
                     f"proposal row {row_number} accepted class {new_class!r}; expected {proposal_class!r}"
                 )
+            proposal_class_id = name_to_id[new_class]
             x1 = parse_float(row, "x1", row_number)
             y1 = parse_float(row, "y1", row_number)
             x2 = parse_float(row, "x2", row_number)
@@ -408,6 +417,7 @@ def read_reviewed_proposals(
         "skipped_reviewed_rows_truncated": max(0, len(skipped) - 200),
         "accepted_decision": accepted_norm,
         "proposal_class": proposal_class,
+        "proposal_class_mode": "any" if any_class else "exact",
     }
     return by_image, stats
 

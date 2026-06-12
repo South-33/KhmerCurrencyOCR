@@ -1,0 +1,137 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_train.txt
+val: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_train.txt
+test: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_train.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources: &id001
+  - configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_train.txt
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: true
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_extra_train.txt
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 52
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 52
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter:
+    min_label_area: null
+    max_label_area: null
+    edge_margin: null
+    single_label_only: true
+    kept_label_area_range:
+    - 0.302258
+    - 1.0
+    kept_edge_margin_range:
+    - -1.0e-06
+    - 0.0
+  extra_images_before_class_cap: 52
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 52
+  extra_images: 52
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 687
+  combined_duplicate_images_removed: 0
+  added_images: 52
+  extra_class_counts:
+    KHR_1000: 4
+    KHR_10000: 5
+    KHR_2000: 3
+    KHR_20000: 2
+    KHR_500: 5
+    KHR_5000: 4
+    KHR_50000: 2
+    USD_1: 5
+    USD_10: 7
+    USD_100: 4
+    USD_20: 5
+    USD_5: 3
+    USD_50: 3
+cashsnap_policy:
+  intended_use: Micro-dose current synth+real base with source-clean real-derived
+    center-only 50%-visible partial crops; tests human-countable partial-note evidence
+    without corner/texture-only fragments.
+  promotion_rule: Compare against duplicate-exposure control, champion, center50 stress
+    val/test, active reviewed real slices, and clean full-val guardrails before any
+    promotion.
+  trainonly_runtime_yaml: true
+  trainonly_source_data: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1.yaml
+  trainonly_reason: 'No-val training helper: avoid scanning the real val/test splits
+    during Ultralytics train setup; evaluate with the original data YAML.'

@@ -1,0 +1,81 @@
+path: ../..
+train: configs/generated_lists/audit/cashsnap_v1_auditclean_real_p24_bg24_no_khmer_us_currency_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  positive_list: runs/cashsnap/real_data_label_audit_v1/candidate_positive_train_audit_clean_v1.txt
+  empty_list: runs/cashsnap/real_data_label_audit_v1/candidate_empty_train_lowrisk_no_teacher_unmatched_v1.txt
+  excluded_sources:
+  - khmer_us_currency
+cashsnap_subset_policy:
+  schema: cashsnap_audit_clean_balanced_real_config_v1
+  tag: auditclean_real_p24_bg24_no_khmer_us_currency_v1
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  positive_list: runs/cashsnap/real_data_label_audit_v1/candidate_positive_train_audit_clean_v1.txt
+  empty_list: runs/cashsnap/real_data_label_audit_v1/candidate_empty_train_lowrisk_no_teacher_unmatched_v1.txt
+  seed: 20260609
+  per_class_real_target: 24
+  background_target: 24
+  excluded_sources:
+  - khmer_us_currency
+  positive_pool_images_before_source_exclusion: 6692
+  positive_pool_images: 5644
+  empty_pool_images_before_source_exclusion: 2472
+  empty_pool_images: 2472
+  selected_positive_images: 279
+  selected_backgrounds: 24
+  selected_images: 303
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 24
+    KHR_2000: 11
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  positive_pool_class_images:
+    USD_1: 536
+    USD_5: 707
+    USD_10: 947
+    USD_20: 818
+    USD_50: 796
+    USD_100: 713
+    KHR_500: 104
+    KHR_1000: 455
+    KHR_2000: 11
+    KHR_5000: 436
+    KHR_10000: 97
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_positive_sources:
+    asian_currency: 32
+    billsbank: 86
+    cambodia_currency_project: 63
+    cashcountingxl: 4
+    khmer: 40
+    usd_total: 54
+  selected_background_sources:
+    cashcountingxl: 24
+  intended_use: audit_clean_balanced_real_p24_bg24_source_exclusion_probe
+  promotion_rule: compare_to_auditclean_allsource_and_balanced_real_p24_before_training

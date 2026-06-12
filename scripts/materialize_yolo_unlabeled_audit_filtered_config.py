@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -29,6 +30,10 @@ def repo_rel(path: Path) -> str:
         return resolved.as_posix()
 
 
+def rel_between(from_dir: Path, target: Path) -> str:
+    return os.path.relpath(target.resolve(), from_dir.resolve()).replace("\\", "/")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True, type=Path, help="Source YOLO data YAML.")
@@ -42,6 +47,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--out-config", required=True, type=Path, help="Output YOLO data YAML.")
     parser.add_argument("--list-out", required=True, type=Path, help="Output image list for the filtered split.")
+    parser.add_argument(
+        "--path-mode",
+        choices=["preserve", "repo-root"],
+        default="preserve",
+        help="Keep the source YAML path or rewrite path so repo-relative list/val/test rows resolve from repo root.",
+    )
+    parser.add_argument("--val", default="", help="Optional val split override, usually data/cashsnap_v1/images/val.")
+    parser.add_argument("--test", default="", help="Optional test split override, usually data/cashsnap_v1/images/test.")
     parser.add_argument("--fail-if-empty", action="store_true", help="Fail if filtering removes every image.")
     return parser.parse_args()
 
@@ -169,11 +182,21 @@ def main() -> None:
 
     out_config = dict(config)
     out_config[args.split] = repo_rel(list_out)
+    out_path = resolve(args.out_config)
+    if args.path_mode == "repo-root":
+        out_config["path"] = rel_between(out_path.parent, ROOT)
+    if args.val:
+        out_config["val"] = args.val
+    if args.test:
+        out_config["test"] = args.test
     policy = dict(out_config.get("cashsnap_policy") or {})
     policy["unlabeled_audit_filter"] = {
         "source_data": repo_rel(data_path),
         "split": args.split,
         "list": repo_rel(list_out),
+        "path_mode": args.path_mode,
+        "val_override": args.val,
+        "test_override": args.test,
         "min_unmatched_count": args.min_unmatched_count,
         "input_images": len(images),
         "kept_images": len(kept),
@@ -184,7 +207,6 @@ def main() -> None:
     }
     out_config["cashsnap_policy"] = policy
 
-    out_path = resolve(args.out_config)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(yaml.safe_dump(out_config, sort_keys=False), encoding="utf-8")
     print(

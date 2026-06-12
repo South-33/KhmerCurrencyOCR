@@ -1,0 +1,200 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_realcrop_fan48_exposure_control_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_v1_balanced_real_only_probe.yaml
+  train_mix_extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_v1_train.txt
+  exposure_control_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  exposure_control_target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_realcrop_fan48_v1.yaml
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_v1
+  base_config: configs/webgl_ablation/cashsnap_v1_balanced_real_only_probe.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_v1_balanced_real_only_probe_train.txt
+  extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_v1_train.txt
+  extra_label_policy: any
+  extra_max_per_class: 24
+  extra_max_empty: 6
+  extra_max_images: null
+  extra_sample_seed: 20260609
+  extra_names: {}
+  recursive: false
+  base_images: 317
+  base_unique_images: 317
+  extra_images_before_class_cap: 1254
+  extra_class_cap_sampled_out_images: 936
+  extra_class_cap_counts:
+    '0': 24
+    '1': 24
+    '2': 24
+    '3': 24
+    '4': 24
+    '5': 24
+    '6': 24
+    '7': 24
+    '8': 24
+    '9': 24
+    '10': 24
+    '11': 24
+    '12': 24
+  extra_class_cap_empty_count: 6
+  extra_images_before_sampling: 318
+  extra_images: 318
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 635
+  combined_duplicate_images_removed: 0
+  added_images: 318
+  extra_class_counts:
+    KHR_1000: 24
+    KHR_10000: 24
+    KHR_2000: 24
+    KHR_20000: 24
+    KHR_500: 24
+    KHR_5000: 24
+    KHR_50000: 24
+    USD_1: 24
+    USD_10: 24
+    USD_100: 24
+    USD_20: 24
+    USD_5: 24
+    USD_50: 24
+cashsnap_policy:
+  intended_use: Class-exposure duplicate control for the real-crop fan48 diagnostic;
+    row count differs because fan images are multi-label.
+  promotion_rule: Use only as a diagnostic control; judge candidate against current
+    p24 champion and strict/source/low-conf guardrails before any follow-up.
+cashsnap_exposure_control:
+  schema: cashsnap_yolo_exposure_control_v1
+  tag: real_synth_p24_realcrop_fan48_exposure_control
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_realcrop_fan48_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  target_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_realcrop_fan48_v1_train.txt
+  seed: 0
+  base_images: 635
+  target_images: 683
+  combined_images: 772
+  duplicated_images: 137
+  base_empty: 30
+  target_empty: 30
+  combined_empty: 30
+  duplicated_empty: 0
+  base_class_counts:
+    USD_1: 48
+    USD_5: 48
+    USD_10: 48
+    USD_20: 48
+    USD_50: 48
+    USD_100: 48
+    KHR_500: 48
+    KHR_1000: 49
+    KHR_2000: 48
+    KHR_5000: 48
+    KHR_10000: 60
+    KHR_20000: 41
+    KHR_50000: 42
+  target_class_counts:
+    USD_1: 59
+    USD_5: 56
+    USD_10: 57
+    USD_20: 57
+    USD_50: 62
+    USD_100: 55
+    KHR_500: 59
+    KHR_1000: 64
+    KHR_2000: 59
+    KHR_5000: 58
+    KHR_10000: 73
+    KHR_20000: 49
+    KHR_50000: 53
+  combined_class_counts:
+    USD_1: 59
+    USD_5: 56
+    USD_10: 57
+    USD_20: 57
+    USD_50: 62
+    USD_100: 55
+    KHR_500: 59
+    KHR_1000: 64
+    KHR_2000: 59
+    KHR_5000: 58
+    KHR_10000: 73
+    KHR_20000: 49
+    KHR_50000: 53
+  duplicated_by_class:
+    USD_1: 11
+    USD_5: 8
+    USD_10: 9
+    USD_20: 9
+    USD_50: 14
+    USD_100: 7
+    KHR_500: 11
+    KHR_1000: 15
+    KHR_2000: 11
+    KHR_5000: 10
+    KHR_10000: 13
+    KHR_20000: 8
+    KHR_50000: 11
+  base_multi_label_images: 19
+  class_mix_exact: true

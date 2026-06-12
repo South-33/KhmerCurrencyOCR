@@ -1,0 +1,122 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources: &id001
+  - configs/generated_lists/webgl_ablation/cashsnap_mined_real_partial_stress_train_candidates_v1.txt
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_max_per_class: 8
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 20260610
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 4329
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_class_cap: 4329
+  extra_class_cap_sampled_out_images: 4241
+  extra_class_cap_counts:
+    '0': 8
+    '1': 8
+    '2': 8
+    '3': 8
+    '4': 8
+    '5': 8
+    '6': 8
+    '7': 8
+    '8': 8
+    '9': 8
+    '10': 8
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 88
+  extra_images: 88
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 723
+  combined_duplicate_images_removed: 0
+  added_images: 88
+  extra_class_counts:
+    KHR_1000: 8
+    KHR_10000: 8
+    KHR_2000: 8
+    KHR_500: 8
+    KHR_5000: 8
+    USD_1: 8
+    USD_10: 8
+    USD_100: 8
+    USD_20: 8
+    USD_5: 8
+    USD_50: 8
+cashsnap_policy:
+  intended_use: diagnostic mined-real partial/off-frame/thin-slice stress dose capped
+    at 8 per class on top of current p24 synth+real foundation
+  promotion_rule: must beat duplicate exposure control on real geometry/partial and
+    synthetic partial stress without clean/source/KHR or low-confidence FP regression

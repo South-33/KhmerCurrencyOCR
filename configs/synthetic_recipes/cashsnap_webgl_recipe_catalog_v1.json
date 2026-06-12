@@ -64,6 +64,35 @@
       "current_blocker": "New diagnostic mode; needs smoke/visual QA, domain-gap review, and a bounded pure-synthetic comparison before scale."
     },
     {
+      "id": "webgl_clean_context_bridge_tone_single_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes", "hard_negatives_and_non_banknote_paper"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["clean_context"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_clean_base_topdown_readable_v1",
+      "camera_isp_policy": "real_bridge_dynamic_range_v1",
+      "note_print_tone_policy": "real_bridge_print_contrast_v1",
+      "note_condition_policy": "handled_clean",
+      "render_pool_count": 64,
+      "intended_use": "Readable clean-context single-note probe that repairs the flat/off-tone crop dynamic range seen in webgl_clean_context_single_v1 before any scale-up.",
+      "promotion_gate": "clean-context smoke/label gates pass, crop visual gap closes the luma_p95 failure without introducing low-tail or saturation failures, then a bounded pure-synthetic comparison beats webgl_clean_topdown_readable_v1 under matched controls",
+      "current_blocker": "New bridge-tone repair diagnostic; needs smoke render, visual-gap review, and visual QA before a larger package."
+    },
+    {
+      "id": "webgl_clean_context_local_tone_single_v1",
+      "target_condition_ids": ["clean_single_or_separated_notes", "hard_negatives_and_non_banknote_paper"],
+      "artifact_status": "diagnostic",
+      "scene_modes": ["clean_context"],
+      "asset_side_policy": "any",
+      "camera_profile": "phone_clean_base_topdown_readable_v1",
+      "note_print_tone_policy": "local_dynamic_range_v1",
+      "note_condition_policy": "handled_clean",
+      "render_pool_count": 64,
+      "intended_use": "Readable clean-context single-note probe with local print dynamic-range repair after off/default was too flat and bridge-tone overcorrected.",
+      "promotion_gate": "clean-context smoke/label gates pass and crop visual gap closes the luma_p95 failure without overcorrecting luma_std, luma_p05, or saturation_std before any larger render",
+      "current_blocker": "New lighter tone repair diagnostic; needs smoke render and visual-gap review before scale."
+    },
+    {
       "id": "webgl_bridge_calibrated_clean_v1",
       "target_condition_ids": ["clean_single_or_separated_notes"],
       "artifact_status": "diagnostic",

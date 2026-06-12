@@ -1,0 +1,73 @@
+{
+  "name": "cashsnap_two_stage_v9_khr100_unknown_gate_browser_stack",
+  "status": "diagnostic_current_product_clue_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/production_pilot_v9_v2schedule13_from_v2_e3_i416_b2_w0_adamw_lr2e5_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false,
+    "class_min_conf": {
+      "KHR_1000": 0.15,
+      "KHR_2000": 0.15,
+      "KHR_20000": 0.15,
+      "KHR_50000": 0.15,
+      "USD_1": 0.15,
+      "USD_50": 0.15,
+      "USD_100": 0.15
+    }
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_center50_coin_khr100_productbridge_unknown_v1_e4_initprev_freezefeat_lr3e4_b32w0/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["reject", "target"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.05,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["reject"],
+    "reject_fragment_class_min_conf": 0.72,
+    "reject_after_nms": true
+  },
+  "evidence": {
+    "detector_pt": "runs/cashsnap/production_pilot_v9_v2schedule13_from_v2_e3_i416_b2_w0_adamw_lr2e5_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.pt",
+    "detector_onnx": "runs/cashsnap/production_pilot_v9_v2schedule13_from_v2_e3_i416_b2_w0_adamw_lr2e5_nowarmup_noamp_cachefalse_freeze22_seed0/weights/last.onnx",
+    "browser_gate_summary": "runs/cashsnap/production_pilot_eval_suite_v1/browser_gate_finalnms070_summary_champion_v9_v16_current.json",
+    "usdrisk15_policy_summary": "runs/cashsnap/production_pilot_eval_suite_v1/v9_usdrisk15_policy_summary_current.json",
+    "onnx_smoke": "runs/cashsnap/browser_stack_onnx_smoke_v9_usdrisk15_gate_rej072_v1.json",
+    "launch_readiness": "runs/cashsnap/production_pilot_eval_suite_v1/launch_readiness_v9_usdrisk15_browser_stack_v1.json",
+    "summary": "V9 is the current product-stack tie-breaker over V16. The active diagnostic policy adds USD_1/USD_50/USD_100 floors at 0.15 to the KHR floors: it improves the product hard slice to 64/79 exact-value and 3/22 background-FP images, improves strict-clean to 747/774 and 3/471, and cuts detector-only held-out unknown/true-empty FPs, while full-real exact-value drops from 1437 to 1434. Split gated stack check: foreign Asian falls to 3/184 images with FPs and KHR100 to 0/12, but USD2 remains 17/41. Diagnostic only; not production-promoted."
+  },
+  "known_limits": [
+    "Diagnostic current product clue only; not production-promoted.",
+    "The current 13-class detector schema still cannot count USD_2, KHR_100, KHR_200, or other missing official denominations as target classes.",
+    "The proposal gate rejects proposals but does not correct denomination classes or teach detector visible-evidence localization.",
+    "V9 still has partial-val precision and unknown/out-of-schema money tradeoffs; use the blended model scorecard before promotion.",
+    "USD2 remains a sizable missing-denomination leak in the gated stack at the current threshold."
+  ]
+}

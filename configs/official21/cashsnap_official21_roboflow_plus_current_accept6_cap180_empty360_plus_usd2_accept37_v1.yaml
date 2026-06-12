@@ -1,0 +1,85 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_accept37_v1_train.txt
+val: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/val
+test: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/test
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_bridge:
+  schema: roboflow_khmer_us_currency_bridge_v1
+  class_scope: official
+  source_roots:
+  - data/raw_datasets/roboflow_khmer_us_currency_v10
+  - data/raw_datasets/roboflow_khmer_us_currency
+  unsupported_policy: exclude_image
+  dedupe: true
+cashsnap_sources:
+  train_mix_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  train_mix_extra_sources: &id001
+  - runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized/images/train
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_accept37_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: usd_total_2Dollar
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: false
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_accept37_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 4365
+  base_unique_images: 4365
+  extra_images_before_regex_filter: 37
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 37
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter: {}
+  extra_images_before_class_cap: 37
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 37
+  extra_images: 37
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 4402
+  combined_duplicate_images_removed: 0
+  added_images: 37
+  extra_class_counts:
+    USD_2: 37
+cashsnap_policy:
+  intended_use: 'Diagnostic official21 probe: base replay plus 37 Codex-reviewed single-surface
+    USD_2 proposal boxes from the top52 queue.'
+  promotion_rule: Not promotable by itself; require controlled probe improvement,
+    reviewed-target hit gains, and no material real-class regressions.

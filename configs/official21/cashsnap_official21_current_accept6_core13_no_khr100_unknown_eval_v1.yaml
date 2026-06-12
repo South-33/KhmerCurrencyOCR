@@ -1,0 +1,738 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_current_accept6_plus_roboflow_partial_v1_train.txt
+val: configs/generated_lists/official21/cashsnap_official21_current_accept6_core13_no_khr100_unknown_v1_val.txt
+test: configs/generated_lists/official21/cashsnap_official21_current_accept6_core13_no_khr100_unknown_v1_test.txt
+nc: 21
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_official21_review_bridge:
+  schema: cashsnap_official21_review_bridge_v1
+  created_utc: '2026-06-10T16:37:26.907849+00:00'
+  base_data: data/cashsnap_v1/data.yaml
+  official21_schema: configs/taxonomy/cashsnap_official21_schema_draft_v1.yaml
+  proposal_stats:
+    proposal_csv: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/fullsize_review_all89_v1/review_queue_codex_accept6_v1.csv
+    rows: 89
+    accepted_boxes_raw: 6
+    reviewed_not_accepted: 0
+    skipped_reviewed_rows: []
+    skipped_reviewed_rows_truncated: 0
+    accepted_decision: accepted_box
+    proposal_class: KHR_100
+    accepted_boxes_after_dedupe: 6
+    accepted_images_after_dedupe: 6
+    deduped_boxes: 0
+    dedupe_iou: 0.9
+    deduped_examples: []
+    deduped_examples_truncated: 0
+  splits:
+    train:
+      images: 14036
+      labeled_images: 7124
+      empty_images: 6912
+      boxes: 7246
+      accepted_proposal_boxes: 6
+      base_class_counts:
+        USD_10: 1009
+        USD_100: 976
+        USD_50: 911
+        USD_20: 894
+        USD_5: 753
+        KHR_1000: 635
+        USD_1: 627
+        KHR_5000: 614
+        KHR_10000: 349
+        KHR_500: 284
+        KHR_2000: 153
+        KHR_50000: 18
+        KHR_20000: 17
+      official_class_counts:
+        USD_10: 1009
+        USD_100: 976
+        USD_50: 911
+        USD_20: 894
+        USD_5: 753
+        KHR_1000: 635
+        USD_1: 627
+        KHR_5000: 614
+        KHR_10000: 349
+        KHR_500: 284
+        KHR_2000: 153
+        KHR_50000: 18
+        KHR_20000: 17
+        KHR_100: 6
+      accepted_proposal_class_counts:
+        KHR_100: 6
+      image_mirror_modes:
+        hardlink: 14036
+      manifest: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/metadata/train.jsonl
+    val:
+      images: 2103
+      labeled_images: 988
+      empty_images: 1115
+      boxes: 991
+      accepted_proposal_boxes: 0
+      base_class_counts:
+        USD_10: 126
+        USD_100: 119
+        USD_5: 97
+        USD_20: 96
+        USD_1: 96
+        USD_50: 96
+        KHR_5000: 79
+        KHR_1000: 79
+        KHR_10000: 52
+        KHR_500: 48
+        KHR_2000: 45
+        KHR_50000: 37
+        KHR_20000: 21
+      official_class_counts:
+        USD_10: 126
+        USD_100: 119
+        USD_5: 97
+        USD_20: 96
+        USD_1: 96
+        USD_50: 96
+        KHR_5000: 79
+        KHR_1000: 79
+        KHR_10000: 52
+        KHR_500: 48
+        KHR_2000: 45
+        KHR_50000: 37
+        KHR_20000: 21
+      accepted_proposal_class_counts: {}
+      image_mirror_modes:
+        hardlink: 2103
+      manifest: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/metadata/val.jsonl
+    test:
+      images: 1562
+      labeled_images: 814
+      empty_images: 748
+      boxes: 817
+      accepted_proposal_boxes: 0
+      base_class_counts:
+        USD_10: 128
+        USD_100: 119
+        USD_20: 110
+        USD_50: 104
+        USD_5: 99
+        USD_1: 80
+        KHR_5000: 37
+        KHR_1000: 35
+        KHR_500: 31
+        KHR_10000: 27
+        KHR_2000: 20
+        KHR_20000: 17
+        KHR_50000: 10
+      official_class_counts:
+        USD_10: 128
+        USD_100: 119
+        USD_20: 110
+        USD_50: 104
+        USD_5: 99
+        USD_1: 80
+        KHR_5000: 37
+        KHR_1000: 35
+        KHR_500: 31
+        KHR_10000: 27
+        KHR_2000: 20
+        KHR_20000: 17
+        KHR_50000: 10
+      accepted_proposal_class_counts: {}
+      image_mirror_modes:
+        hardlink: 1562
+      manifest: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/metadata/test.jsonl
+  scope: full_dataset
+  dry_run: false
+  image_mode: auto
+  selected_splits:
+  - train
+  - val
+  - test
+  out_root: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized
+  data_yaml: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/data.yaml
+  out_config: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/data.yaml
+  review_gate: Only rows with normalized review_decision='accepted_box' are promoted
+    from proposal hints to labels.
+  training_precondition: Before using this output for training, register/classify
+    the out-root in the data lifecycle registry and run scripts/check_data_lifecycle_registry.py.
+  manifest_preview:
+    train:
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4483_jpg.rf.bbe29f6923ba9fb554b5c9e0e1a69093.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4483_jpg.rf.bbe29f6923ba9fb554b5c9e0e1a69093.txt
+      image: images/train/train_000000_asian_currency_IMG_4483_jpg_rf_bbe29f6923ba9fb554b5c9e0e1a69093_da4a1cb0992c.jpg
+      label: labels/train/train_000000_asian_currency_IMG_4483_jpg_rf_bbe29f6923ba9fb554b5c9e0e1a69093_da4a1cb0992c.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4483_jpg.rf.d591a6a9acd7431dda5afe6c3bb0bd4a.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4483_jpg.rf.d591a6a9acd7431dda5afe6c3bb0bd4a.txt
+      image: images/train/train_000001_asian_currency_IMG_4483_jpg_rf_d591a6a9acd7431dda5afe6c3bb0bd4a_54f1f2928fc9.jpg
+      label: labels/train/train_000001_asian_currency_IMG_4483_jpg_rf_d591a6a9acd7431dda5afe6c3bb0bd4a_54f1f2928fc9.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4483_jpg.rf.edb4daeaaa2eab94005b6da4ff77191b.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4483_jpg.rf.edb4daeaaa2eab94005b6da4ff77191b.txt
+      image: images/train/train_000002_asian_currency_IMG_4483_jpg_rf_edb4daeaaa2eab94005b6da4ff77191b_961aad551828.jpg
+      label: labels/train/train_000002_asian_currency_IMG_4483_jpg_rf_edb4daeaaa2eab94005b6da4ff77191b_961aad551828.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4485_jpg.rf.8bb56d5aeb541222ca2b30331e79f01f.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4485_jpg.rf.8bb56d5aeb541222ca2b30331e79f01f.txt
+      image: images/train/train_000003_asian_currency_IMG_4485_jpg_rf_8bb56d5aeb541222ca2b30331e79f01f_816587aec08b.jpg
+      label: labels/train/train_000003_asian_currency_IMG_4485_jpg_rf_8bb56d5aeb541222ca2b30331e79f01f_816587aec08b.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4485_jpg.rf.be49fd5439bffee6a6401a1fa0835828.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4485_jpg.rf.be49fd5439bffee6a6401a1fa0835828.txt
+      image: images/train/train_000004_asian_currency_IMG_4485_jpg_rf_be49fd5439bffee6a6401a1fa0835828_c9c44af2234e.jpg
+      label: labels/train/train_000004_asian_currency_IMG_4485_jpg_rf_be49fd5439bffee6a6401a1fa0835828_c9c44af2234e.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4485_jpg.rf.e30f2bd24b8e2898dfb21426ed59588b.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4485_jpg.rf.e30f2bd24b8e2898dfb21426ed59588b.txt
+      image: images/train/train_000005_asian_currency_IMG_4485_jpg_rf_e30f2bd24b8e2898dfb21426ed59588b_cf5cceab68e4.jpg
+      label: labels/train/train_000005_asian_currency_IMG_4485_jpg_rf_e30f2bd24b8e2898dfb21426ed59588b_cf5cceab68e4.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4488_jpg.rf.65f17645fba584eda2fb77094397e55e.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4488_jpg.rf.65f17645fba584eda2fb77094397e55e.txt
+      image: images/train/train_000006_asian_currency_IMG_4488_jpg_rf_65f17645fba584eda2fb77094397e55e_09b694395768.jpg
+      label: labels/train/train_000006_asian_currency_IMG_4488_jpg_rf_65f17645fba584eda2fb77094397e55e_09b694395768.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4488_jpg.rf.bee1bccf2e366f0f8c4f9483a4a2522c.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4488_jpg.rf.bee1bccf2e366f0f8c4f9483a4a2522c.txt
+      image: images/train/train_000007_asian_currency_IMG_4488_jpg_rf_bee1bccf2e366f0f8c4f9483a4a2522c_f7c73cce9d71.jpg
+      label: labels/train/train_000007_asian_currency_IMG_4488_jpg_rf_bee1bccf2e366f0f8c4f9483a4a2522c_f7c73cce9d71.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4488_jpg.rf.ee9d682b9fc196ba2c9dc20a02a7a3d4.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4488_jpg.rf.ee9d682b9fc196ba2c9dc20a02a7a3d4.txt
+      image: images/train/train_000008_asian_currency_IMG_4488_jpg_rf_ee9d682b9fc196ba2c9dc20a02a7a3d4_dc0d10abfd8a.jpg
+      label: labels/train/train_000008_asian_currency_IMG_4488_jpg_rf_ee9d682b9fc196ba2c9dc20a02a7a3d4_dc0d10abfd8a.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4489_jpg.rf.a3b1bb98f906b25b33f7b0c7ef37e827.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4489_jpg.rf.a3b1bb98f906b25b33f7b0c7ef37e827.txt
+      image: images/train/train_000009_asian_currency_IMG_4489_jpg_rf_a3b1bb98f906b25b33f7b0c7ef37e827_b9fb76322957.jpg
+      label: labels/train/train_000009_asian_currency_IMG_4489_jpg_rf_a3b1bb98f906b25b33f7b0c7ef37e827_b9fb76322957.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4489_jpg.rf.f87ac5bffc3936b6b37a2d8cebf92c3e.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4489_jpg.rf.f87ac5bffc3936b6b37a2d8cebf92c3e.txt
+      image: images/train/train_000010_asian_currency_IMG_4489_jpg_rf_f87ac5bffc3936b6b37a2d8cebf92c3e_7ceed724ce4f.jpg
+      label: labels/train/train_000010_asian_currency_IMG_4489_jpg_rf_f87ac5bffc3936b6b37a2d8cebf92c3e_7ceed724ce4f.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4489_jpg.rf.fbc04a0906da721858ac4d14a574b9de.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4489_jpg.rf.fbc04a0906da721858ac4d14a574b9de.txt
+      image: images/train/train_000011_asian_currency_IMG_4489_jpg_rf_fbc04a0906da721858ac4d14a574b9de_c213b475085c.jpg
+      label: labels/train/train_000011_asian_currency_IMG_4489_jpg_rf_fbc04a0906da721858ac4d14a574b9de_c213b475085c.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4490_jpg.rf.0adff6c9bf78fcd129dba34b78b89f7a.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4490_jpg.rf.0adff6c9bf78fcd129dba34b78b89f7a.txt
+      image: images/train/train_000012_asian_currency_IMG_4490_jpg_rf_0adff6c9bf78fcd129dba34b78b89f7a_bf72d066ab59.jpg
+      label: labels/train/train_000012_asian_currency_IMG_4490_jpg_rf_0adff6c9bf78fcd129dba34b78b89f7a_bf72d066ab59.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4490_jpg.rf.e0610e958a00f1f62ebd7eb4d300b5e6.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4490_jpg.rf.e0610e958a00f1f62ebd7eb4d300b5e6.txt
+      image: images/train/train_000013_asian_currency_IMG_4490_jpg_rf_e0610e958a00f1f62ebd7eb4d300b5e6_4ee83956036b.jpg
+      label: labels/train/train_000013_asian_currency_IMG_4490_jpg_rf_e0610e958a00f1f62ebd7eb4d300b5e6_4ee83956036b.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4490_jpg.rf.ec33b3f70459b1b160dbc00bb3f16ac7.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4490_jpg.rf.ec33b3f70459b1b160dbc00bb3f16ac7.txt
+      image: images/train/train_000014_asian_currency_IMG_4490_jpg_rf_ec33b3f70459b1b160dbc00bb3f16ac7_c168ddd73255.jpg
+      label: labels/train/train_000014_asian_currency_IMG_4490_jpg_rf_ec33b3f70459b1b160dbc00bb3f16ac7_c168ddd73255.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4493_jpg.rf.6f9868fb6c10dcf710dfe153bdb6104c.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4493_jpg.rf.6f9868fb6c10dcf710dfe153bdb6104c.txt
+      image: images/train/train_000015_asian_currency_IMG_4493_jpg_rf_6f9868fb6c10dcf710dfe153bdb6104c_ed7c481bacf2.jpg
+      label: labels/train/train_000015_asian_currency_IMG_4493_jpg_rf_6f9868fb6c10dcf710dfe153bdb6104c_ed7c481bacf2.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4493_jpg.rf.c2ff64adcc1b634cd75ae4a17e6999bd.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4493_jpg.rf.c2ff64adcc1b634cd75ae4a17e6999bd.txt
+      image: images/train/train_000016_asian_currency_IMG_4493_jpg_rf_c2ff64adcc1b634cd75ae4a17e6999bd_56fdb91a912f.jpg
+      label: labels/train/train_000016_asian_currency_IMG_4493_jpg_rf_c2ff64adcc1b634cd75ae4a17e6999bd_56fdb91a912f.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4493_jpg.rf.c76dd255ec075249cc36adeb8c2f739d.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4493_jpg.rf.c76dd255ec075249cc36adeb8c2f739d.txt
+      image: images/train/train_000017_asian_currency_IMG_4493_jpg_rf_c76dd255ec075249cc36adeb8c2f739d_d22cb8a51de4.jpg
+      label: labels/train/train_000017_asian_currency_IMG_4493_jpg_rf_c76dd255ec075249cc36adeb8c2f739d_d22cb8a51de4.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4494_jpg.rf.23ca947f37b17c59cd02f92715e1d2c9.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4494_jpg.rf.23ca947f37b17c59cd02f92715e1d2c9.txt
+      image: images/train/train_000018_asian_currency_IMG_4494_jpg_rf_23ca947f37b17c59cd02f92715e1d2c9_62526a10ece8.jpg
+      label: labels/train/train_000018_asian_currency_IMG_4494_jpg_rf_23ca947f37b17c59cd02f92715e1d2c9_62526a10ece8.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: train
+      source_image: data/cashsnap_v1/images/train/asian_currency_IMG_4494_jpg.rf.dd6e8fbdd983bbe6f5fd4f760907c900.jpg
+      source_label: data/cashsnap_v1/labels/train/asian_currency_IMG_4494_jpg.rf.dd6e8fbdd983bbe6f5fd4f760907c900.txt
+      image: images/train/train_000019_asian_currency_IMG_4494_jpg_rf_dd6e8fbdd983bbe6f5fd4f760907c900_595bc440f9d7.jpg
+      label: labels/train/train_000019_asian_currency_IMG_4494_jpg_rf_dd6e8fbdd983bbe6f5fd4f760907c900_595bc440f9d7.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    val:
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4482_jpg.rf.fa0cf77149851ce6373b70f0f06a3788.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4482_jpg.rf.fa0cf77149851ce6373b70f0f06a3788.txt
+      image: images/val/val_000000_asian_currency_IMG_4482_jpg_rf_fa0cf77149851ce6373b70f0f06a3788_87d545164557.jpg
+      label: labels/val/val_000000_asian_currency_IMG_4482_jpg_rf_fa0cf77149851ce6373b70f0f06a3788_87d545164557.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4484_jpg.rf.af32edef927f38971d22883c78514b10.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4484_jpg.rf.af32edef927f38971d22883c78514b10.txt
+      image: images/val/val_000001_asian_currency_IMG_4484_jpg_rf_af32edef927f38971d22883c78514b10_f500acfeb730.jpg
+      label: labels/val/val_000001_asian_currency_IMG_4484_jpg_rf_af32edef927f38971d22883c78514b10_f500acfeb730.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4486_jpg.rf.26a645e345defe43df2fa2ae86dd6680.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4486_jpg.rf.26a645e345defe43df2fa2ae86dd6680.txt
+      image: images/val/val_000002_asian_currency_IMG_4486_jpg_rf_26a645e345defe43df2fa2ae86dd6680_6162892e29ac.jpg
+      label: labels/val/val_000002_asian_currency_IMG_4486_jpg_rf_26a645e345defe43df2fa2ae86dd6680_6162892e29ac.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4491_jpg.rf.d751aaa3aff1f0ca089883c88f0b5b2a.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4491_jpg.rf.d751aaa3aff1f0ca089883c88f0b5b2a.txt
+      image: images/val/val_000003_asian_currency_IMG_4491_jpg_rf_d751aaa3aff1f0ca089883c88f0b5b2a_a86c64d4cfe1.jpg
+      label: labels/val/val_000003_asian_currency_IMG_4491_jpg_rf_d751aaa3aff1f0ca089883c88f0b5b2a_a86c64d4cfe1.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4492_jpg.rf.cf20f7a2bb539bed28fff0f21559347a.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4492_jpg.rf.cf20f7a2bb539bed28fff0f21559347a.txt
+      image: images/val/val_000004_asian_currency_IMG_4492_jpg_rf_cf20f7a2bb539bed28fff0f21559347a_d43b464048c2.jpg
+      label: labels/val/val_000004_asian_currency_IMG_4492_jpg_rf_cf20f7a2bb539bed28fff0f21559347a_d43b464048c2.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4495_jpg.rf.87336728de1c9270543096674b8030dd.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4495_jpg.rf.87336728de1c9270543096674b8030dd.txt
+      image: images/val/val_000005_asian_currency_IMG_4495_jpg_rf_87336728de1c9270543096674b8030dd_5562e3134aa0.jpg
+      label: labels/val/val_000005_asian_currency_IMG_4495_jpg_rf_87336728de1c9270543096674b8030dd_5562e3134aa0.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4497_jpg.rf.3089d0e14b36869ad29400e8c18051d8.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4497_jpg.rf.3089d0e14b36869ad29400e8c18051d8.txt
+      image: images/val/val_000006_asian_currency_IMG_4497_jpg_rf_3089d0e14b36869ad29400e8c18051d8_6f69060671a4.jpg
+      label: labels/val/val_000006_asian_currency_IMG_4497_jpg_rf_3089d0e14b36869ad29400e8c18051d8_6f69060671a4.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4523_jpg.rf.84245d49830942cc23be4d78faed6b35.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4523_jpg.rf.84245d49830942cc23be4d78faed6b35.txt
+      image: images/val/val_000007_asian_currency_IMG_4523_jpg_rf_84245d49830942cc23be4d78faed6b35_5e5ed523e84b.jpg
+      label: labels/val/val_000007_asian_currency_IMG_4523_jpg_rf_84245d49830942cc23be4d78faed6b35_5e5ed523e84b.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4526_jpg.rf.811476e80cdaa8578ff35c0327eec8a3.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4526_jpg.rf.811476e80cdaa8578ff35c0327eec8a3.txt
+      image: images/val/val_000008_asian_currency_IMG_4526_jpg_rf_811476e80cdaa8578ff35c0327eec8a3_128d600ed3dc.jpg
+      label: labels/val/val_000008_asian_currency_IMG_4526_jpg_rf_811476e80cdaa8578ff35c0327eec8a3_128d600ed3dc.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4538_jpg.rf.578633964d72e23380d95ba4bba753aa.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4538_jpg.rf.578633964d72e23380d95ba4bba753aa.txt
+      image: images/val/val_000009_asian_currency_IMG_4538_jpg_rf_578633964d72e23380d95ba4bba753aa_62d3abfa20ca.jpg
+      label: labels/val/val_000009_asian_currency_IMG_4538_jpg_rf_578633964d72e23380d95ba4bba753aa_62d3abfa20ca.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4551_jpg.rf.5bda934364e53fcd33cd9adfb61eb656.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4551_jpg.rf.5bda934364e53fcd33cd9adfb61eb656.txt
+      image: images/val/val_000010_asian_currency_IMG_4551_jpg_rf_5bda934364e53fcd33cd9adfb61eb656_64b52701fe71.jpg
+      label: labels/val/val_000010_asian_currency_IMG_4551_jpg_rf_5bda934364e53fcd33cd9adfb61eb656_64b52701fe71.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4558_jpg.rf.92a41a1c69d2ff3b4f287be7159748f6.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4558_jpg.rf.92a41a1c69d2ff3b4f287be7159748f6.txt
+      image: images/val/val_000011_asian_currency_IMG_4558_jpg_rf_92a41a1c69d2ff3b4f287be7159748f6_f40ebb616b8f.jpg
+      label: labels/val/val_000011_asian_currency_IMG_4558_jpg_rf_92a41a1c69d2ff3b4f287be7159748f6_f40ebb616b8f.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4568_jpg.rf.2dcb5504d06583d91ea2f57bc1d33cd6.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4568_jpg.rf.2dcb5504d06583d91ea2f57bc1d33cd6.txt
+      image: images/val/val_000012_asian_currency_IMG_4568_jpg_rf_2dcb5504d06583d91ea2f57bc1d33cd6_956d891d3770.jpg
+      label: labels/val/val_000012_asian_currency_IMG_4568_jpg_rf_2dcb5504d06583d91ea2f57bc1d33cd6_956d891d3770.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4570_jpg.rf.c14756dbd18a131b907713749072a7f2.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4570_jpg.rf.c14756dbd18a131b907713749072a7f2.txt
+      image: images/val/val_000013_asian_currency_IMG_4570_jpg_rf_c14756dbd18a131b907713749072a7f2_22709a07d5df.jpg
+      label: labels/val/val_000013_asian_currency_IMG_4570_jpg_rf_c14756dbd18a131b907713749072a7f2_22709a07d5df.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4571_jpg.rf.29d40e31e2a442e0f5227eca2cb2e4e7.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4571_jpg.rf.29d40e31e2a442e0f5227eca2cb2e4e7.txt
+      image: images/val/val_000014_asian_currency_IMG_4571_jpg_rf_29d40e31e2a442e0f5227eca2cb2e4e7_d1e095316b95.jpg
+      label: labels/val/val_000014_asian_currency_IMG_4571_jpg_rf_29d40e31e2a442e0f5227eca2cb2e4e7_d1e095316b95.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4572_jpg.rf.c3090364834cda8036611c873bbd3b51.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4572_jpg.rf.c3090364834cda8036611c873bbd3b51.txt
+      image: images/val/val_000015_asian_currency_IMG_4572_jpg_rf_c3090364834cda8036611c873bbd3b51_d81eecf735e9.jpg
+      label: labels/val/val_000015_asian_currency_IMG_4572_jpg_rf_c3090364834cda8036611c873bbd3b51_d81eecf735e9.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4581_jpg.rf.5a22e0756e0482728455f1c32931533e.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4581_jpg.rf.5a22e0756e0482728455f1c32931533e.txt
+      image: images/val/val_000016_asian_currency_IMG_4581_jpg_rf_5a22e0756e0482728455f1c32931533e_90f11b26725e.jpg
+      label: labels/val/val_000016_asian_currency_IMG_4581_jpg_rf_5a22e0756e0482728455f1c32931533e_90f11b26725e.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4583_jpg.rf.7151d0b8bd154278d68c6c348014dcb8.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4583_jpg.rf.7151d0b8bd154278d68c6c348014dcb8.txt
+      image: images/val/val_000017_asian_currency_IMG_4583_jpg_rf_7151d0b8bd154278d68c6c348014dcb8_f44bb16e0446.jpg
+      label: labels/val/val_000017_asian_currency_IMG_4583_jpg_rf_7151d0b8bd154278d68c6c348014dcb8_f44bb16e0446.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4589_jpg.rf.51fd525e2a0441755d93fd1d054a93ae.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4589_jpg.rf.51fd525e2a0441755d93fd1d054a93ae.txt
+      image: images/val/val_000018_asian_currency_IMG_4589_jpg_rf_51fd525e2a0441755d93fd1d054a93ae_40aedc56aad4.jpg
+      label: labels/val/val_000018_asian_currency_IMG_4589_jpg_rf_51fd525e2a0441755d93fd1d054a93ae_40aedc56aad4.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: val
+      source_image: data/cashsnap_v1/images/val/asian_currency_IMG_4593_jpg.rf.9a52b8a832ad76c8d4d2288cb1a5bf4e.jpg
+      source_label: data/cashsnap_v1/labels/val/asian_currency_IMG_4593_jpg.rf.9a52b8a832ad76c8d4d2288cb1a5bf4e.txt
+      image: images/val/val_000019_asian_currency_IMG_4593_jpg_rf_9a52b8a832ad76c8d4d2288cb1a5bf4e_e7a55076358a.jpg
+      label: labels/val/val_000019_asian_currency_IMG_4593_jpg_rf_9a52b8a832ad76c8d4d2288cb1a5bf4e_e7a55076358a.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    test:
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4498_jpg.rf.8171162ddb13a3b082362ad39605db01.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4498_jpg.rf.8171162ddb13a3b082362ad39605db01.txt
+      image: images/test/test_000000_asian_currency_IMG_4498_jpg_rf_8171162ddb13a3b082362ad39605db01_e319b298bbb3.jpg
+      label: labels/test/test_000000_asian_currency_IMG_4498_jpg_rf_8171162ddb13a3b082362ad39605db01_e319b298bbb3.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4502_jpg.rf.26662ee7c2380ecc2794fa5b319fa1e0.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4502_jpg.rf.26662ee7c2380ecc2794fa5b319fa1e0.txt
+      image: images/test/test_000001_asian_currency_IMG_4502_jpg_rf_26662ee7c2380ecc2794fa5b319fa1e0_3c90839a7333.jpg
+      label: labels/test/test_000001_asian_currency_IMG_4502_jpg_rf_26662ee7c2380ecc2794fa5b319fa1e0_3c90839a7333.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4511_jpg.rf.4ec6f8bd7dc47fbed1fdc4523a3d316a.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4511_jpg.rf.4ec6f8bd7dc47fbed1fdc4523a3d316a.txt
+      image: images/test/test_000002_asian_currency_IMG_4511_jpg_rf_4ec6f8bd7dc47fbed1fdc4523a3d316a_a5cc5d217502.jpg
+      label: labels/test/test_000002_asian_currency_IMG_4511_jpg_rf_4ec6f8bd7dc47fbed1fdc4523a3d316a_a5cc5d217502.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4516_jpg.rf.776ed6356b5414856dfcab5a1c17cacd.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4516_jpg.rf.776ed6356b5414856dfcab5a1c17cacd.txt
+      image: images/test/test_000003_asian_currency_IMG_4516_jpg_rf_776ed6356b5414856dfcab5a1c17cacd_6285d797e33b.jpg
+      label: labels/test/test_000003_asian_currency_IMG_4516_jpg_rf_776ed6356b5414856dfcab5a1c17cacd_6285d797e33b.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4541_jpg.rf.a60599f857e602d0a4aec0f5014cd93b.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4541_jpg.rf.a60599f857e602d0a4aec0f5014cd93b.txt
+      image: images/test/test_000004_asian_currency_IMG_4541_jpg_rf_a60599f857e602d0a4aec0f5014cd93b_73052b254ee4.jpg
+      label: labels/test/test_000004_asian_currency_IMG_4541_jpg_rf_a60599f857e602d0a4aec0f5014cd93b_73052b254ee4.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4548_jpg.rf.d14ba7a5f254174365ac1c88ea0c5adb.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4548_jpg.rf.d14ba7a5f254174365ac1c88ea0c5adb.txt
+      image: images/test/test_000005_asian_currency_IMG_4548_jpg_rf_d14ba7a5f254174365ac1c88ea0c5adb_e3417ebaa73a.jpg
+      label: labels/test/test_000005_asian_currency_IMG_4548_jpg_rf_d14ba7a5f254174365ac1c88ea0c5adb_e3417ebaa73a.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4549_jpg.rf.1c4d903fa141a43f79feceb113195b1e.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4549_jpg.rf.1c4d903fa141a43f79feceb113195b1e.txt
+      image: images/test/test_000006_asian_currency_IMG_4549_jpg_rf_1c4d903fa141a43f79feceb113195b1e_31c25b145c7e.jpg
+      label: labels/test/test_000006_asian_currency_IMG_4549_jpg_rf_1c4d903fa141a43f79feceb113195b1e_31c25b145c7e.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4564_jpg.rf.e3d51f90c20d71fbe44465ae2e40ffee.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4564_jpg.rf.e3d51f90c20d71fbe44465ae2e40ffee.txt
+      image: images/test/test_000007_asian_currency_IMG_4564_jpg_rf_e3d51f90c20d71fbe44465ae2e40ffee_acb5dd5ed6ba.jpg
+      label: labels/test/test_000007_asian_currency_IMG_4564_jpg_rf_e3d51f90c20d71fbe44465ae2e40ffee_acb5dd5ed6ba.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4576_jpg.rf.3ee8268db1a55a224e0cd353b815751d.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4576_jpg.rf.3ee8268db1a55a224e0cd353b815751d.txt
+      image: images/test/test_000008_asian_currency_IMG_4576_jpg_rf_3ee8268db1a55a224e0cd353b815751d_3d69bee09ce9.jpg
+      label: labels/test/test_000008_asian_currency_IMG_4576_jpg_rf_3ee8268db1a55a224e0cd353b815751d_3d69bee09ce9.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4592_jpg.rf.c59a04929bf2cf476bd9da4081d77455.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4592_jpg.rf.c59a04929bf2cf476bd9da4081d77455.txt
+      image: images/test/test_000009_asian_currency_IMG_4592_jpg_rf_c59a04929bf2cf476bd9da4081d77455_0902efc40c58.jpg
+      label: labels/test/test_000009_asian_currency_IMG_4592_jpg_rf_c59a04929bf2cf476bd9da4081d77455_0902efc40c58.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4601_jpg.rf.262b28e6229102b426f087f4615e9ad6.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4601_jpg.rf.262b28e6229102b426f087f4615e9ad6.txt
+      image: images/test/test_000010_asian_currency_IMG_4601_jpg_rf_262b28e6229102b426f087f4615e9ad6_e37a50b8a1da.jpg
+      label: labels/test/test_000010_asian_currency_IMG_4601_jpg_rf_262b28e6229102b426f087f4615e9ad6_e37a50b8a1da.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4638_jpg.rf.6fe861d7805e96508165c972f3c0c494.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4638_jpg.rf.6fe861d7805e96508165c972f3c0c494.txt
+      image: images/test/test_000011_asian_currency_IMG_4638_jpg_rf_6fe861d7805e96508165c972f3c0c494_ef98d31ad00d.jpg
+      label: labels/test/test_000011_asian_currency_IMG_4638_jpg_rf_6fe861d7805e96508165c972f3c0c494_ef98d31ad00d.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4654_jpg.rf.d63667872bbdf883f0c17d34fd8a5e02.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4654_jpg.rf.d63667872bbdf883f0c17d34fd8a5e02.txt
+      image: images/test/test_000012_asian_currency_IMG_4654_jpg_rf_d63667872bbdf883f0c17d34fd8a5e02_bc77d79d2016.jpg
+      label: labels/test/test_000012_asian_currency_IMG_4654_jpg_rf_d63667872bbdf883f0c17d34fd8a5e02_bc77d79d2016.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4672_jpg.rf.81164c4aedf794dea665e8cd3a7b6ef6.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4672_jpg.rf.81164c4aedf794dea665e8cd3a7b6ef6.txt
+      image: images/test/test_000013_asian_currency_IMG_4672_jpg_rf_81164c4aedf794dea665e8cd3a7b6ef6_3f1168774275.jpg
+      label: labels/test/test_000013_asian_currency_IMG_4672_jpg_rf_81164c4aedf794dea665e8cd3a7b6ef6_3f1168774275.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4688_jpg.rf.07085ab27c845e22e47a46614b69c2f3.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4688_jpg.rf.07085ab27c845e22e47a46614b69c2f3.txt
+      image: images/test/test_000014_asian_currency_IMG_4688_jpg_rf_07085ab27c845e22e47a46614b69c2f3_1b7000831a4f.jpg
+      label: labels/test/test_000014_asian_currency_IMG_4688_jpg_rf_07085ab27c845e22e47a46614b69c2f3_1b7000831a4f.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4692_jpg.rf.f5bc69d7b34a6ae6a26d6f372ccf9c03.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4692_jpg.rf.f5bc69d7b34a6ae6a26d6f372ccf9c03.txt
+      image: images/test/test_000015_asian_currency_IMG_4692_jpg_rf_f5bc69d7b34a6ae6a26d6f372ccf9c03_9568afcd292a.jpg
+      label: labels/test/test_000015_asian_currency_IMG_4692_jpg_rf_f5bc69d7b34a6ae6a26d6f372ccf9c03_9568afcd292a.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4708_jpg.rf.e148f8ca0c2f96af2029064cce44606b.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4708_jpg.rf.e148f8ca0c2f96af2029064cce44606b.txt
+      image: images/test/test_000016_asian_currency_IMG_4708_jpg_rf_e148f8ca0c2f96af2029064cce44606b_673409ce3a4c.jpg
+      label: labels/test/test_000016_asian_currency_IMG_4708_jpg_rf_e148f8ca0c2f96af2029064cce44606b_673409ce3a4c.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4720_jpg.rf.ece6046a2edbd3402a36689b6790fd12.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4720_jpg.rf.ece6046a2edbd3402a36689b6790fd12.txt
+      image: images/test/test_000017_asian_currency_IMG_4720_jpg_rf_ece6046a2edbd3402a36689b6790fd12_d48ba7cac8c6.jpg
+      label: labels/test/test_000017_asian_currency_IMG_4720_jpg_rf_ece6046a2edbd3402a36689b6790fd12_d48ba7cac8c6.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4725_jpg.rf.ebbfbb1e06e2066b42697848e6021737.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4725_jpg.rf.ebbfbb1e06e2066b42697848e6021737.txt
+      image: images/test/test_000018_asian_currency_IMG_4725_jpg_rf_ebbfbb1e06e2066b42697848e6021737_97591cec2d42.jpg
+      label: labels/test/test_000018_asian_currency_IMG_4725_jpg_rf_ebbfbb1e06e2066b42697848e6021737_97591cec2d42.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+    - split: test
+      source_image: data/cashsnap_v1/images/test/asian_currency_IMG_4738_jpg.rf.42877e14a14278618f9c5e5e45626547.jpg
+      source_label: data/cashsnap_v1/labels/test/asian_currency_IMG_4738_jpg.rf.42877e14a14278618f9c5e5e45626547.txt
+      image: images/test/test_000019_asian_currency_IMG_4738_jpg_rf_42877e14a14278618f9c5e5e45626547_bb57e5bdc041.jpg
+      label: labels/test/test_000019_asian_currency_IMG_4738_jpg_rf_42877e14a14278618f9c5e5e45626547_bb57e5bdc041.txt
+      boxes: 0
+      proposal_boxes: 0
+      accepted_proposals: []
+cashsnap_sources:
+  train_mix_base_config: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/data.yaml
+  train_mix_extra_sources:
+  - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train
+  cloned_from_config: configs/official21/cashsnap_official21_current_accept6_plus_roboflow_partial_v1.yaml
+  clone_split_overrides: &id001
+    val: configs/generated_lists/official21/cashsnap_official21_current_accept6_core13_no_khr100_unknown_v1_val.txt
+    test: configs/generated_lists/official21/cashsnap_official21_current_accept6_core13_no_khr100_unknown_v1_test.txt
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_current_accept6_plus_roboflow_partial_v1
+  base_config: runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/data.yaml
+  base_train_sources:
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train
+  extra_sources:
+  - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: false
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_current_accept6_plus_roboflow_partial_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 14036
+  base_unique_images: 14036
+  extra_images_before_regex_filter: 2018
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 2018
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter: {}
+  extra_images_before_class_cap: 2018
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 2018
+  extra_images: 2018
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 16054
+  combined_duplicate_images_removed: 0
+  added_images: 2018
+  extra_class_counts:
+    KHR_100: 171
+    KHR_1000: 172
+    KHR_10000: 213
+    KHR_2000: 170
+    KHR_20000: 168
+    KHR_500: 177
+    KHR_5000: 159
+    KHR_50000: 157
+    USD_1: 56
+    USD_10: 168
+    USD_100: 163
+    USD_20: 55
+    USD_5: 163
+    USD_50: 49
+cashsnap_policy:
+  intended_use: diagnostic official21 transfer probe retaining current core13 distribution
+    while adding KHR_100-aware Roboflow positives
+  promotion_rule: not promotionable without current-core13 val/test recovery plus
+    Roboflow KHR_100 eval and duplicate/count review
+cashsnap_data_config_clone:
+  schema: cashsnap_yolo_data_config_clone_v1
+  source_config: configs/official21/cashsnap_official21_current_accept6_plus_roboflow_partial_v1.yaml
+  split_overrides: *id001
+  tag: official21_current_accept6_core13_no_khr100_unknown_eval_v1
+  intended_use: eval-only current core13 transfer slice excluding obvious unlabeled
+    KHR_100 unknown rows by filename

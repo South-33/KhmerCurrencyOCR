@@ -8,6 +8,7 @@ import copy
 import json
 import os
 import random
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+REVIEW_ARTIFACT_STEMS = {"contact_sheet", "suspect_contact"}
 DEFAULT_BASE = (
     ROOT
     / "configs"
@@ -32,8 +34,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-label", default="", help="Probe row model_label. Defaults to the first row.")
     parser.add_argument("--image-root", default="", help="Probe row image_root. Defaults to any root for --model-label.")
     parser.add_argument("--count", type=int, required=True)
+    parser.add_argument(
+        "--mine-source",
+        choices=("probe-top", "image-root-all", "manual-list"),
+        default="probe-top",
+        help="Select negatives from probe top detections or from all images under the probe image_root.",
+    )
+    parser.add_argument(
+        "--manual-image-list",
+        type=Path,
+        default=None,
+        help="Text file of vetted zero-label negative images for --mine-source manual-list.",
+    )
     parser.add_argument("--selection", choices=("top", "spread", "random"), default="top")
     parser.add_argument("--seed", type=int, default=20260607)
+    parser.add_argument("--source-name-require-regex", default="")
+    parser.add_argument("--source-name-block-regex", default="")
     parser.add_argument("--out-config", type=Path, required=True)
     parser.add_argument("--out-list", type=Path, required=True)
     parser.add_argument(
@@ -101,15 +117,29 @@ def read_image_list(path: Path) -> list[str]:
     return rows
 
 
-def image_rows(root: Path) -> list[str]:
+def image_rows(
+    root: Path,
+    *,
+    name_require_regex: str = "",
+    name_block_regex: str = "",
+) -> list[str]:
     image_dir = resolve(root)
     if not image_dir.exists():
         raise SystemExit(f"missing image dir: {repo_rel(image_dir)}")
-    return [
-        repo_rel(path)
-        for path in sorted(image_dir.iterdir())
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTS
-    ]
+    require = re.compile(name_require_regex) if name_require_regex else None
+    block = re.compile(name_block_regex) if name_block_regex else None
+    rows: list[str] = []
+    for path in sorted(image_dir.iterdir()):
+        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTS:
+            continue
+        if path.stem in REVIEW_ARTIFACT_STEMS:
+            continue
+        if require and not require.search(path.name):
+            continue
+        if block and block.search(path.name):
+            continue
+        rows.append(repo_rel(path))
+    return rows
 
 
 def train_rows(config_path: Path, config: dict[str, Any]) -> tuple[list[str], list[str]]:
@@ -158,6 +188,10 @@ def is_empty_label(image: str) -> bool:
     if not label.exists():
         return True
     return not any(line.strip() for line in label.read_text(encoding="utf-8").splitlines())
+
+
+def is_review_artifact(image: str) -> bool:
+    return Path(image).stem in REVIEW_ARTIFACT_STEMS
 
 
 def normalize_repo_path(value: str) -> str:
@@ -239,6 +273,8 @@ def mined_rows(
         image = str(item.get("image", "")).strip()
         if not image:
             continue
+        if is_review_artifact(image):
+            continue
         confidence = float(item.get("confidence", 0.0) or 0.0)
         class_name = str(item.get("class", "")).strip()
         record = per_image.setdefault(
@@ -287,6 +323,83 @@ def mined_rows(
     return selected_rows, report
 
 
+def image_root_negative_rows(
+    image_root: str,
+    count: int,
+    *,
+    selection: str,
+    rng: random.Random,
+    name_require_regex: str = "",
+    name_block_regex: str = "",
+) -> tuple[list[str], dict[str, Any]]:
+    if count < 1:
+        raise SystemExit("--count must be at least 1")
+    source_root = Path(image_root)
+    if "#" in image_root:
+        raise SystemExit("--mine-source image-root-all requires a filesystem image root, not a dataset split selector")
+    rows = image_rows(
+        source_root,
+        name_require_regex=name_require_regex,
+        name_block_regex=name_block_regex,
+    )
+    ranked = [
+        {
+            "image": image,
+            "detections_in_top": 0,
+            "max_confidence": 0.0,
+            "classes": Counter(),
+        }
+        for image in rows
+    ]
+    selected = select_ranked_rows(ranked, count=count, selection=selection, rng=rng)
+    selected_rows = [str(item["image"]) for item in selected]
+    non_empty = [image for image in selected_rows if not is_empty_label(image)]
+    if non_empty:
+        raise SystemExit(f"zero-label negative pool has non-empty labels: {non_empty[:5]}")
+    return selected_rows, {
+        "source_images": len(rows),
+        "selection": selection,
+        "selected_images": [
+            {
+                "image": str(item["image"]),
+                "detections_in_top": 0,
+                "max_confidence": 0.0,
+                "classes": {},
+            }
+            for item in selected
+        ],
+    }
+
+
+def manual_negative_rows(path: Path, count: int) -> tuple[list[str], dict[str, Any]]:
+    if count < 1:
+        raise SystemExit("--count must be at least 1")
+    rows = read_image_list(resolve(path))
+    rows = [repo_rel(resolve(Path(row))) for row in rows]
+    if len(rows) < count:
+        raise SystemExit(f"manual negative list has fewer rows than --count: {len(rows)} < {count}")
+    selected_rows = rows[:count]
+    review_artifacts = [image for image in selected_rows if is_review_artifact(image)]
+    if review_artifacts:
+        raise SystemExit(f"manual negative list contains review artifacts: {review_artifacts[:5]}")
+    non_empty = [image for image in selected_rows if not is_empty_label(image)]
+    if non_empty:
+        raise SystemExit(f"manual negative list has non-empty labels: {non_empty[:5]}")
+    return selected_rows, {
+        "source_images": len(rows),
+        "selection": "manual",
+        "selected_images": [
+            {
+                "image": image,
+                "detections_in_top": 0,
+                "max_confidence": 0.0,
+                "classes": {},
+            }
+            for image in selected_rows
+        ],
+    }
+
+
 def remove_existing(rows: list[str], prefix: str) -> tuple[list[str], int, int]:
     normalized = prefix.replace("\\", "/").rstrip("/") + "/"
     indices = [index for index, row in enumerate(rows) if row.startswith(normalized)]
@@ -309,12 +422,27 @@ def main() -> int:
     probe_path = resolve(args.probe_json)
     probe = read_json(probe_path)
     row = find_probe_row(probe, args.model_label, args.image_root)
-    selected_rows, mining_report = mined_rows(
-        row,
-        args.count,
-        selection=args.selection,
-        rng=random.Random(args.seed),
-    )
+    if args.mine_source == "probe-top":
+        selected_rows, mining_report = mined_rows(
+            row,
+            args.count,
+            selection=args.selection,
+            rng=random.Random(args.seed),
+        )
+    else:
+        if args.mine_source == "image-root-all":
+            selected_rows, mining_report = image_root_negative_rows(
+                str(row.get("image_root", "")),
+                args.count,
+                selection=args.selection,
+                rng=random.Random(args.seed),
+                name_require_regex=args.source_name_require_regex,
+                name_block_regex=args.source_name_block_regex,
+            )
+        else:
+            if args.manual_image_list is None:
+                raise SystemExit("--mine-source manual-list requires --manual-image-list")
+            selected_rows, mining_report = manual_negative_rows(args.manual_image_list, args.count)
 
     base_path = resolve(args.base)
     base_config = read_yaml(base_path)
@@ -336,10 +464,13 @@ def main() -> int:
         "model": row.get("model", ""),
         "image_root": image_root,
         "conf": row.get("conf", ""),
+        "mine_source": args.mine_source,
         "replace_existing_root": replace_root,
         "requested_count": int(args.count),
         "selection": args.selection,
         "seed": int(args.seed),
+        "source_name_require_regex": args.source_name_require_regex,
+        "source_name_block_regex": args.source_name_block_regex,
         "removed_existing_rows": int(removed_rows),
         "insert_at": int(insert_at),
         "base_images": len(base_rows),
@@ -367,9 +498,12 @@ def main() -> int:
     policy = copy.deepcopy(config.get("cashsnap_policy", {}))
     if not isinstance(policy, dict):
         policy = {}
-    policy["intended_use"] = (
-        "pure-synth TSTR probe adding zero-label negatives selected from donor false positives"
-    )
+    if args.mine_source == "image-root-all":
+        policy["intended_use"] = "pure-synth TSTR probe adding verified zero-label background negatives"
+    else:
+        policy["intended_use"] = (
+            "pure-synth TSTR probe adding zero-label negatives selected from donor false positives"
+        )
     policy["promotion_rule"] = (
         "reject unless mined negatives reduce real-empty FPs while preserving full, clean-visible, "
         "labeled, stress, and protected positive guardrails"

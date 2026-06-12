@@ -1,0 +1,201 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_rowcountctrl_v1_train.txt
+val: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/val
+test: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/test
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_bridge:
+  schema: roboflow_khmer_us_currency_bridge_v1
+  class_scope: official
+  source_roots:
+  - data/raw_datasets/roboflow_khmer_us_currency_v10
+  - data/raw_datasets/roboflow_khmer_us_currency
+  unsupported_policy: exclude_image
+  dedupe: true
+cashsnap_sources:
+  train_mix_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  train_mix_extra_sources:
+  - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train
+  row_count_class_mix_control_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1.yaml
+  row_count_class_mix_control_target_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1.yaml
+  row_count_class_mix_control_pool_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1.yaml
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt
+  extra_sources:
+  - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train
+  extra_label_policy: non-empty
+  extra_row_require_regex: usd_total_2Dollar|cambodia_currency_project
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: false
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 4365
+  base_unique_images: 4365
+  extra_images_before_regex_filter: 11
+  extra_regex_require_filtered_out_images: 6
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 5
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter: {}
+  extra_images_before_class_cap: 5
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 5
+  extra_images: 5
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 4370
+  combined_duplicate_images_removed: 0
+  added_images: 5
+  extra_class_counts:
+    KHR_200: 1
+    USD_2: 4
+cashsnap_policy:
+  intended_use: scheduler_row_count_control_for_repeat24_reviewed_usd2_khr200_probe
+  promotion_rule: scheduler_control_only_class_mix_inexact
+cashsnap_row_count_control:
+  source: class_mix:target_added_rows
+  matched_dose_images: 120
+  class_mix_all_exact: true
+  class_mix_exact_matches: null
+  row_count_exact: true
+  missing_class_counts: &id001 {}
+  extra_class_counts: &id002 {}
+cashsnap_row_count_class_mix_control:
+  schema: cashsnap_yolo_row_count_class_mix_control_v1
+  tag: official21_accept11_usd2_khr200_repeat24_rowcountctrl_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1.yaml
+  target_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1.yaml
+  control_pool_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1_train.txt
+  target_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1_train.txt
+  control_pool_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1_train.txt
+  allow_repeat: true
+  real_only: false
+  include_empty_fillers: true
+  base_images: 4370
+  target_images: 4490
+  row_delta: 120
+  target_added_images: 0
+  combined_images: 4490
+  control_images: 120
+  control_unique_images: 5
+  control_duplicate_images: 115
+  pool_rejected_rows: 4005
+  eligible_patterns: 3
+  selected_by_group:
+    real: 120
+  base_empty: 360
+  target_empty: 360
+  combined_empty: 360
+  delta_empty: 0
+  base_class_counts:
+    USD_1: 237
+    USD_2: 4
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_200: 1
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  target_class_counts:
+    USD_1: 237
+    USD_2: 100
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_200: 25
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  target_delta_class_counts:
+    USD_2: 96
+    KHR_200: 24
+  combined_class_counts:
+    USD_1: 237
+    USD_2: 100
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_200: 25
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  missing_class_counts: *id001
+  extra_class_counts: *id002
+  class_mix_exact: true
+  row_count_exact: true
+  solver:
+    missing_total: 0
+    missing_by_target_index:
+    - 0
+    - 0
+    phase1_objective: 0.0
+    phase2_objective: 0.0
+  selected_patterns:
+  - rows: 96
+    source_group: real
+    class_counts:
+      USD_2: 1
+  - rows: 24
+    source_group: real
+    class_counts:
+      KHR_200: 1

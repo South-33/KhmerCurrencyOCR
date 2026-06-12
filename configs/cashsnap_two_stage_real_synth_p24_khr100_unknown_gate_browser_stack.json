@@ -1,0 +1,87 @@
+{
+  "name": "cashsnap_two_stage_real_synth_p24_khr100_unknown_gate_browser_stack",
+  "status": "diagnostic_current_product_clue_tuned_operating_point_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false,
+    "class_min_conf": {
+      "KHR_1000": 0.15,
+      "KHR_2000": 0.15,
+      "KHR_20000": 0.15,
+      "KHR_50000": 0.15
+    }
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_center50_coin_khr100_productbridge_unknown_v1_e4_initprev_freezefeat_lr3e4_b32w0/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["reject", "target"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.05,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["reject"],
+    "reject_fragment_class_min_conf": 0.72,
+    "reject_after_nms": true
+  },
+  "evidence": {
+    "previous_gate_khr100_unknown12_eval": "runs/fragment_classifier/eval_gate_trueempty_center50_coin_on_khr100_productbridge_unknown12_test_onnx_v1/summary.json",
+    "candidate_gate_khr100_unknown12_eval": "runs/fragment_classifier/eval_gate_khr100_productbridge_unknown_v1_on_khr100_unknown12_test_onnx_v1/summary.json",
+    "previous_gate_base_val_eval": "runs/fragment_classifier/eval_gate_trueempty_center50_coin_on_base_val_onnx_v1/summary.json",
+    "candidate_gate_base_val_eval": "runs/fragment_classifier/eval_gate_khr100_productbridge_unknown_v1_on_base_val_onnx_v1/summary.json",
+    "khr100_detector_proposal_threshold_sweep": "runs/cashsnap/proposal_gate_eval_real_synth_p24_khr100_productbridge_unknown12_threshold_sweep_v1/summary.json",
+    "full_real_product_probe_rej080": "runs/cashsnap/proposal_gate_real_synth_p24_khr100_gate_full_real_i416_conf005_det70_match50_batch1_rej080_v1/summary.json",
+    "strict_clean_product_probe_rej080": "runs/cashsnap/real_data_label_audit_v1/proposal_gate_strict_clean_real_synth_p24_khr100_gate_i416_conf005_det70_match50_batch1_rej080_v1/summary.json",
+    "product_threshold_sweep": "runs/cashsnap/proposal_gate_real_synth_p24_khr100_gate_threshold_sweep_v1/summary.json",
+    "full_real_vs_balanced_rej080_per_image_compare": "runs/cashsnap/proposal_gate_real_synth_p24_khr100_gate_threshold_sweep_v1/balanced_rej080_vs_real_synth_khrgate_rej072_full_per_image_compare_v1.json",
+    "strict_clean_vs_balanced_rej080_per_image_compare": "runs/cashsnap/proposal_gate_real_synth_p24_khr100_gate_threshold_sweep_v1/balanced_rej080_vs_real_synth_khrgate_rej072_strict_clean_per_image_compare_v1.json",
+    "detector_khr_echo_floor_scorecard": "runs/cashsnap/agnostic_nms_champion_guard_v1/scorecard_champion_khr_echo_floor_v1_vs_classaware_conf005.json",
+    "detector_khr_echo_floor_visible_evidence_scorecard": "runs/cashsnap/agnostic_nms_champion_guard_v1/scorecard_champion_khr_echo_floor_v1_visible_evidence_conf005.json",
+    "denomination_reclassifier_guard": "runs/cashsnap/proposal_gate_real_synth_p24_khr100_gate_rej072_reclass_comparison_v1.json",
+    "training_run": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_center50_coin_khr100_productbridge_unknown_v1_e4_initprev_freezefeat_lr3e4_b32w0/results.csv",
+    "onnx_stack_smoke_unknown_khr100_floor": "runs/cashsnap/browser_stack_onnx_smoke_real_synth_p24_khr100_gate_rej072_khrfloor_v1.json",
+    "onnx_stack_smoke_target_floor": "runs/cashsnap/browser_stack_onnx_smoke_real_synth_p24_khr100_gate_rej072_khrfloor_target_v1.json",
+    "top200_background_fp_bucket_gate_scorecard": "runs/cashsnap/missing_schema_false_positive_audit_v1/top200_bucket_gate_scorecard_v1.json",
+    "usd2_missing_schema_review_queue": "runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_review_queue_v1/overlays/summary.json",
+    "cambodia_denomination_triage_review_queue": "runs/cashsnap/missing_schema_cambodia_project_top17_review_v1/official21_cambodia_top17_review_queue_v1/overlays/summary.json",
+    "artifact_check": "scripts/check_browser_stack_artifacts.py --config configs/cashsnap_two_stage_real_synth_p24_khr100_unknown_gate_browser_stack.json",
+    "summary": "Real+synth p24 detector with the repaired KHR_100-aware proposal gate at reject>=0.72 is the strongest current browser-stack candidate. At reject>=0.72, held-out product-bridge KHR100 detector-proposal FPs clear to 0/12 images, full-real exact-value is 1261/1562 with 37 background-FP images and recall 0.9388, and strict-clean exact-value is 679/774 with 3 background-FP images and recall 0.9574. The added KHR detector class floors preserve full-real and strict-clean detector recall at conf=0.05 while trimming low-confidence KHR echo proposals, and preserve the 10-image visible-evidence extension recall. The older fragment-aware denomination reclassifier fails on this stronger gate stack, dropping full-real exact-value by 28 and recall by 0.0588. Versus the balanced-real rej080 product clue, per-image exact-value net is +29 full-real and +11 strict-clean, with nonzero losses still present. This remains diagnostic until schema/product promotion work is done."
+  },
+  "known_limits": [
+    "Diagnostic current-best browser candidate only; not production-promoted.",
+    "The current 13-class detector schema still cannot count USD_2, KHR_100, KHR_200, or other missing official21 denominations as target classes.",
+    "Rejecting official KHR_100 is only correct under the current schema; final all-riel/all-target CashSnap requires official21 schema expansion instead of rejection.",
+    "USD_2 is target-like for the current gate: the top-52 USD_2 missing-schema slice still has 39/52 background-FP images at reject>=0.72 and 34/52 even when every reject-top crop is rejected.",
+    "Reject>=0.72 is a product threshold trade: it improves count/value and background behavior versus 0.80/0.99, but spends some full-real recall versus the conservative 0.99 setting.",
+    "Detector class_min_conf is a postprocess calibration knob, not evidence that the detector learned better visible-evidence localization.",
+    "The gate rejects proposals but does not correct denomination classes or teach detector visible-evidence localization.",
+    "Do not add the current denomination reclassifier to this stack; the guard comparison shows worse recall/precision and more wrong-class FNs."
+  ]
+}

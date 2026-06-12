@@ -1,0 +1,6 @@
+data/cashsnap_v1/images/train/khmer_us_currency_500-riel_190_jpg.rf.7aedceae2cf3075c9ea1dc6a117f54e4.jpg
+data/cashsnap_v1/images/train/khmer_us_currency_frame_000206_jpg.rf.8bf6ad1f501baf5da2f4251b77037758.jpg
+data/cashsnap_v1/images/train/khmer_us_currency_frame_000260_jpg.rf.5618317ed3477054af86a23868ef8697.jpg
+data/cashsnap_v1/images/train/khmer_us_currency_IMG_2266_jpg.rf.546cf913ee960b50445692aed2432a25.jpg
+data/cashsnap_v1/images/train/khmer_us_currency_IMG_2358_jpg.rf.3572f2d8c6052d70c1842153e623b026.jpg
+data/cashsnap_v1/images/train/khmer_us_currency_IMG_2472_jpg.rf.78b261ae9ce6fe0726d82186158f9cd0.jpg

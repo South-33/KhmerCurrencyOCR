@@ -31,6 +31,11 @@ from probe_yolo_representation_domain_gap import (
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gap-summary", required=True, type=Path, help="representation-gap summary.json")
+    parser.add_argument(
+        "--model-label",
+        default="",
+        help="For activation-microscope summaries, select this model label.",
+    )
     parser.add_argument("--candidate-data", required=True, type=Path, help="Real YOLO dataset YAML for anchors.")
     parser.add_argument("--candidate-split", default="train")
     parser.add_argument("--model", type=Path, default=None, help="Override model from --gap-summary.")
@@ -58,10 +63,27 @@ def safe_clean(path: Path) -> None:
         shutil.rmtree(resolved)
 
 
-def load_gap(path: Path) -> dict[str, Any]:
+def load_gap(path: Path, model_label: str = "") -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if payload.get("schema") != "cashsnap_yolo_representation_domain_gap_v1":
-        raise SystemExit(f"Unsupported gap summary schema: {payload.get('schema')}")
+    if payload.get("schema") == "cashsnap_yolo_representation_domain_gap_v1":
+        return payload
+    if payload.get("schema") == "cashsnap_yolo_activation_microscope_v1":
+        models = payload.get("models", [])
+        if not model_label:
+            labels = ", ".join(str(model.get("label")) for model in models)
+            raise SystemExit(f"--model-label is required for activation microscope summaries; labels: {labels}")
+        selected = next((model for model in models if str(model.get("label")) == model_label), None)
+        if selected is None:
+            labels = ", ".join(str(model.get("label")) for model in models)
+            raise SystemExit(f"model label {model_label!r} not found; labels: {labels}")
+        return {
+            "schema": "cashsnap_yolo_representation_domain_gap_v1",
+            "model": selected["path"],
+            "nearest_layer": payload["nearest_layer"],
+            "imgsz": payload["imgsz"],
+            "top_uncovered_real": selected.get("top_uncovered_real", []),
+        }
+    raise SystemExit(f"Unsupported gap summary schema: {payload.get('schema')}")
     return payload
 
 
@@ -207,7 +229,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     gap_path = resolve(args.gap_summary)
-    gap = load_gap(gap_path)
+    gap = load_gap(gap_path, args.model_label)
     model_path = resolve(args.model) if args.model else path_from_repo_rel(str(gap["model"]))
     layer = str(args.layer if args.layer is not None else gap["nearest_layer"])
     imgsz = int(args.imgsz if args.imgsz is not None else gap.get("imgsz", 416))

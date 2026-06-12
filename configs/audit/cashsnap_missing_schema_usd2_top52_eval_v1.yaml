@@ -1,0 +1,31 @@
+path: ../..
+train: images/train
+val: configs\generated_lists\audit\cashsnap_missing_schema_usd2_top52_from_bgfp_v1.txt
+test: configs\generated_lists\audit\cashsnap_missing_schema_usd2_top52_from_bgfp_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  cloned_from_config: configs/cashsnap_v1.yaml
+  clone_split_overrides: &id001
+    val: configs\generated_lists\audit\cashsnap_missing_schema_usd2_top52_from_bgfp_v1.txt
+    test: configs\generated_lists\audit\cashsnap_missing_schema_usd2_top52_from_bgfp_v1.txt
+cashsnap_data_config_clone:
+  schema: cashsnap_yolo_data_config_clone_v1
+  source_config: configs/cashsnap_v1.yaml
+  split_overrides: *id001
+  tag: missing_schema_usd2_top52_eval_v1
+  intended_use: Eval-only view over 52 usd_total_2Dollar background-FP rows from the
+    champion train-empty probe; used to recover detector/gate boxes for blank official21
+    USD_2 review.

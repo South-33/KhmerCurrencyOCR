@@ -38,6 +38,7 @@ const TEXTURE_QA_EFFECTS = argValue("--texture-qa-effects", "flat");
 const APPEARANCE_ABLATION = argValue("--appearance-ablation", "full");
 const OCCLUDER_POLICY = argValue("--occluder-policy", "scene_default");
 const NEGATIVE_PROP_POLICY = argValue("--negative-prop-policy", "classic");
+const NEGATIVE_PROP_LABEL_POLICY = argValue("--negative-prop-label-policy", "none");
 const BROWSER_EXECUTABLE = argValue("--browser-executable", process.env.CASHSNAP_WEBGL_BROWSER || EDGE);
 const BROWSER_WS_ENDPOINT = argValue("--browser-ws-endpoint", process.env.CASHSNAP_WEBGL_BROWSER_WS || "");
 const BATCH_MANIFEST = argValue("--batch-manifest", "");
@@ -60,6 +61,9 @@ const CLASS_NAMES = [
   "KHR_20000",
   "KHR_50000",
 ];
+const UNKNOWN_PROP_CLASS_NAME = "UNKNOWN_FOREIGN_NOTE";
+const UNKNOWN_PROP_CLASS_INDEX = CLASS_NAMES.length;
+const UNKNOWN_PROP_ID_CHANNELS = [64, 96, 128, 160, 192, 224, 255];
 const ASSET_BANK_DIR = path.join(ROOT, "data", "asset_candidates", "numista_current_cutout_bank_v1");
 const PHYSICAL_WIDTH_MM = {
   USD_1: 156,
@@ -180,6 +184,10 @@ if (!["full", "source_flat", "material", "material_no_shadow", "material_no_back
 
 if (!["scene_default", "no_hand", "none"].includes(OCCLUDER_POLICY)) {
   throw new Error("--occluder-policy must be one of: scene_default, no_hand, none");
+}
+
+if (!["none", "unknown_banknote"].includes(NEGATIVE_PROP_LABEL_POLICY)) {
+  throw new Error("--negative-prop-label-policy must be one of: none, unknown_banknote");
 }
 
 if (!["classic", "unknown_currency_soft_v1", "unknown_currency_soft_dark_v1", "unknown_currency_spread_dark_v1", "unknown_currency_v1", "unknown_currency_fullframe_v1", "unknown_currency_fullframe_dark_v1"].includes(NEGATIVE_PROP_POLICY)) {
@@ -895,6 +903,9 @@ function sceneConfig(variant, mode, backgroundPath, environmentPath) {
     assetQualityPolicy: ASSET_QUALITY_POLICY,
     cleanOrientationPolicy: CLEAN_ORIENTATION_POLICY,
     negativePropPolicy: NEGATIVE_PROP_POLICY,
+    negativePropLabelPolicy: NEGATIVE_PROP_LABEL_POLICY,
+    unknownPropClassName: UNKNOWN_PROP_CLASS_NAME,
+    unknownPropClassIndex: UNKNOWN_PROP_CLASS_INDEX,
     appearanceAblation: APPEARANCE_ABLATION,
     textureQa,
     textureQaEffects: textureQa ? TEXTURE_QA_EFFECTS : "none",
@@ -2197,6 +2208,10 @@ const WIDTH = ${JSON.stringify(WIDTH)};
 const HEIGHT = ${JSON.stringify(HEIGHT)};
 const VISUAL_SCALE = ${JSON.stringify(VISUAL_SCALE)};
 const MIN_VISIBLE_PIXELS = ${JSON.stringify(MIN_VISIBLE_PIXELS)};
+const NEGATIVE_PROP_LABEL_POLICY = ${JSON.stringify(NEGATIVE_PROP_LABEL_POLICY)};
+const UNKNOWN_PROP_CLASS_NAME = ${JSON.stringify(UNKNOWN_PROP_CLASS_NAME)};
+const UNKNOWN_PROP_CLASS_INDEX = ${JSON.stringify(UNKNOWN_PROP_CLASS_INDEX)};
+const UNKNOWN_PROP_ID_CHANNELS = ${JSON.stringify(UNKNOWN_PROP_ID_CHANNELS)};
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(sceneConfig.surface.scene);
 
@@ -3001,6 +3016,8 @@ async function addNotes() {
 }
 
 function addOccluders() {
+  let unknownPropLabelIndex = 0;
+  const reservedIdColorKeys = new Set(["0,0,0", ...assets.map((asset) => asset.idColor.join(","))]);
   for (const occluder of occluders) {
     const geometry = makeOccluderGeometry(occluder);
     const texture = makeOccluderTexture(occluder);
@@ -3019,7 +3036,21 @@ function addOccluders() {
     mesh.renderOrder = 100 + occluder.layer;
     mesh.castShadow = true;
     mesh.receiveShadow = false;
-    mesh.userData = { material, occluder, finalColor: [0, 0, 0], auditColor: [255, 255, 255] };
+    const labelAsUnknownProp = NEGATIVE_PROP_LABEL_POLICY === "unknown_banknote" && occluder.propKind === "unknown_banknote";
+    const idColor = labelAsUnknownProp
+      ? nextUnknownPropIdColor(unknownPropLabelIndex, reservedIdColorKeys)
+      : [0, 0, 0];
+    if (labelAsUnknownProp) unknownPropLabelIndex += 1;
+    mesh.userData = {
+      material,
+      occluder,
+      idColor,
+      labelAsUnknownProp,
+      labelClassIndex: UNKNOWN_PROP_CLASS_INDEX,
+      labelClassName: UNKNOWN_PROP_CLASS_NAME,
+      finalColor: idColor,
+      auditColor: labelAsUnknownProp ? idColor : [255, 255, 255],
+    };
     occluderMeshes.push(mesh);
     scene.add(mesh);
   }
@@ -3047,8 +3078,9 @@ window.renderPass = (mode) => {
       });
     }
     for (const mesh of occluderMeshes) {
+      const [r, g, b] = mesh.userData.labelAsUnknownProp ? mesh.userData.idColor : [0, 0, 0];
       mesh.material = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0x000000),
+        color: idColorFromBytes([r, g, b]),
         depthTest: false,
         depthWrite: false
       });
@@ -3192,6 +3224,25 @@ function idColorFromBytes([r, g, b]) {
   return color;
 }
 
+function nextUnknownPropIdColor(index, reservedIdColorKeys) {
+  const side = UNKNOWN_PROP_ID_CHANNELS.length;
+  const paletteSize = side * side * side;
+  for (let offset = 0; offset < paletteSize; offset += 1) {
+    const cursor = (index + offset) % paletteSize;
+    const color = [
+      UNKNOWN_PROP_ID_CHANNELS[cursor % side],
+      UNKNOWN_PROP_ID_CHANNELS[Math.floor(cursor / side) % side],
+      UNKNOWN_PROP_ID_CHANNELS[Math.floor(cursor / (side * side)) % side],
+    ];
+    const key = color.join(",");
+    if (!reservedIdColorKeys.has(key)) {
+      reservedIdColorKeys.add(key);
+      return color;
+    }
+  }
+  throw new Error("No unused id color remains for UNKNOWN_FOREIGN_NOTE props");
+}
+
 window.extractIdBoxes = () => {
   for (const mesh of meshes) mesh.visible = true;
   for (const mesh of occluderMeshes) mesh.visible = true;
@@ -3218,6 +3269,16 @@ window.extractIdBoxes = () => {
   }
 
   const colorToClass = new Map(assets.map((asset) => [asset.idColor.join(","), { classIndex: asset.classIndex, className: asset.className }]));
+  for (const mesh of occluderMeshes) {
+    if (!mesh.userData.labelAsUnknownProp) continue;
+    colorToClass.set(mesh.userData.idColor.join(","), {
+      classIndex: mesh.userData.labelClassIndex,
+      className: mesh.userData.labelClassName,
+      labelSource: "negative_prop_unknown_banknote",
+      propKind: mesh.userData.occluder.propKind,
+      negativeConfusionHardness: mesh.userData.occluder.negativeConfusionHardness || "none",
+    });
+  }
   return [...boxes.entries()].map(([key, box]) => ({
     ...colorToClass.get(key),
     ...box,

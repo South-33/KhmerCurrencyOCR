@@ -1,0 +1,127 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_webgl_stackfan_cap6_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources: &id001
+  - data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: real_synth_p24_webgl_stackfan_cap6
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_max_per_class: 6
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 128
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_class_cap: 128
+  extra_class_cap_sampled_out_images: 112
+  extra_class_cap_counts:
+    '0': 6
+    '1': 6
+    '2': 6
+    '3': 6
+    '4': 3
+    '5': 6
+    '6': 6
+    '7': 6
+    '8': 5
+    '9': 6
+    '10': 5
+    '11': 6
+    '12': 6
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 16
+  extra_images: 16
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 651
+  combined_duplicate_images_removed: 0
+  added_images: 16
+  extra_class_counts:
+    KHR_1000: 6
+    KHR_10000: 5
+    KHR_2000: 5
+    KHR_20000: 6
+    KHR_500: 6
+    KHR_5000: 6
+    KHR_50000: 6
+    USD_1: 6
+    USD_10: 6
+    USD_100: 6
+    USD_20: 6
+    USD_5: 6
+    USD_50: 3
+cashsnap_policy:
+  intended_use: diagnostic accepted WebGL stack/fan overlap dose on current p24 synth+real
+    champion
+  promotion_rule: reject unless it beats matched duplicate-exposure control and current
+    p24 synth+real champion without protected-class or source/low-conf guard regressions

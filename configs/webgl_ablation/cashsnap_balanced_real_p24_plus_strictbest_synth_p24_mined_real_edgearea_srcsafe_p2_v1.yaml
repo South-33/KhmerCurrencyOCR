@@ -1,0 +1,140 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_edgearea_srcsafe_p2_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources: &id001
+  - configs/generated_lists/webgl_ablation/cashsnap_mined_real_partial_stress_train_candidates_v1.txt
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_mined_real_edgearea_srcsafe_p2_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: billsbank|usd_total
+  extra_min_label_area: 0.08
+  extra_max_label_area: 0.35
+  extra_edge_margin: 0.005
+  extra_single_label_only: true
+  extra_max_per_class: 2
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 20260610
+  out_extra_list: runs/cashsnap/mined_real_edgearea_srcsafe_p2_from_champion_light/selected_extra_rows.txt
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 4329
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 3427
+  extra_images_before_geometry_filter: 902
+  extra_geometry_filtered_out_images: 668
+  extra_geometry_filter:
+    min_label_area: 0.08
+    max_label_area: 0.35
+    edge_margin: 0.005
+    single_label_only: true
+    kept_label_area_range:
+    - 0.10325
+    - 0.34749
+    kept_edge_margin_range:
+    - -0.0
+    - 0.004688
+  extra_images_before_class_cap: 234
+  extra_class_cap_sampled_out_images: 212
+  extra_class_cap_counts:
+    '0': 2
+    '1': 2
+    '2': 2
+    '3': 2
+    '4': 2
+    '5': 2
+    '6': 2
+    '7': 2
+    '8': 2
+    '9': 2
+    '10': 2
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 22
+  extra_images: 22
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 657
+  combined_duplicate_images_removed: 0
+  added_images: 22
+  extra_class_counts:
+    KHR_1000: 2
+    KHR_10000: 2
+    KHR_2000: 2
+    KHR_500: 2
+    KHR_5000: 2
+    USD_1: 2
+    USD_10: 2
+    USD_100: 2
+    USD_20: 2
+    USD_5: 2
+    USD_50: 2
+cashsnap_policy:
+  intended_use: diagnostic mined real source-filtered single-label edge-contact partial
+    rows, bbox area 0.08-0.35, edge <=0.005, cap 2 per class
+  promotion_rule: must improve partial/overlap visible-evidence recall versus champion
+    and duplicate control without FP/prediction growth or clean/source/KHR regression

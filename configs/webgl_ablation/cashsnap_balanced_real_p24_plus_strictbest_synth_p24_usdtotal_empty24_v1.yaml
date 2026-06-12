@@ -1,0 +1,100 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_usdtotal_empty24_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources: &id001
+  - runs/cashsnap/real_data_label_audit_v1/candidate_empty_train_lowrisk_no_teacher_unmatched_v1.txt
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_usdtotal_empty24_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: empty
+  extra_row_require_regex: usd_total_
+  extra_row_block_regex: ''
+  extra_max_per_class: null
+  extra_max_empty: 24
+  extra_max_images: null
+  extra_sample_seed: 20260609
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 2472
+  extra_regex_require_filtered_out_images: 2370
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_class_cap: 102
+  extra_class_cap_sampled_out_images: 78
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 24
+  extra_images_before_sampling: 24
+  extra_images: 24
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 659
+  combined_duplicate_images_removed: 0
+  added_images: 24
+  extra_class_counts: {}
+cashsnap_policy:
+  intended_use: synth+real p24 plus train-only usd_total low-risk empty hard-negative
+    dose
+  promotion_rule: candidate must beat matched duplicate-empty exposure control and
+    preserve full/strict/source-excluded/low-conf guards

@@ -1,0 +1,25 @@
+path: ../..
+train: configs/generated_lists/audit/cashsnap_v1_usd2_filename_train_v1.txt
+val: configs/generated_lists/audit/cashsnap_v1_usd2_filename_val_v1.txt
+test: configs/generated_lists/audit/cashsnap_v1_usd2_filename_test_v1.txt
+nc: 13
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  schema: cashsnap_v1_filename_slice_v1
+  source: data/cashsnap_v1
+  selection: filename contains usd_total_2Dollar; labels intentionally absent in source
+  intended_use: Audit current detector/gate proposal coverage on known source-named
+    USD_2 images before any pseudo-label materialization.

@@ -1,0 +1,167 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1_train.txt
+val: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/val
+test: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/test
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_bridge:
+  schema: roboflow_khmer_us_currency_bridge_v1
+  class_scope: official
+  source_roots:
+  - data/raw_datasets/roboflow_khmer_us_currency_v10
+  - data/raw_datasets/roboflow_khmer_us_currency
+  unsupported_policy: exclude_image
+  dedupe: true
+cashsnap_sources:
+  train_mix_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  train_mix_extra_sources: &id001
+  - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: usd_total_2Dollar|cambodia_currency_project
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: false
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 4365
+  base_unique_images: 4365
+  extra_images_before_regex_filter: 11
+  extra_regex_require_filtered_out_images: 6
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 5
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter: {}
+  extra_images_before_class_cap: 5
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 5
+  extra_images: 5
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 4370
+  combined_duplicate_images_removed: 0
+  added_images: 5
+  extra_class_counts:
+    KHR_200: 1
+    USD_2: 4
+cashsnap_policy:
+  intended_use: diagnostic_repeat_dose_for_reviewed_usd2_khr200_seed_rows
+  promotion_rule: compare_to_rowcount_control_and_probe_accept11_review_boxes_before_any_promotion
+cashsnap_class_repeat:
+  schema: cashsnap_yolo_class_repeat_config_v1
+  created_utc: '2026-06-11T00:55:25.140463+00:00'
+  tag: official21_accept11_usd2_khr200_repeat24_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_v1_train.txt
+  out_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1.yaml
+  out_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_accept11_usd2_khr200_repeat24_v1_train.txt
+  seed: 0
+  rules:
+  - class: USD_2
+    class_id: 1
+    repeat: 24
+    require_regex: official21_missing_schema_seed_accept11_v1
+    block_regex: ''
+    selected_rows: 4
+    selected_unique_rows: 4
+    appended_rows: 96
+    selected_sample:
+    - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train/train_000007_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.jpg
+    - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train/train_000008_usd_total_2Dollar_126_jpeg_jpg_rf_168711ca0cf770ae6c78c505936908ec_a0bdd81b6d6f.jpg
+    - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train/train_000009_usd_total_2Dollar_139_jpeg_jpg_rf_23d7ee9a571f71e8feca41ce5513a4a4_73b9ff4a6142.jpg
+    - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train/train_000010_usd_total_2Dollar_90_jpeg_jpg_rf_695d968ab5e4a799d9353f3209460ee9_45551e831d34.jpg
+  - class: KHR_200
+    class_id: 9
+    repeat: 24
+    require_regex: official21_missing_schema_seed_accept11_v1
+    block_regex: ''
+    selected_rows: 1
+    selected_unique_rows: 1
+    appended_rows: 24
+    selected_sample:
+    - runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/images/train/train_000000_cambodia_currency_project_IMG_5770_png_rf_7a3e73962734c87701895eee049504b3_0e95ea076617.jpg
+  base_rows: 4370
+  base_unique_rows: 4370
+  appended_rows: 120
+  appended_unique_rows: 5
+  combined_rows: 4490
+  combined_unique_rows: 4370
+  combined_duplicate_rows: 120
+  base_empty_rows: 360
+  appended_empty_rows: 0
+  combined_empty_rows: 360
+  base_class_counts:
+    USD_1: 237
+    USD_2: 4
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_200: 1
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  appended_class_counts:
+    USD_2: 96
+    KHR_200: 24
+  combined_class_counts:
+    USD_1: 237
+    USD_2: 100
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_200: 25
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  intended_use: diagnostic_repeat_dose_for_reviewed_usd2_khr200_seed_rows
+  promotion_rule: compare_to_rowcount_control_and_probe_accept11_review_boxes_before_any_promotion

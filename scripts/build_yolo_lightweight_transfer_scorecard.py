@@ -72,7 +72,8 @@ def parse_pair(raw: str) -> tuple[str, Path, Path]:
     if "=" not in raw:
         raise SystemExit(f"--eval-pair must be NAME=BASELINE_JSON,CANDIDATE_JSON, got {raw!r}")
     name, rest = raw.split("=", 1)
-    parts = [part.strip() for part in rest.split(",", 1)]
+    separator = "," if "," in rest else None
+    parts = [part.strip() for part in rest.split(separator, 1)]
     if not name.strip() or len(parts) != 2 or not parts[0] or not parts[1]:
         raise SystemExit(f"--eval-pair must be NAME=BASELINE_JSON,CANDIDATE_JSON, got {raw!r}")
     return name.strip(), Path(parts[0]), Path(parts[1])
@@ -93,6 +94,10 @@ def delta(candidate: float | int | None, baseline: float | int | None) -> float 
     return float(candidate) - float(baseline)
 
 
+def signed_delta_text(value: float | int | None) -> str:
+    return "none" if value is None else f"{float(value):+.6f}"
+
+
 def check_row(name: str, passed: bool, actual: Any, threshold: Any, detail: str = "") -> dict[str, Any]:
     row = {"name": name, "passed": bool(passed), "actual": actual, "threshold": threshold}
     if detail:
@@ -101,11 +106,29 @@ def check_row(name: str, passed: bool, actual: Any, threshold: Any, detail: str 
 
 
 def metadata_checks(baseline: dict[str, Any], candidate: dict[str, Any]) -> list[dict[str, Any]]:
-    fields = ("data", "split", "imgsz", "conf", "iou", "images", "gt", "background_images")
+    fields = (
+        "data",
+        "split",
+        "imgsz",
+        "conf",
+        "iou",
+        "nms_iou",
+        "agnostic_nms",
+        "images",
+        "gt",
+        "background_images",
+    )
     rows = []
     for field in fields:
-        base = baseline.get(field)
-        cand = candidate.get(field)
+        if field == "nms_iou":
+            base = baseline.get(field, 0.7)
+            cand = candidate.get(field, 0.7)
+        elif field == "agnostic_nms":
+            base = baseline.get(field, False)
+            cand = candidate.get(field, False)
+        else:
+            base = baseline.get(field)
+            cand = candidate.get(field)
         rows.append(
             check_row(
                 f"metadata_{field}_match",
@@ -413,7 +436,7 @@ def main() -> int:
         deltas = row["deltas"]
         print(
             f"{row['name']}: {'PASS' if row['passed'] else 'FAIL'} "
-            f"conf={row.get('conf')} recall_delta={deltas['recall']:+.6f} "
+            f"conf={row.get('conf')} recall_delta={signed_delta_text(deltas['recall'])} "
             f"fp_delta={deltas['fp']:+d} bg_fp_img_delta={deltas['background_images_with_fp']:+d}"
         )
     if payload["blockers"]:

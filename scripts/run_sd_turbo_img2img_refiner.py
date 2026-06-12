@@ -36,6 +36,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--guidance-scale", type=float, default=0.0)
     parser.add_argument("--seed", type=int, default=20260607)
     parser.add_argument("--max-rows", type=int, default=8)
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        default=384,
+        help="Resize the refiner input so the long side is at most this many pixels; <=0 keeps source size.",
+    )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--clean", action="store_true")
     return parser.parse_args()
@@ -87,6 +93,18 @@ def load_pipeline(args: argparse.Namespace) -> AutoPipelineForImage2Image:
     return pipe
 
 
+def resize_for_refiner(image: Image.Image, resolution: int) -> tuple[Image.Image, bool]:
+    if resolution <= 0:
+        return image, False
+    width, height = image.size
+    long_side = max(width, height)
+    if long_side <= resolution:
+        return image, False
+    scale = resolution / float(long_side)
+    new_size = (max(1, round(width * scale)), max(1, round(height * scale)))
+    return image.resize(new_size, Image.Resampling.LANCZOS), True
+
+
 def main() -> int:
     configure_project_cache()
     args = parse_args()
@@ -114,10 +132,11 @@ def main() -> int:
         source_path = resolve_repo_path(Path(str(row["source_image"])))
         with Image.open(source_path) as image:
             source = image.convert("RGB")
+        refiner_input, resized_for_refiner = resize_for_refiner(source, args.resolution)
         result = pipe(
             prompt=args.prompt,
             negative_prompt=args.negative_prompt,
-            image=source,
+            image=refiner_input,
             strength=args.strength,
             num_inference_steps=args.steps,
             guidance_scale=args.guidance_scale,
@@ -138,7 +157,9 @@ def main() -> int:
                 "source_image": repo_rel(source_path),
                 "output_image": repo_rel(out_path),
                 "source_size": list(source.size),
+                "refiner_input_size": list(refiner_input.size),
                 "output_size": list(refined.size),
+                "resized_for_refiner": resized_for_refiner,
                 "resized_to_source": resized,
             }
         )
@@ -152,6 +173,7 @@ def main() -> int:
         "negative_prompt": args.negative_prompt,
         "strength": args.strength,
         "steps": args.steps,
+        "resolution": args.resolution,
         "guidance_scale": args.guidance_scale,
         "seed": args.seed,
         "device": args.device,

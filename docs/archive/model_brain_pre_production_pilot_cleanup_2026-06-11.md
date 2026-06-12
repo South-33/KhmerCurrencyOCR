@@ -837,9 +837,9 @@ browser-stack artifact checks, taxonomy status, matched train-row counts, and li
 RAM; it writes
 `runs/cashsnap/official21_missing_schema_seed_accept11_v1/launch_readiness_latest.json`
 for the default accept11 handle and custom reports for later candidate/control
-pairs. Use `--try-memory-cleaners` to run the repo-owned
-`CashSnapWinMemoryCleaner` and `CashSnapSilentMemReduct` scheduled tasks once and
-record the before/after RAM in the report before deciding whether to launch.
+pairs. Use `--try-memory-cleaners` to run the configured scheduled memory
+cleaners once and record the before/after RAM in the report before deciding
+whether to launch.
 The top-200 train-empty FP audit
 `runs/cashsnap/missing_schema_false_positive_audit_v1/top200_bucket_summary.json`
 confirms the broader pattern: the largest buckets are non-target money or
@@ -2913,14 +2913,11 @@ Runtime and harness:
   elevated `scripts/install_winmemorycleaner_task.ps1` now successfully
   registers `CashSnapWinMemoryCleaner`. `schtasks /Run /TN CashSnapWinMemoryCleaner`
   freed RAM from about `1.05 GB` to `4.44 GB`, and the headroom guard
-  successfully triggered it mid-training. Prefer
-  `HEADROOM_MEMORY_CLEAN_PRESET=winmemorycleaner-task` for quiet emergency
-  cleanup. Use `--memory-clean-task CashSnapHiddenMemReduct` for Mem Reduct
-  cleanup: it runs `scripts/run_silent_memreduct_hidden.vbs`, which prefers the
-  custom `D:\Project\memreduct\bin\silent_memreduct.exe --quiet` build through
-  hidden `wscript`. Do not use `CashSnapSilentMemReduct` or installed
-  `memreductTask` for automation; they can show a transient terminal/GUI
-  notification path on the user's desktop.
+  successfully triggered it mid-training. This archive predates the current
+  cleaner posture: active runs now prefer
+  `HEADROOM_MEMORY_CLEAN_PRESET=memreduct`, which maps to installed
+  `memreductTask=-clean` for `C:\Program Files\Mem Reduct\memreduct.exe`;
+  `winmemorycleaner-task` remains a fallback.
 - While the laptop is being used interactively, keep probes GPU-targeted
   (`device=0`) but CPU/RAM-light: no parallel GPU jobs, `workers=0`,
   `cache=false`, and smaller eval/train batches unless explicitly running a

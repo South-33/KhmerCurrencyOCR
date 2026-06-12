@@ -65,9 +65,7 @@ Thumbs.db
 # Local datasets and untracked files
 data/deprecated/
 data/numista_raw/
+data/archive/
+data/proposal_gate/
 debug.log
 presentation.html
-
-# RunLong CLI files
-.longrun/
-RUNLONG.md

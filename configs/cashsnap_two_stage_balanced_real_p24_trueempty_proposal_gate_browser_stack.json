@@ -1,0 +1,62 @@
+{
+  "name": "cashsnap_two_stage_balanced_real_p24_trueempty_proposal_gate_browser_stack",
+  "status": "diagnostic_historical_conservative_product_clue_not_production",
+  "detector": {
+    "format": "onnx",
+    "path": "runs/cashsnap/webgl_ablation_real_only_from_clean_e1_i416_adamw_lr5e5_nowarmup_noamp_strictreal_closeup_v2_probe/weights/best.onnx",
+    "input_size": 416,
+    "classes": [
+      "USD_1",
+      "USD_5",
+      "USD_10",
+      "USD_20",
+      "USD_50",
+      "USD_100",
+      "KHR_500",
+      "KHR_1000",
+      "KHR_2000",
+      "KHR_5000",
+      "KHR_10000",
+      "KHR_20000",
+      "KHR_50000"
+    ],
+    "proposal_confidence": 0.05,
+    "proposal_iou": 0.7,
+    "agnostic_nms": false
+  },
+  "fragment_classifier": {
+    "format": "onnx",
+    "path": "runs/fragment_classifier/mobilenet_v3_banknote_background_edgepos_trueempty_strictbest_current_v1_e4_pre_lr3e4_b64w2/best.onnx",
+    "input_size": 224,
+    "crop_padding": 0.06,
+    "apply_to_all_proposals": true,
+    "classes": ["reject", "target"],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "fusion": {
+    "detector_override_confidence": 0.05,
+    "nms_iou": 0.7,
+    "nms_score": "detector_conf",
+    "fragment_override_enabled": false,
+    "reject_fragment_classes": ["reject"],
+    "reject_fragment_class_min_conf": 0.99,
+    "reject_after_nms": true
+  },
+  "evidence": {
+    "full_real_test_probe": "runs/cashsnap/proposal_gate_balanced_real_p24_trueempty_fragtrain_reclass_realtest_i416_conf005_det70_match50_batch1_rej099_blockkhr50000_v1.json",
+    "strict_clean_test_probe": "runs/cashsnap/real_data_label_audit_v1/proposal_gate_strict_clean_balanced_real_p24_trueempty_fragtrain_reclass_i416_conf005_det70_match50_batch1_rej099_blockkhr50000_v1.json",
+    "artifact_check": "scripts/check_browser_stack_artifacts.py --config configs/cashsnap_two_stage_balanced_real_p24_trueempty_proposal_gate_browser_stack.json",
+    "onnx_stack_smoke": "runs/cashsnap/browser_stack_onnx_smoke_v1.json",
+    "summary": "Balanced real p24 detector plus true-empty gate at reject>=0.99 is the older conservative product clue. On full real test, the gate cuts background-FP images 151 -> 79 and raises exact-value images 1133 -> 1209 while preserving recall 0.9498 -> 0.9486. The threshold sweep in runs/cashsnap/product_threshold_sweep_v1 now favors the reject>=0.80 tuned config as the current browser-deployable product operating point. The old denomination reclassifier lowers exact-value to 1184 for this detector, so keep the stack as detector plus gate unless a better reclassifier is proven."
+  },
+  "known_limits": [
+    "Diagnostic stack only; not production-ready and not overlap/fan/hand capable.",
+    "Full real val/test still contains mixed-source, empty-label, KHR_100, and cross-split issues documented in real_data_label_audit_v1.",
+    "Current 13-class schema cannot encode KHR_100 or other out-of-scope banknotes.",
+    "Reject>=0.99 is the historical conservative operating point; see the rej080 config for the current tuned count/value trade.",
+    "The gate rejects proposals but does not correct denomination classes."
+  ]
+}

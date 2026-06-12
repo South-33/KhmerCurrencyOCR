@@ -1,0 +1,212 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_fpneg32_dupemptyctrl_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_train.txt
+  exposure_control_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1.yaml
+  exposure_control_target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_fpneg32_v1.yaml
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_train.txt
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: true
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_extra_train.txt
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 52
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 52
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter:
+    min_label_area: null
+    max_label_area: null
+    edge_margin: null
+    single_label_only: true
+    kept_label_area_range:
+    - 0.302258
+    - 1.0
+    kept_edge_margin_range:
+    - -1.0e-06
+    - 0.0
+  extra_images_before_class_cap: 52
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 52
+  extra_images: 52
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 687
+  combined_duplicate_images_removed: 0
+  added_images: 52
+  extra_class_counts:
+    KHR_1000: 4
+    KHR_10000: 5
+    KHR_2000: 3
+    KHR_20000: 2
+    KHR_500: 5
+    KHR_5000: 4
+    KHR_50000: 2
+    USD_1: 5
+    USD_10: 7
+    USD_100: 4
+    USD_20: 5
+    USD_5: 3
+    USD_50: 3
+cashsnap_policy:
+  intended_use: Duplicate-empty control for the QA-only countable center50 plus
+    fpneg32 diagnostic; matches the candidate empty-row exposure using existing
+    empty rows only.
+  promotion_rule: Only use after the fpneg32 candidate rows are reviewed or routed
+    as unknown/background; candidate must beat this control on center50/partial
+    stress and FP/background scorecards before hard negatives are considered useful.
+cashsnap_exposure_control:
+  schema: cashsnap_yolo_exposure_control_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_fpneg32_dupemptyctrl_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1.yaml
+  target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_fpneg32_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_v1_train.txt
+  target_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_countablepartial_center50_p6_fpneg32_v1_train.txt
+  seed: 20260611
+  base_images: 687
+  target_images: 719
+  combined_images: 719
+  duplicated_images: 32
+  base_empty: 30
+  target_empty: 62
+  combined_empty: 62
+  duplicated_empty: 32
+  base_class_counts:
+    USD_1: 53
+    USD_5: 51
+    USD_10: 55
+    USD_20: 53
+    USD_50: 51
+    USD_100: 52
+    KHR_500: 53
+    KHR_1000: 53
+    KHR_2000: 51
+    KHR_5000: 52
+    KHR_10000: 65
+    KHR_20000: 43
+    KHR_50000: 44
+  target_class_counts:
+    USD_1: 53
+    USD_5: 51
+    USD_10: 55
+    USD_20: 53
+    USD_50: 51
+    USD_100: 52
+    KHR_500: 53
+    KHR_1000: 53
+    KHR_2000: 51
+    KHR_5000: 52
+    KHR_10000: 65
+    KHR_20000: 43
+    KHR_50000: 44
+  combined_class_counts:
+    USD_1: 53
+    USD_5: 51
+    USD_10: 55
+    USD_20: 53
+    USD_50: 51
+    USD_100: 52
+    KHR_500: 53
+    KHR_1000: 53
+    KHR_2000: 51
+    KHR_5000: 52
+    KHR_10000: 65
+    KHR_20000: 43
+    KHR_50000: 44
+  duplicated_by_class:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  base_multi_label_images: 19
+  class_mix_exact: true

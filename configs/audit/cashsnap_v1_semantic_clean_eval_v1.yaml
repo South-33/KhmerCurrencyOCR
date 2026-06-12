@@ -1,0 +1,117 @@
+path: ../..
+train: data/cashsnap_v1/images/train
+val: configs/generated_lists/audit/cashsnap_v1_semantic_clean_val_v1.txt
+test: configs/generated_lists/audit/cashsnap_v1_semantic_clean_test_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  audit_filtered_eval:
+    source_data: configs/cashsnap_v1.yaml
+    audit_dir: runs/cashsnap/real_data_label_audit_v1
+    filter: semantic_clean
+    exclude_review_queue_ranked_v1: true
+    exclude_semantic_issue_reasons:
+    - bad_label_format
+    - box_out_of_bounds
+    - empty_label_with_target_filename_clue
+    - filename_class_clue_mismatch
+    - invalid_box_geometry
+    - invalid_class_id
+    - missing_label_file
+    - source_currency_conflict
+    - unreadable_image
+    exclude_cross_split_leakage: false
+    splits:
+      val:
+        images: 1609
+        empty_images: 647
+        boxes: 965
+        class_image_counts:
+          KHR_1000: 76
+          KHR_10000: 51
+          KHR_2000: 45
+          KHR_20000: 20
+          KHR_500: 43
+          KHR_5000: 71
+          KHR_50000: 32
+          USD_1: 95
+          USD_10: 125
+          USD_100: 116
+          USD_20: 96
+          USD_5: 97
+          USD_50: 96
+        class_box_counts:
+          KHR_1000: 76
+          KHR_10000: 51
+          KHR_2000: 45
+          KHR_20000: 20
+          KHR_500: 43
+          KHR_5000: 71
+          KHR_50000: 34
+          USD_1: 95
+          USD_10: 125
+          USD_100: 116
+          USD_20: 96
+          USD_5: 97
+          USD_50: 96
+        source_counts:
+          asian_currency: 67
+          cambodia_currency_project: 46
+          cashcountingxl: 636
+          khmer: 26
+          khmer_us_currency: 281
+          usd_total: 553
+        list: configs/generated_lists/audit/cashsnap_v1_semantic_clean_val_v1.txt
+      test:
+        images: 1314
+        empty_images: 512
+        boxes: 804
+        class_image_counts:
+          KHR_1000: 34
+          KHR_10000: 26
+          KHR_2000: 20
+          KHR_20000: 15
+          KHR_500: 28
+          KHR_5000: 36
+          KHR_50000: 9
+          USD_1: 79
+          USD_10: 127
+          USD_100: 117
+          USD_20: 110
+          USD_5: 99
+          USD_50: 103
+        class_box_counts:
+          KHR_1000: 34
+          KHR_10000: 26
+          KHR_2000: 20
+          KHR_20000: 15
+          KHR_500: 28
+          KHR_5000: 36
+          KHR_50000: 9
+          USD_1: 80
+          USD_10: 127
+          USD_100: 117
+          USD_20: 110
+          USD_5: 99
+          USD_50: 103
+        source_counts:
+          asian_currency: 26
+          billsbank: 318
+          cambodia_currency_project: 23
+          cashcountingxl: 504
+          khmer: 12
+          khmer_us_currency: 153
+          usd_total: 278
+        list: configs/generated_lists/audit/cashsnap_v1_semantic_clean_test_v1.txt

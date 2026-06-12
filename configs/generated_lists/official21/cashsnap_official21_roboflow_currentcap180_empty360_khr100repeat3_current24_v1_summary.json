@@ -1,0 +1,112 @@
+{
+  "appended_class_counts": {
+    "KHR_100": 675,
+    "KHR_1000": 6
+  },
+  "appended_empty_rows": 0,
+  "appended_rows": 654,
+  "appended_unique_rows": 170,
+  "base_class_counts": {
+    "KHR_100": 177,
+    "KHR_1000": 361,
+    "KHR_10000": 414,
+    "KHR_2000": 323,
+    "KHR_20000": 184,
+    "KHR_500": 374,
+    "KHR_5000": 343,
+    "KHR_50000": 175,
+    "USD_1": 237,
+    "USD_10": 348,
+    "USD_100": 343,
+    "USD_20": 236,
+    "USD_5": 343,
+    "USD_50": 229
+  },
+  "base_config": "configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml",
+  "base_empty_rows": 360,
+  "base_rows": 4365,
+  "base_train_sources": [
+    "configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt"
+  ],
+  "base_unique_rows": 4365,
+  "combined_class_counts": {
+    "KHR_100": 852,
+    "KHR_1000": 367,
+    "KHR_10000": 414,
+    "KHR_2000": 323,
+    "KHR_20000": 184,
+    "KHR_500": 374,
+    "KHR_5000": 343,
+    "KHR_50000": 175,
+    "USD_1": 237,
+    "USD_10": 348,
+    "USD_100": 343,
+    "USD_20": 236,
+    "USD_5": 343,
+    "USD_50": 229
+  },
+  "combined_duplicate_rows": 654,
+  "combined_empty_rows": 360,
+  "combined_rows": 5019,
+  "combined_unique_rows": 4365,
+  "created_utc": "2026-06-10T17:05:40.165622+00:00",
+  "intended_use": "diagnostic official21 KHR_100 replay probe preserving balanced current replay while oversampling reviewed and Roboflow KHR_100 rows",
+  "out_config": "configs/official21/cashsnap_official21_roboflow_currentcap180_empty360_khr100repeat3_current24_v1.yaml",
+  "out_list": "configs/generated_lists/official21/cashsnap_official21_roboflow_currentcap180_empty360_khr100repeat3_current24_v1_train.txt",
+  "promotion_rule": "not promotable unless current core13 transfer, Roboflow KHR_100 val/test, and reviewed accept6 probe improve without duplicate/count regressions",
+  "rules": [
+    {
+      "appended_rows": 510,
+      "block_regex": "",
+      "class": "KHR_100",
+      "class_id": 8,
+      "repeat": 3,
+      "require_regex": "",
+      "selected_rows": 170,
+      "selected_sample": [
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_100_jpg.rf.1f8a2a14eafe401545c438d5ffb62aa6.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_102_jpg.rf.ca9aaf2e71df8dc1d745934c670b9117.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_103_jpg.rf.a4974ca553c6c93075e95461146c0921.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_104_jpg.rf.3d7d4cbd9bba359bbfc1895d65b4d7b8.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_105_jpg.rf.37da02f25c6d995a9766aa2eaacb4c65.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_106_jpg.rf.352c27dc0aa6eeea16843b79c41c6ce6.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_107_jpg.rf.c18bc46d6db226873053933f67f98036.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_108_jpg.rf.b210f4edebfe54dd06864afea9b43feb.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_109_jpg.rf.706a8a84cfc8b2a3042a7cc1f8b9b4be.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_110_jpg.rf.9f2d9b9b71e12981b7e4da8f0c77f77f.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_111_jpg.rf.9f361f61c9c65e1f97605578565415eb.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_112_jpg.rf.24e76a02d6ce79e43b57e668489c71aa.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_113_jpg.rf.18bb902c0e913e24070579b71506d826.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_116_jpg.rf.6e13f224f285b9d1465d9cb18bcaca25.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_117_jpg.rf.a14b2697e3ac2222231c5e368bcd9f1e.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_118_jpg.rf.ef2ca37497aead6f854b1cb803d272de.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_119_jpg.rf.c0d7501bc76d80095df9bc18c84140ad.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_11_jpg.rf.b207db39779e605c8fbb6cd7c470fbfd.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_120_jpg.rf.64bed1508eb5c88239ce53274d115e0c.jpg",
+        "data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency_v10__100-riel_121_jpg.rf.8ae61a327fef5a4ea274a9d663571ac6.jpg"
+      ],
+      "selected_unique_rows": 170
+    },
+    {
+      "appended_rows": 144,
+      "block_regex": "",
+      "class": "KHR_100",
+      "class_id": 8,
+      "repeat": 24,
+      "require_regex": "official21_current_core13_accept6_trainvaltest_bridge_v1",
+      "selected_rows": 6,
+      "selected_sample": [
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010686_khmer_us_currency_100-riel_113_jpg_rf_18bb902c0e913e24070579b71506d826_04eadd1041ec.jpg",
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010687_khmer_us_currency_100-riel_116_jpg_rf_6e13f224f285b9d1465d9cb18bcaca25_dd37cafe0758.jpg",
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010713_khmer_us_currency_100-riel_32_jpg_rf_567cc8a84d47cf7ef63c0f6645c58d8d_5147a6728171.jpg",
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010722_khmer_us_currency_100-riel_43_jpg_rf_dc6a5ba2f57361e155030a765093cf9d_c5fc4f8a892b.jpg",
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010754_khmer_us_currency_100-riel_87_jpg_rf_1dffdfe1736ea8ba5dc4aa84305fd79f_f053253ba786.jpg",
+        "runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_010763_khmer_us_currency_100kh-1_jpg_rf_3d6e0c52fcc33a59729a08b02feb3cfc_68b76afbf582.jpg"
+      ],
+      "selected_unique_rows": 6
+    }
+  ],
+  "schema": "cashsnap_yolo_class_repeat_config_v1",
+  "seed": 0,
+  "tag": "official21_roboflow_currentcap180_empty360_khr100repeat3_current24_v1"
+}

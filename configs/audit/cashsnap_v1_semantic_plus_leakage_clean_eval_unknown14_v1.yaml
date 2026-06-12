@@ -1,0 +1,128 @@
+path: ../..
+train: data/cashsnap_v1/images/train
+val: configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_val_v1.txt
+test: configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_test_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+  13: UNKNOWN_FOREIGN_NOTE
+cashsnap_policy:
+  audit_filtered_eval:
+    source_data: configs/cashsnap_v1.yaml
+    audit_dir: runs/cashsnap/real_data_label_audit_v1
+    filter: semantic_plus_leakage_clean
+    exclude_review_queue_ranked_v1: true
+    exclude_semantic_issue_reasons:
+    - bad_label_format
+    - box_out_of_bounds
+    - empty_label_with_target_filename_clue
+    - filename_class_clue_mismatch
+    - invalid_box_geometry
+    - invalid_class_id
+    - missing_label_file
+    - source_currency_conflict
+    - unreadable_image
+    exclude_cross_split_leakage: true
+    splits:
+      val:
+        images: 1096
+        empty_images: 565
+        boxes: 534
+        class_image_counts:
+          KHR_1000: 76
+          KHR_10000: 51
+          KHR_2000: 45
+          KHR_20000: 20
+          KHR_500: 43
+          KHR_5000: 71
+          KHR_50000: 32
+          USD_1: 26
+          USD_10: 22
+          USD_100: 51
+          USD_20: 40
+          USD_5: 23
+          USD_50: 32
+        class_box_counts:
+          KHR_1000: 76
+          KHR_10000: 51
+          KHR_2000: 45
+          KHR_20000: 20
+          KHR_500: 43
+          KHR_5000: 71
+          KHR_50000: 34
+          USD_1: 26
+          USD_10: 22
+          USD_100: 51
+          USD_20: 40
+          USD_5: 23
+          USD_50: 32
+        source_counts:
+          asian_currency: 67
+          cambodia_currency_project: 46
+          cashcountingxl: 590
+          khmer: 26
+          khmer_us_currency: 281
+          usd_total: 86
+        list: configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_val_v1.txt
+      test:
+        images: 774
+        empty_images: 471
+        boxes: 305
+        class_image_counts:
+          KHR_1000: 34
+          KHR_10000: 26
+          KHR_2000: 20
+          KHR_20000: 15
+          KHR_500: 28
+          KHR_5000: 36
+          KHR_50000: 9
+          USD_1: 29
+          USD_10: 18
+          USD_100: 26
+          USD_20: 18
+          USD_5: 23
+          USD_50: 22
+        class_box_counts:
+          KHR_1000: 34
+          KHR_10000: 26
+          KHR_2000: 20
+          KHR_20000: 15
+          KHR_500: 28
+          KHR_5000: 36
+          KHR_50000: 9
+          USD_1: 30
+          USD_10: 18
+          USD_100: 26
+          USD_20: 18
+          USD_5: 23
+          USD_50: 22
+        source_counts:
+          asian_currency: 26
+          billsbank: 24
+          cambodia_currency_project: 23
+          cashcountingxl: 481
+          khmer: 12
+          khmer_us_currency: 153
+          usd_total: 55
+        list: configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_test_v1.txt
+cashsnap_sources:
+  cloned_from_config: configs/audit/cashsnap_v1_semantic_plus_leakage_clean_eval_v1.yaml
+  clone_split_overrides: &id001 {}
+cashsnap_data_config_clone:
+  schema: cashsnap_yolo_data_config_clone_v1
+  source_config: configs/audit/cashsnap_v1_semantic_plus_leakage_clean_eval_v1.yaml
+  split_overrides: *id001
+  tag: cashsnap_v1_semantic_plus_leakage_clean_eval_unknown14_v1
+  intended_use: 14-class metadata clone for product-filtered UNKNOWN_FOREIGN_NOTE
+    detector evaluation; labels remain 13 target classes.

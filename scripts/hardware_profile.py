@@ -14,7 +14,9 @@ HEADROOM_MAX_PERCENT = 95.0
 HEADROOM_RESUME_PERCENT = 88.0
 HEADROOM_MAX_RAM_PERCENT = 95.0
 HEADROOM_MAX_GPU_MEM_PERCENT = 95.0
-HEADROOM_MIN_FREE_RAM_GB = 1.0
+# YOLO imports/training routinely need several GB of system RAM before batch
+# size matters; below this, the headroom guard tends to kill runs mid-epoch.
+HEADROOM_MIN_FREE_RAM_GB = 4.0
 
 WEBGL_RENDER_JOBS = 2
 WEBGL_RENDERER_BATCH_SIZE = 32
@@ -122,13 +124,13 @@ def recommended_train_batch(imgsz: int, gpu: GpuSnapshot | None = None, ram_gb: 
     free = gpu.mem_free_gb
     ram = ram_gb if ram_gb is not None else 0.0
     if imgsz <= 416:
-        if free >= 5.5 and ram >= 3.0:
+        if free >= 5.5 and ram >= 6.0:
             return 64
-        if free >= 4.0 and ram >= 2.5:
+        if free >= 4.0 and ram >= 5.0:
             return 32
-        if free >= 3.0 and ram >= 2.0:
+        if free >= 3.0 and ram >= 4.0:
             return 16
-        return 8 if free >= 2.0 and ram >= 2.0 else 4
+        return 8 if free >= 2.0 and ram >= 4.0 else 4
     if imgsz <= 640:
         return 8 if free >= 5.0 and ram >= 5.0 else 4
     if imgsz <= 960:

@@ -1,0 +1,83 @@
+{
+  "schema": "cashsnap_contrastive_posneg_extra_v1",
+  "seed": 13,
+  "out_list": "configs/generated_lists/webgl_ablation/cashsnap_production_pilot_v13_contrastive_posneg_extra.txt",
+  "total_unique_rows": 367,
+  "total_empty_labels": 276,
+  "total_nonempty_labels": 91,
+  "categories": [
+    {
+      "category": "reviewed_sourcepolicy_posneg",
+      "input_rows": 160,
+      "input_unique_rows": 160,
+      "input_empty_labels": 95,
+      "input_nonempty_labels": 65,
+      "added_unique_rows": 160,
+      "skipped_cross_category_duplicates": 0
+    },
+    {
+      "category": "real_unknown_empty_v2fp",
+      "input_rows": 71,
+      "input_unique_rows": 71,
+      "input_empty_labels": 71,
+      "input_nonempty_labels": 0,
+      "added_unique_rows": 69,
+      "skipped_cross_category_duplicates": 2
+    },
+    {
+      "category": "usd2_out_of_schema_train",
+      "input_rows": 64,
+      "input_unique_rows": 64,
+      "input_empty_labels": 64,
+      "input_nonempty_labels": 0,
+      "added_unique_rows": 54,
+      "skipped_cross_category_duplicates": 10
+    },
+    {
+      "category": "khr100_out_of_schema_train",
+      "input_rows": 48,
+      "input_unique_rows": 48,
+      "input_empty_labels": 48,
+      "input_nonempty_labels": 0,
+      "added_unique_rows": 33,
+      "skipped_cross_category_duplicates": 15
+    },
+    {
+      "category": "partial_fpneg32",
+      "input_rows": 32,
+      "input_unique_rows": 32,
+      "input_empty_labels": 32,
+      "input_nonempty_labels": 0,
+      "added_unique_rows": 21,
+      "skipped_cross_category_duplicates": 11
+    },
+    {
+      "category": "coin_nonbanknote_reviewed35",
+      "input_rows": 35,
+      "input_unique_rows": 27,
+      "input_empty_labels": 27,
+      "input_nonempty_labels": 0,
+      "added_unique_rows": 4,
+      "skipped_cross_category_duplicates": 23
+    },
+    {
+      "category": "strict_partial_khr_positive6",
+      "input_rows": 6,
+      "input_unique_rows": 6,
+      "input_empty_labels": 0,
+      "input_nonempty_labels": 6,
+      "added_unique_rows": 0,
+      "skipped_cross_category_duplicates": 6
+    },
+    {
+      "category": "visible_evidence_trainanchors26",
+      "input_rows": 26,
+      "input_unique_rows": 26,
+      "input_empty_labels": 0,
+      "input_nonempty_labels": 26,
+      "added_unique_rows": 26,
+      "skipped_cross_category_duplicates": 0
+    }
+  ],
+  "intended_use": "V13 contrastive pilot extra list: pair countable visible positives with train-safe out-of-schema/foreign/coin/partial-FP negatives to attack target-objectness count safety from V9."
+}

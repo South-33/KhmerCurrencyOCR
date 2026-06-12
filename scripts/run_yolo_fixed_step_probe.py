@@ -36,6 +36,7 @@ configure_project_cache()
 DEFAULT_MODEL = ROOT / "runs" / "cashsnap" / "yolo26n_cashsnap_current_thin_legacy_clean_v1_e20_i416_b8" / "weights" / "best.pt"
 DEFAULT_PROJECT = ROOT / "runs" / "cashsnap"
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+ULTRALYTICS_DEFAULT_CLOSE_MOSAIC_EPOCHS = 10
 AUGMENT_OVERRIDE_KEYS = (
     "mosaic",
     "erasing",
@@ -83,6 +84,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-batch", type=int, default=None)
     parser.add_argument("--eval-workers", type=int, default=None)
     parser.add_argument("--optimizer", default="AdamW")
+    parser.add_argument("--box", type=float, default=None)
+    parser.add_argument("--cls", type=float, default=None)
+    parser.add_argument("--dfl", type=float, default=None)
     parser.add_argument("--lr0", type=float, default=0.00005)
     parser.add_argument("--lrf", type=float, default=0.2)
     parser.add_argument("--warmup-epochs", type=float, default=0.0)
@@ -110,6 +114,7 @@ def parse_args() -> argparse.Namespace:
             help=f"Candidate-only {key.replace('_', '-')} training augmentation override.",
         )
     parser.add_argument("--max-train-batches", type=int, default=None)
+    parser.add_argument("--freeze", type=int, default=None)
     parser.add_argument("--amp", action="store_true", help="Enable AMP. Default keeps AMP disabled.")
     parser.add_argument("--device", default="0")
     parser.add_argument("--min-free-ram-gb", type=float, default=HEADROOM_MIN_FREE_RAM_GB)
@@ -117,9 +122,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume-cpu-percent", type=float, default=HEADROOM_RESUME_PERCENT)
     parser.add_argument("--max-ram-percent", type=float, default=HEADROOM_MAX_RAM_PERCENT)
     parser.add_argument("--max-gpu-mem-percent", type=float, default=HEADROOM_MAX_GPU_MEM_PERCENT)
+    parser.add_argument(
+        "--memory-clean-preset",
+        choices=["winmemorycleaner", "winmemorycleaner-task", "memreduct"],
+        default=None,
+        help="Optional run_with_headroom RAM-cleaner preset for train/eval subprocesses.",
+    )
+    parser.add_argument("--memory-clean-task", default=None)
+    parser.add_argument("--memory-clean-task-arg", default=None)
+    parser.add_argument("--memory-clean-min-free-ram-gb", type=float, default=None)
+    parser.add_argument("--memory-clean-cooldown-seconds", type=float, default=None)
+    parser.add_argument("--memory-clean-timeout-seconds", type=float, default=None)
+    parser.add_argument("--memory-clean-settle-seconds", type=float, default=None)
+    parser.add_argument(
+        "--train-adaptive-restarts",
+        type=int,
+        default=0,
+        help="Relaunch training with smaller batch/workers after RAM pressure. Keep 0 for strict fixed-setting A/Bs.",
+    )
     parser.add_argument("--max-per-class-drop", type=float, default=0.05)
     parser.add_argument("--fail-on-row-count-mismatch", action="store_true")
     parser.add_argument("--fail-on-step-reference-mismatch", action="store_true")
+    parser.add_argument(
+        "--fail-on-train-phase-mismatch",
+        action="store_true",
+        help=(
+            "Fail preflight if fixed steps stop baseline/candidate at different "
+            "scheduler or close-mosaic phases. Useful when comparing unequal train row counts."
+        ),
+    )
     parser.add_argument(
         "--fail-on-inexact-real-class-mix-control",
         action="store_true",
@@ -140,6 +171,21 @@ def repo_rel(path: Path) -> str:
         return str(path.resolve())
 
 
+def append_optional(command: list[str], flag: str, value: Any | None) -> None:
+    if value is not None:
+        command.extend([flag, str(value)])
+
+
+def append_memory_clean_args(command: list[str], args: argparse.Namespace) -> None:
+    append_optional(command, "--memory-clean-preset", args.memory_clean_preset)
+    append_optional(command, "--memory-clean-task", args.memory_clean_task)
+    append_optional(command, "--memory-clean-task-arg", args.memory_clean_task_arg)
+    append_optional(command, "--memory-clean-min-free-ram-gb", args.memory_clean_min_free_ram_gb)
+    append_optional(command, "--memory-clean-cooldown-seconds", args.memory_clean_cooldown_seconds)
+    append_optional(command, "--memory-clean-timeout-seconds", args.memory_clean_timeout_seconds)
+    append_optional(command, "--memory-clean-settle-seconds", args.memory_clean_settle_seconds)
+
+
 def slug(value: str) -> str:
     return re.sub(r"[^a-zA-Z0-9]+", "_", value).strip("_").lower()
 
@@ -147,6 +193,23 @@ def slug(value: str) -> str:
 def lr_tag(value: float) -> str:
     mantissa, exponent = f"{value:.0e}".split("e")
     return f"lr{mantissa}e{abs(int(exponent))}"
+
+
+def model_init_tag(model: Path) -> str:
+    try:
+        if model.resolve() == DEFAULT_MODEL.resolve():
+            return "clean"
+    except OSError:
+        if model == DEFAULT_MODEL:
+            return "clean"
+
+    if model.name.lower() == "yolo26n.pt":
+        return "yolo26n"
+    if model.name.lower() == "best.pt" and model.parent.name.lower() == "weights":
+        tag = slug(model.parent.parent.name)
+    else:
+        tag = slug(model.stem or model.name)
+    return tag[:60].strip("_") or "model"
 
 
 def read_yaml(path: Path) -> dict[str, Any]:
@@ -235,6 +298,83 @@ def train_row_summary(config_path: Path) -> dict[str, Any]:
     }
 
 
+def effective_close_mosaic_epochs(train_overrides: dict[str, float | int] | None = None) -> tuple[int, str]:
+    overrides = train_overrides or {}
+    if "close_mosaic" in overrides:
+        return int(overrides["close_mosaic"]), "candidate_override"
+    return ULTRALYTICS_DEFAULT_CLOSE_MOSAIC_EPOCHS, "ultralytics_default_assumed"
+
+
+def train_phase_summary(
+    row_summary: dict[str, Any],
+    args: argparse.Namespace,
+    steps: int,
+    train_overrides: dict[str, float | int] | None = None,
+) -> dict[str, Any]:
+    rows = int(row_summary["rows"])
+    batches_per_epoch = math.ceil(rows / args.batch)
+    total_train_batches_available = batches_per_epoch * args.epochs
+    steps_at_stop = min(steps, total_train_batches_available)
+    close_mosaic_epochs, close_mosaic_source = effective_close_mosaic_epochs(train_overrides)
+    close_mosaic_start_epoch = max(0, args.epochs - close_mosaic_epochs) if close_mosaic_epochs > 0 else args.epochs
+    close_mosaic_start_step = close_mosaic_start_epoch * batches_per_epoch
+    close_mosaic_steps_at_stop = max(0, steps_at_stop - close_mosaic_start_step)
+    return {
+        "rows": rows,
+        "batches_per_epoch": batches_per_epoch,
+        "epochs_requested": args.epochs,
+        "total_train_batches_available": total_train_batches_available,
+        "max_train_batches_requested": steps,
+        "max_train_batches_reachable": steps <= total_train_batches_available,
+        "steps_at_stop": steps_at_stop,
+        "stop_epoch_one_based": math.ceil(steps_at_stop / batches_per_epoch) if steps_at_stop else 0,
+        "epoch_progress_at_stop": steps_at_stop / batches_per_epoch if batches_per_epoch else 0.0,
+        "lr_schedule_progress_at_stop": (
+            steps_at_stop / total_train_batches_available if total_train_batches_available else 0.0
+        ),
+        "close_mosaic_epochs_effective": close_mosaic_epochs,
+        "close_mosaic_source": close_mosaic_source,
+        "close_mosaic_start_epoch": close_mosaic_start_epoch,
+        "close_mosaic_start_step": close_mosaic_start_step,
+        "close_mosaic_steps_at_stop": close_mosaic_steps_at_stop,
+        "close_mosaic_fraction_of_stop_steps": (
+            close_mosaic_steps_at_stop / steps_at_stop if steps_at_stop else 0.0
+        ),
+    }
+
+
+def train_phase_mismatch_warnings(
+    baseline_phase: dict[str, Any],
+    candidate_phase: dict[str, Any],
+) -> list[str]:
+    warnings: list[str] = []
+    if not baseline_phase["max_train_batches_reachable"]:
+        warnings.append("baseline cannot reach requested max_train_batches within requested epochs")
+    if not candidate_phase["max_train_batches_reachable"]:
+        warnings.append("candidate cannot reach requested max_train_batches within requested epochs")
+    if baseline_phase["rows"] != candidate_phase["rows"]:
+        warnings.append(
+            "baseline/candidate row counts differ; fixed steps stop at different epoch/scheduler phases"
+        )
+    lr_delta = abs(
+        float(candidate_phase["lr_schedule_progress_at_stop"])
+        - float(baseline_phase["lr_schedule_progress_at_stop"])
+    )
+    if lr_delta > 0.05:
+        warnings.append(
+            "lr schedule progress differs at stop "
+            f"(baseline={baseline_phase['lr_schedule_progress_at_stop']:.3f}, "
+            f"candidate={candidate_phase['lr_schedule_progress_at_stop']:.3f})"
+        )
+    if baseline_phase["close_mosaic_steps_at_stop"] != candidate_phase["close_mosaic_steps_at_stop"]:
+        warnings.append(
+            "close-mosaic exposure differs at stop "
+            f"(baseline_steps={baseline_phase['close_mosaic_steps_at_stop']}, "
+            f"candidate_steps={candidate_phase['close_mosaic_steps_at_stop']})"
+        )
+    return warnings
+
+
 def default_label(data_path: Path) -> str:
     name = data_path.stem
     for prefix in ("cashsnap_v1_plus_webgl_accepted_", "cashsnap_v1_plus_"):
@@ -317,6 +457,16 @@ def augment_tag(overrides: dict[str, float | int]) -> str:
     return "_aug" + "_".join(parts)
 
 
+def loss_tag(args: argparse.Namespace) -> str:
+    parts = []
+    for key in ("box", "cls", "dfl"):
+        value = getattr(args, key)
+        if value is None:
+            continue
+        parts.append(f"{key}{value:g}".replace(".", "p").replace("-", "m"))
+    return "_loss" + "_".join(parts) if parts else ""
+
+
 def train_name(
     label: str,
     args: argparse.Namespace,
@@ -327,12 +477,15 @@ def train_name(
     warmup_tag = "nowarmup" if float(args.warmup_epochs) == 0.0 else f"warmup{args.warmup_epochs:g}"
     cache_tag = f"cache{args.cache}"
     compile_tag = f"_compile{slug(args.compile)}" if args.compile is not None else ""
+    freeze_tag = f"_freeze{args.freeze}" if args.freeze is not None else ""
     seed_tag = f"_seed{args.seed}" if args.seed is not None else ""
     override_tag = augment_tag(train_overrides or {})
+    loss = loss_tag(args)
+    init_tag = model_init_tag(args.model)
     return (
-        f"fixed_step_{label}_from_clean_e{args.epochs}_i{args.imgsz}_"
+        f"fixed_step_{label}_from_{init_tag}_e{args.epochs}_i{args.imgsz}_"
         f"b{args.batch}_w{args.workers}_{args.optimizer.lower()}_{lr_tag(args.lr0)}_"
-        f"{warmup_tag}_{amp_tag}_{cache_tag}{compile_tag}_steps{steps}{seed_tag}{override_tag}"
+        f"{warmup_tag}_{amp_tag}_{cache_tag}{compile_tag}{freeze_tag}{loss}_steps{steps}{seed_tag}{override_tag}"
     )
 
 
@@ -343,10 +496,12 @@ def test_name(
     train_overrides: dict[str, float | int] | None = None,
 ) -> str:
     seed_tag = f"_seed{args.seed}" if args.seed is not None else ""
+    freeze_tag = f"_freeze{args.freeze}" if args.freeze is not None else ""
     override_tag = augment_tag(train_overrides or {})
+    loss = loss_tag(args)
     return (
         f"fixed_step_{label}_test_i{args.imgsz}_"
-        f"tb{args.eval_batch}_tw{args.eval_workers}_steps{steps}{seed_tag}{override_tag}"
+        f"tb{args.eval_batch}_tw{args.eval_workers}{freeze_tag}{loss}_steps{steps}{seed_tag}{override_tag}"
     )
 
 
@@ -361,6 +516,10 @@ def run_settings(
         "batch": args.batch,
         "workers": args.workers,
         "optimizer": args.optimizer,
+        "box": args.box,
+        "cls": args.cls,
+        "dfl": args.dfl,
+        "freeze": args.freeze,
         "lr0": args.lr0,
         "lrf": args.lrf,
         "warmup_epochs": args.warmup_epochs,
@@ -410,6 +569,10 @@ def eval_manifest(
         "workers": args.eval_workers,
         "device": str(args.device),
         "seed": args.seed,
+        "box": args.box,
+        "cls": args.cls,
+        "dfl": args.dfl,
+        "freeze": args.freeze,
         "max_train_batches_total": steps,
     }
     if train_overrides:
@@ -513,8 +676,15 @@ def train_if_needed(
         "--floor-memory-action",
         "exit",
         "--adaptive-restarts",
-        "0",
+        str(args.train_adaptive_restarts),
     ]
+    append_memory_clean_args(command, args)
+    for key in ("box", "cls", "dfl"):
+        value = getattr(args, key)
+        if value is not None:
+            command.extend([f"--{key}", str(value)])
+    if args.freeze is not None:
+        command.extend(["--freeze", str(args.freeze)])
     if not args.amp:
         command.append("--no-amp")
     if args.compile is not None:
@@ -570,6 +740,9 @@ def eval_if_needed(
         "2",
         "--memory-action",
         "exit",
+    ]
+    append_memory_clean_args(command, args)
+    command.extend([
         "--",
         sys.executable,
         "scripts/val_yolo.py",
@@ -594,7 +767,7 @@ def eval_if_needed(
         "--exist-ok",
         "--metrics-json",
         repo_rel(metrics),
-    ]
+    ])
     with output_lock(args.project, run_name, args.dry_run):
         run(command, args.dry_run)
         if not args.dry_run:
@@ -667,6 +840,10 @@ def main() -> int:
     steps = args.max_train_batches or (reference_batches_per_epoch * args.epochs)
     args.project.mkdir(parents=True, exist_ok=True)
     candidate_overrides = candidate_train_overrides(args)
+    baseline_phase = train_phase_summary(baseline_rows, args, steps)
+    candidate_phase = train_phase_summary(candidate_rows, args, steps, candidate_overrides)
+    step_reference_phase = train_phase_summary(reference_rows_summary, args, steps)
+    train_phase_warnings = train_phase_mismatch_warnings(baseline_phase, candidate_phase)
     real_class_mix_control_failures = [
         {"role": role, "reason": reason}
         for role, path in (("baseline", args.baseline_data), ("candidate", args.candidate_data))
@@ -683,6 +860,7 @@ def main() -> int:
         "seed": args.seed,
         "batch": args.batch,
         "cache": args.cache,
+        "train_adaptive_restarts": args.train_adaptive_restarts,
         "compile": args.compile,
         "eval_batch": args.eval_batch,
         "eval_workers": args.eval_workers,
@@ -691,6 +869,12 @@ def main() -> int:
         "max_train_batches_total": steps,
         "candidate_train_overrides": candidate_overrides,
         "max_train_batches_source": "explicit" if args.max_train_batches is not None else "epochs_x_reference_batches",
+        "train_phase_summaries": {
+            "baseline": baseline_phase,
+            "candidate": candidate_phase,
+            "step_reference": step_reference_phase,
+        },
+        "train_phase_warnings": train_phase_warnings,
         "row_summaries": {
             "baseline": baseline_rows,
             "candidate": candidate_rows,
@@ -701,6 +885,7 @@ def main() -> int:
         "guards": {
             "fail_on_row_count_mismatch": args.fail_on_row_count_mismatch,
             "fail_on_step_reference_mismatch": args.fail_on_step_reference_mismatch,
+            "fail_on_train_phase_mismatch": args.fail_on_train_phase_mismatch,
             "fail_on_inexact_real_class_mix_control": args.fail_on_inexact_real_class_mix_control,
         },
         "real_class_mix_control_failures": real_class_mix_control_failures,
@@ -719,6 +904,8 @@ def main() -> int:
             "step-reference train row count differs from baseline "
             f"({reference_rows} vs {baseline_rows['rows']}); rerun without --fail-on-step-reference-mismatch if deliberate"
         )
+    if args.fail_on_train_phase_mismatch and train_phase_warnings:
+        raise SystemExit("train phase mismatch warning(s): " + "; ".join(train_phase_warnings))
     if args.fail_on_inexact_real_class_mix_control and real_class_mix_control_failures:
         reasons = "; ".join(f"{row['role']}: {row['reason']}" for row in real_class_mix_control_failures)
         raise SystemExit(f"inexact real_class_mix row-count control(s): {reasons}")
@@ -729,7 +916,8 @@ def main() -> int:
             f"candidate_rows={candidate_rows['rows']} "
             f"reference_rows={reference_rows} "
             f"reference_batches_per_epoch={reference_batches_per_epoch} "
-            f"max_train_batches_total={steps}",
+            f"max_train_batches_total={steps} "
+            f"train_phase_warnings={len(train_phase_warnings)}",
             flush=True,
         )
         return 0
@@ -746,7 +934,9 @@ def main() -> int:
         candidate_overrides,
     )
 
-    compare_dir = args.project / f"fixed_step_{baseline_label}_vs_{candidate_label}_steps{steps}"
+    compare_seed_tag = f"_seed{args.seed}" if args.seed is not None else ""
+    compare_override_tag = augment_tag(candidate_overrides)
+    compare_dir = args.project / f"fixed_step_{baseline_label}_vs_{candidate_label}_steps{steps}{compare_seed_tag}{compare_override_tag}"
     compare_path = compare_metrics(baseline_metrics, candidate_metrics, compare_dir / "summary.json", args)
     if args.summary_json is None:
         args.summary_json = compare_dir / "probe.json"
@@ -768,6 +958,8 @@ def main() -> int:
                 "reference_batches_per_epoch": reference_batches_per_epoch,
                 "max_train_batches_total": steps,
                 "candidate_train_overrides": candidate_overrides,
+                "train_phase_summaries": preflight["train_phase_summaries"],
+                "train_phase_warnings": train_phase_warnings,
                 "preflight": preflight,
                 "baseline_train_run": train_name(baseline_label, args, steps),
                 "candidate_train_run": train_name(candidate_label, args, steps, candidate_overrides),

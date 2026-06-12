@@ -1,0 +1,185 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_usd2_pseudo232_plus_usd1repeat1_v1_train.txt
+val: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/val
+test: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/test
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_bridge:
+  schema: roboflow_khmer_us_currency_bridge_v1
+  class_scope: official
+  source_roots:
+  - data/raw_datasets/roboflow_khmer_us_currency_v10
+  - data/raw_datasets/roboflow_khmer_us_currency
+  unsupported_policy: exclude_image
+  dedupe: true
+cashsnap_sources:
+  train_mix_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  train_mix_extra_sources: &id001
+  - runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/images/train
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: true
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 4365
+  base_unique_images: 4365
+  extra_images_before_regex_filter: 232
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 232
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter:
+    min_label_area: null
+    max_label_area: null
+    edge_margin: null
+    single_label_only: true
+    kept_label_area_range:
+    - 0.320978
+    - 1.0
+    kept_edge_margin_range:
+    - -1.0e-06
+    - 0.122103
+  extra_images_before_class_cap: 232
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 232
+  extra_images: 232
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 4597
+  combined_duplicate_images_removed: 0
+  added_images: 232
+  extra_class_counts:
+    USD_2: 232
+cashsnap_policy:
+  intended_use: 'Diagnostic mapped-init USD2 calibration: append one extra copy of
+    all USD_1 train rows to the USD_2 pseudo232 mix to test whether explicit USD1
+    contrast reduces USD2 leakage.'
+  promotion_rule: Not promotable unless matched empty-row control improves USD2 pseudo-val
+    hits or non-USD2 USD2-FP audit without old-class safety regression.
+cashsnap_class_repeat:
+  schema: cashsnap_yolo_class_repeat_config_v1
+  created_utc: '2026-06-11T02:26:54.306827+00:00'
+  tag: official21_usd2_pseudo232_plus_usd1repeat1_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1_train.txt
+  out_config: configs/official21/cashsnap_official21_usd2_pseudo232_plus_usd1repeat1_v1.yaml
+  out_list: configs/generated_lists/official21/cashsnap_official21_usd2_pseudo232_plus_usd1repeat1_v1_train.txt
+  seed: 0
+  rules:
+  - class: USD_1
+    class_id: 0
+    repeat: 1
+    require_regex: ''
+    block_regex: ''
+    selected_rows: 234
+    selected_unique_rows: 234
+    appended_rows: 234
+    selected_sample:
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_100_JPG.rf.5b04a105177da87597b1995c7537a394.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_101_JPG.rf.f3a3960db734b04bb6d641cd56b39cdc.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_102_JPG.rf.64c5e92808cb0cc207f4cb22a1d3f992.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_103_JPG.rf.b11dda646a8f786a235e5126bba82700.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_104_JPG.rf.f0fbac12143ca24d4763907385d0d689.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_106_JPG.rf.cc9bb881bb87d65ef8d2e8bf7f09a870.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_107_JPG.rf.d71d5b66ac836de0e258aac3eca1ae16.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_108_JPG.rf.b64cfd1220d2b444c87e82f640b1716a.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_110_JPG.rf.aa489ba34c31f6b863b5ad38b6852013.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_111_JPG.rf.9d4bae45e7a37ed7023881b70f1430ae.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_112_JPG.rf.ea6b76181fb1a07a8408b120393ade1a.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_113_JPG.rf.8dcc92ca733947dbdba5c0a069a9694b.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_114_JPG.rf.4e7ff7ee855630ba458be0d2d3688e55.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_116_JPG.rf.bbb15cf644303f968046bccbc1f07894.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_117_JPG.rf.4ef27866213370f99994350c75f6fc55.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_118_JPG.rf.ba37d03ecc45b5423144c64be2c43054.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_119_JPG.rf.2311da1629d4dca79a7f5bf01d945921.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_120_JPG.rf.1e521347637cd69042f177f68d03dc63.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_122_jpg.rf.cc33f189cfec22c1882ebcace4f00fd4.jpg
+    - data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/train/roboflow_khmer_us_currency__1US_126_jpg.rf.368809edf5907a0cb4cdf8b20bbe9735.jpg
+  base_rows: 4597
+  base_unique_rows: 4597
+  appended_rows: 234
+  appended_unique_rows: 234
+  combined_rows: 4831
+  combined_unique_rows: 4597
+  combined_duplicate_rows: 234
+  base_empty_rows: 360
+  appended_empty_rows: 0
+  combined_empty_rows: 360
+  base_class_counts:
+    USD_1: 237
+    USD_2: 232
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  appended_class_counts:
+    USD_1: 237
+  combined_class_counts:
+    USD_1: 474
+    USD_2: 232
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  intended_use: 'Diagnostic mapped-init USD2 calibration: append one extra copy of
+    all USD_1 train rows to the USD_2 pseudo232 mix to test whether explicit USD1
+    contrast reduces USD2 leakage.'
+  promotion_rule: Not promotable unless matched empty-row control improves USD2 pseudo-val
+    hits or non-USD2 USD2-FP audit without old-class safety regression.

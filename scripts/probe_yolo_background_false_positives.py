@@ -24,6 +24,7 @@ from ultralytics import YOLO
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+REVIEW_ARTIFACT_STEMS = {"contact_sheet", "suspect_contact"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,6 +43,13 @@ def parse_args() -> argparse.Namespace:
         default=[],
         type=Path,
         help="YOLO dataset YAML to probe via empty-label split rows. Repeatable.",
+    )
+    parser.add_argument(
+        "--image-list",
+        action="append",
+        default=[],
+        type=Path,
+        help="Text file of image paths to probe as a named zero-label source. Repeatable.",
     )
     parser.add_argument(
         "--split",
@@ -88,6 +96,12 @@ def parse_args() -> argparse.Namespace:
         default=0.08,
         help="Fractional bbox padding for exported review crops.",
     )
+    parser.add_argument(
+        "--ignore-pred-class",
+        action="append",
+        default=[],
+        help="Prediction class id or name to drop before counting false positives. Repeat or comma-separate.",
+    )
     return parser.parse_args()
 
 
@@ -122,6 +136,23 @@ def conf_slug(conf: float) -> str:
 
 def parse_review_classes(value: str) -> set[str]:
     return {item.strip() for item in re.split(r"[,\s]+", value) if item.strip()}
+
+
+def ignored_prediction_class_ids(raw_values: list[str], names: dict[int, str]) -> set[int]:
+    ignored: set[int] = set()
+    name_to_id = {name: class_id for class_id, name in names.items()}
+    for raw_value in raw_values:
+        for token in re.split(r"[,\s]+", raw_value):
+            if not token:
+                continue
+            if token in name_to_id:
+                ignored.add(name_to_id[token])
+                continue
+            try:
+                ignored.add(int(token))
+            except ValueError as exc:
+                raise SystemExit(f"unknown --ignore-pred-class value: {token}") from exc
+    return ignored
 
 
 def review_class_matches(args: argparse.Namespace, class_id: int, class_name: str) -> bool:
@@ -167,9 +198,31 @@ def image_rows(root: Path) -> list[Path]:
     resolved = resolve(root)
     if not resolved.exists():
         raise SystemExit(f"missing image root: {resolved}")
-    rows = [path for path in sorted(resolved.glob("*")) if path.is_file() and path.suffix.lower() in IMAGE_EXTS]
+    rows = [
+        path
+        for path in sorted(resolved.glob("*"))
+        if path.is_file()
+        and path.suffix.lower() in IMAGE_EXTS
+        and path.stem not in REVIEW_ARTIFACT_STEMS
+    ]
     if not rows:
         raise SystemExit(f"image root has no images: {resolved}")
+    return rows
+
+
+def image_list_rows(path: Path) -> list[Path]:
+    resolved = resolve(path)
+    if not resolved.exists():
+        raise SystemExit(f"missing image list: {resolved}")
+    rows: list[Path] = []
+    for raw_line in resolved.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        image = Path(line)
+        rows.append(image if image.is_absolute() else ROOT / image)
+    if not rows:
+        raise SystemExit(f"image list has no rows: {resolved}")
     return rows
 
 
@@ -409,11 +462,15 @@ def probe_root(
     source_label: str,
     images: list[Path],
     conf: float,
+    ignored_class_ids: set[int],
     args: argparse.Namespace,
 ) -> dict[str, Any]:
     detections = 0
+    raw_detections = 0
+    ignored_detections = 0
     images_with_fp = 0
     by_class: Counter[str] = Counter()
+    ignored_by_class: Counter[str] = Counter()
     top: list[dict[str, Any]] = []
     review_candidates: list[dict[str, Any]] = []
     review_enabled = args.review_out_dir is not None and args.review_top_k > 0
@@ -437,17 +494,22 @@ def probe_root(
         )
         for image_path, result in zip(images, results, strict=True):
             boxes = result.boxes
-            count = int(len(boxes))
-            if count:
-                images_with_fp += 1
-                detections += count
-            if not count:
+            raw_detections += int(len(boxes))
+            kept_count = 0
+            if not len(boxes):
                 continue
             classes = boxes.cls.cpu().numpy().astype(int).tolist()
             scores = boxes.conf.cpu().numpy().tolist()
             xyxy = boxes.xyxy.cpu().numpy().tolist()
             for class_id, score, box in zip(classes, scores, xyxy, strict=True):
-                class_name = names.get(int(class_id), f"class_{class_id}")
+                class_id = int(class_id)
+                class_name = names.get(class_id, f"class_{class_id}")
+                if class_id in ignored_class_ids:
+                    ignored_detections += 1
+                    ignored_by_class[class_name] += 1
+                    continue
+                kept_count += 1
+                detections += 1
                 by_class[class_name] += 1
                 top.append(
                     {
@@ -456,16 +518,18 @@ def probe_root(
                         "confidence": round(float(score), 6),
                     }
                 )
-                if review_enabled and review_class_matches(args, int(class_id), class_name):
+                if review_enabled and review_class_matches(args, class_id, class_name):
                     review_candidates.append(
                         {
                             "image_path": image_path,
                             "class": class_name,
-                            "class_id": int(class_id),
+                            "class_id": class_id,
                             "confidence": float(score),
                             "bbox_xyxy": [float(value) for value in box],
                         }
                     )
+            if kept_count:
+                images_with_fp += 1
     top.sort(key=lambda row: float(row["confidence"]), reverse=True)
     row = {
         "model_label": label,
@@ -475,8 +539,13 @@ def probe_root(
         "images": len(images),
         "images_with_fp": images_with_fp,
         "detections": detections,
+        "raw_detections": raw_detections,
+        "ignored_detections": ignored_detections,
+        "ignored_pred_class_ids": sorted(ignored_class_ids),
+        "ignored_pred_class_names": [names.get(class_id, str(class_id)) for class_id in sorted(ignored_class_ids)],
         "fp_per_image": detections / len(images),
         "by_class": dict(sorted(by_class.items())),
+        "ignored_by_class": dict(sorted(ignored_by_class.items())),
         "top": top[: args.json_top_k],
     }
     review = write_review_artifacts(
@@ -501,8 +570,8 @@ def main() -> int:
         raise SystemExit("--review-out-dir requires --review-top-k > 0")
     args.review_class_tokens = parse_review_classes(args.review_classes)
     args.review_class_tokens_lower = {value.lower() for value in args.review_class_tokens}
-    if not args.image_root and not args.data:
-        raise SystemExit("provide at least one --image-root or --data/--split source")
+    if not args.image_root and not args.image_list and not args.data:
+        raise SystemExit("provide at least one --image-root, --image-list, or --data/--split source")
     if args.data and not args.split:
         raise SystemExit("--data requires at least one --split")
     models = [parse_model(value) for value in args.model]
@@ -518,6 +587,16 @@ def main() -> int:
                 "missing_labels": None,
             }
         )
+    for image_list in args.image_list:
+        rows = image_list_rows(image_list)
+        sources.append(
+            {
+                "label": repo_rel(resolve(image_list)),
+                "images": rows,
+                "candidate_images": len(rows),
+                "missing_labels": None,
+            }
+        )
     for data_path in args.data:
         for split in args.split:
             sources.append(dataset_empty_label_source(data_path, split))
@@ -525,6 +604,7 @@ def main() -> int:
     for model_label, model_path in models:
         model = YOLO(str(model_path))
         names = class_names(model)
+        ignored_class_ids = ignored_prediction_class_ids(args.ignore_pred_class, names)
         for source in sources:
             images = source["images"]
             for conf in confs:
@@ -536,6 +616,7 @@ def main() -> int:
                     source_label=source["label"],
                     images=images,
                     conf=conf,
+                    ignored_class_ids=ignored_class_ids,
                     args=args,
                 )
                 rows.append(row)

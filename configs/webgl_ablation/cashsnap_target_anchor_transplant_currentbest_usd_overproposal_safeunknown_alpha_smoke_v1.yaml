@@ -1,0 +1,240 @@
+path: ../..
+train: data/synthetic/cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_alpha_smoke_v1/images/train
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  intended_use: pure-synth target-anchored transplant TSTR probe using train-only
+    CashSnap no-note background patches and synthetic cutout-bank note labels
+  phase: target-domain anchor regime-change MVP
+  source_dataset: data/synthetic/cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_alpha_smoke_v1
+  promotion_rule: reject unless fixed-step full real transfer jumps materially over
+    filtered185/repair baselines without worse empty-frame behavior
+  schema: cashsnap_target_anchor_transplant_summary_v1
+  seed: 20260610
+  per_class: 8
+  max_attempts_per_target: 20
+  class_include:
+  - USD_1
+  - USD_5
+  - USD_20
+  - USD_50
+  - USD_100
+  - KHR_50000
+  images: 48
+  class_counts:
+    KHR_50000: 8
+    USD_1: 8
+    USD_100: 8
+    USD_20: 8
+    USD_5: 8
+    USD_50: 8
+  background_source_images: 223
+  fallback_background_source_images: 0
+  background_max_source_boxes: 0
+  background_avoid_boxes: null
+  background_avoid_box_count: 0
+  background_avoid_placement_policy: none
+  max_background_avoid_overlap_fraction: 0.0
+  max_background_avoid_iou: 0.0
+  background_root: runs/cashsnap/current_best_obligation_train_queue_real_synth_p24_champion_usd_overproposal_v2/safe_negative_style_seeds.csv
+  background_split: manifest_train_anchor_positive
+  fallback_background_root: null
+  fallback_background_split: null
+  min_class_source_backgrounds: 1
+  source_background_exclude_classes: []
+  canvas_size:
+  - 640
+  - 640
+  unique_backgrounds_used: 45
+  real_geometry_samples_by_class:
+    USD_1: 21
+    USD_5: 162
+    USD_10: 1009
+    USD_20: 89
+    USD_50: 162
+    USD_100: 242
+    KHR_500: 284
+    KHR_1000: 635
+    KHR_2000: 153
+    KHR_5000: 614
+    KHR_10000: 349
+    KHR_20000: 17
+    KHR_50000: 14
+  geometry_manifest:
+    path: runs/cashsnap/current_best_obligation_train_queue_real_synth_p24_champion_usd_overproposal_v2/positive_train_analogs.csv
+    mode: prefer
+    images: 683
+    selected_boxes_by_class:
+      USD_1: 21
+      USD_5: 162
+      USD_20: 89
+      USD_50: 162
+      USD_100: 242
+      KHR_50000: 14
+    fallback_classes:
+    - USD_10
+    - KHR_500
+    - KHR_1000
+    - KHR_2000
+    - KHR_5000
+    - KHR_10000
+    - KHR_20000
+  unique_geometry_sources_used: 47
+  assets_by_class:
+    USD_1: 2
+    USD_5: 2
+    USD_10: 2
+    USD_20: 2
+    USD_50: 2
+    USD_100: 2
+    KHR_500: 2
+    KHR_1000: 2
+    KHR_2000: 2
+    KHR_5000: 2
+    KHR_10000: 2
+    KHR_20000: 2
+    KHR_50000: 2
+  unique_assets_used: 12
+  cashsnap_root: data/cashsnap_v1
+  asset_manifest: data/asset_candidates/numista_current_cutout_bank_v1/manifest.csv
+  asset_quality_policy: latest_design
+  composite_policy: alpha
+  shadow_policy: contact
+  box_scale: 2.05
+  box_scale_jitter: 0.08
+  geometry_size_jitter: 0.14
+  position_jitter_fraction: 0.045
+  warp_alpha_feather_px: 0.0
+  tone_match_policy: preserve_luma
+  camera_isp_policy: phone_isp_v1
+  inpaint_under_foreground_px: 0
+  inpaint_under_foreground_radius: 5.0
+  inpaint_source_box_pad_fraction: null
+  inpaint_source_box_policy: always
+  couple_background_geometry: false
+  background_source_classes:
+    USD_1: 0
+    USD_5: 0
+    USD_10: 0
+    USD_20: 0
+    USD_50: 0
+    USD_100: 0
+    KHR_500: 0
+    KHR_1000: 0
+    KHR_2000: 0
+    KHR_5000: 0
+    KHR_10000: 0
+    KHR_20000: 0
+    KHR_50000: 0
+  coupled_geometry_records: 0
+  pose_policy: aabb_aspect_repair
+  min_render_short_px: 190.0
+  min_render_width_px: 0.0
+  min_render_height_px: 0.0
+  min_render_area_px: 0.0
+  min_render_margin_px: 0.0
+  inpaint_metadata_limits: {}
+  foreground_style_policy: real_crop_stats
+  foreground_style_min_class_samples: 8
+  foreground_style_max_class_samples: 256
+  foreground_style_samples_by_class:
+    USD_1: 21
+    USD_5: 162
+    USD_10: 256
+    USD_20: 89
+    USD_50: 162
+    USD_100: 242
+    KHR_500: 256
+    KHR_1000: 256
+    KHR_2000: 153
+    KHR_5000: 256
+    KHR_10000: 256
+    KHR_20000: 17
+    KHR_50000: 14
+  foreground_style_sharpness_quantiles:
+    sharpness_p25: 1801.315185546875
+    sharpness_p50: 2851.33203125
+    sharpness_p75: 4133.5498046875
+  inpaint_metadata_quantiles:
+    foreground_visible_fraction:
+      count: 48
+      min: 0.05278300121426582
+      p05: 0.07394760102033615
+      p25: 0.12004350125789642
+      p50: 0.17450450360774994
+      p75: 0.2401304990053177
+      p95: 0.4295048713684082
+      max: 0.5003319978713989
+    inpaint_source_box_fraction:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    source_box_covered_by_foreground_fraction:
+      count: 0
+    source_box_outside_foreground_fraction:
+      count: 0
+    foreground_inside_source_box_fraction:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_fraction:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_to_foreground_area_ratio:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_fraction:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+    inpaint_mask_outside_foreground_to_foreground_ratio:
+      count: 48
+      min: 0.0
+      p05: 0.0
+      p25: 0.0
+      p50: 0.0
+      p75: 0.0
+      p95: 0.0
+      max: 0.0
+  metadata: data/synthetic/cashsnap_target_anchor_transplant_currentbest_usd_overproposal_safeunknown_alpha_smoke_v1/metadata/train.jsonl

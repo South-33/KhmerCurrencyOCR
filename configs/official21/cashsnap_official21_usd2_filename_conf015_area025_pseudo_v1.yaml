@@ -1,0 +1,1789 @@
+path: ../../runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized
+train: images/train
+val: images/val
+test: images/test
+nc: 21
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_official21_review_bridge:
+  schema: cashsnap_official21_review_bridge_v1
+  created_utc: '2026-06-11T01:54:41.533002+00:00'
+  base_data: data/cashsnap_v1/data.yaml
+  official21_schema: configs/taxonomy/cashsnap_official21_schema_draft_v1.yaml
+  proposal_stats:
+    proposal_csv: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_top_proposals_conf015_area025_accept_pseudo_v1.csv
+    rows: 324
+    accepted_boxes_raw: 324
+    reviewed_not_accepted: 0
+    skipped_reviewed_rows: []
+    skipped_reviewed_rows_truncated: 0
+    accepted_decision: accepted_box
+    proposal_class: USD_2
+    proposal_class_mode: exact
+    accepted_boxes_after_dedupe: 324
+    accepted_images_after_dedupe: 324
+    deduped_boxes: 0
+    dedupe_iou: 0.9
+    deduped_examples: []
+    deduped_examples_truncated: 0
+  splits:
+    train:
+      images: 232
+      labeled_images: 232
+      empty_images: 0
+      boxes: 232
+      accepted_proposal_boxes: 232
+      base_class_counts: {}
+      official_class_counts:
+        USD_2: 232
+      accepted_proposal_class_counts:
+        USD_2: 232
+      image_mirror_modes:
+        hardlink: 232
+      manifest: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/metadata/train.jsonl
+    val:
+      images: 65
+      labeled_images: 65
+      empty_images: 0
+      boxes: 65
+      accepted_proposal_boxes: 65
+      base_class_counts: {}
+      official_class_counts:
+        USD_2: 65
+      accepted_proposal_class_counts:
+        USD_2: 65
+      image_mirror_modes:
+        hardlink: 65
+      manifest: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/metadata/val.jsonl
+    test:
+      images: 27
+      labeled_images: 27
+      empty_images: 0
+      boxes: 27
+      accepted_proposal_boxes: 27
+      base_class_counts: {}
+      official_class_counts:
+        USD_2: 27
+      accepted_proposal_class_counts:
+        USD_2: 27
+      image_mirror_modes:
+        hardlink: 27
+      manifest: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/metadata/test.jsonl
+  scope: proposal_images
+  dry_run: false
+  image_mode: auto
+  selected_splits:
+  - train
+  - val
+  - test
+  out_root: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized
+  data_yaml: runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/data.yaml
+  out_config: configs/official21/cashsnap_official21_usd2_filename_conf015_area025_pseudo_v1.yaml
+  review_gate: Only rows with normalized review_decision='accepted_box' are promoted
+    from proposal hints to labels.
+  training_precondition: Before using this output for training, register/classify
+    the out-root in the data lifecycle registry and run scripts/check_data_lifecycle_registry.py.
+  manifest_preview:
+    train:
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_100_jpeg_jpg.rf.acecd287562ac2a9d7339b06bfed1788.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_100_jpeg_jpg.rf.acecd287562ac2a9d7339b06bfed1788.txt
+      image: images/train/train_000000_usd_total_2Dollar_100_jpeg_jpg_rf_acecd287562ac2a9d7339b06bfed1788_ce0480170c24.jpg
+      label: labels/train/train_000000_usd_total_2Dollar_100_jpeg_jpg_rf_acecd287562ac2a9d7339b06bfed1788_ce0480170c24.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 168
+        class: USD_2
+        class_id: 1
+        confidence: 0.322304726
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 0.0
+        - 0.0
+        - 267.859
+        - 642.615
+        image_size:
+        - 648
+        - 650
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.796'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_100_jpeg_jpg.rf.b37e5c66cf8d71e50009223a21533ce3.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_100_jpeg_jpg.rf.b37e5c66cf8d71e50009223a21533ce3.txt
+      image: images/train/train_000001_usd_total_2Dollar_100_jpeg_jpg_rf_b37e5c66cf8d71e50009223a21533ce3_e2bc2478f545.jpg
+      label: labels/train/train_000001_usd_total_2Dollar_100_jpeg_jpg_rf_b37e5c66cf8d71e50009223a21533ce3_e2bc2478f545.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 197
+        class: USD_2
+        class_id: 1
+        confidence: 0.249907911
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 1.087
+        - 647.633
+        - 338.995
+        image_size:
+        - 648
+        - 650
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.733'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_100_jpeg_jpg.rf.c4a78b1adf932d31ff69c6d88f060de7.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_100_jpeg_jpg.rf.c4a78b1adf932d31ff69c6d88f060de7.txt
+      image: images/train/train_000002_usd_total_2Dollar_100_jpeg_jpg_rf_c4a78b1adf932d31ff69c6d88f060de7_987e3263705c.jpg
+      label: labels/train/train_000002_usd_total_2Dollar_100_jpeg_jpg_rf_c4a78b1adf932d31ff69c6d88f060de7_987e3263705c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 199
+        class: USD_2
+        class_id: 1
+        confidence: 0.243127704
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 0.0
+        - 1.2
+        - 648.0
+        - 339.603
+        image_size:
+        - 648
+        - 650
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.686'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_101_jpeg_jpg.rf.33c071b5eb0bb1abdf959aa98770f486.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_101_jpeg_jpg.rf.33c071b5eb0bb1abdf959aa98770f486.txt
+      image: images/train/train_000003_usd_total_2Dollar_101_jpeg_jpg_rf_33c071b5eb0bb1abdf959aa98770f486_f8618d037f24.jpg
+      label: labels/train/train_000003_usd_total_2Dollar_101_jpeg_jpg_rf_33c071b5eb0bb1abdf959aa98770f486_f8618d037f24.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 56
+        class: USD_2
+        class_id: 1
+        confidence: 0.79732883
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 255.101
+        - 363.961
+        - 621.879
+        image_size:
+        - 368
+        - 876
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.993'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_101_jpeg_jpg.rf.8c072d368acc81aa45a720b615d28607.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_101_jpeg_jpg.rf.8c072d368acc81aa45a720b615d28607.txt
+      image: images/train/train_000004_usd_total_2Dollar_101_jpeg_jpg_rf_8c072d368acc81aa45a720b615d28607_6c4b1f93730b.jpg
+      label: labels/train/train_000004_usd_total_2Dollar_101_jpeg_jpg_rf_8c072d368acc81aa45a720b615d28607_6c4b1f93730b.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 51
+        class: USD_2
+        class_id: 1
+        confidence: 0.803578377
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 3.566
+        - 255.765
+        - 365.39
+        - 621.532
+        image_size:
+        - 368
+        - 876
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.943'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_101_jpeg_jpg.rf.b5977c633ac88b88bfbfad7b7a7b16db.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_101_jpeg_jpg.rf.b5977c633ac88b88bfbfad7b7a7b16db.txt
+      image: images/train/train_000005_usd_total_2Dollar_101_jpeg_jpg_rf_b5977c633ac88b88bfbfad7b7a7b16db_1f328aae0238.jpg
+      label: labels/train/train_000005_usd_total_2Dollar_101_jpeg_jpg_rf_b5977c633ac88b88bfbfad7b7a7b16db_1f328aae0238.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 30
+        class: USD_2
+        class_id: 1
+        confidence: 0.877169073
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 368.0
+        - 870.438
+        image_size:
+        - 368
+        - 876
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.897'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_102_jpeg_jpg.rf.154244e79a2c76a5c4202aa74f6e182e.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_102_jpeg_jpg.rf.154244e79a2c76a5c4202aa74f6e182e.txt
+      image: images/train/train_000006_usd_total_2Dollar_102_jpeg_jpg_rf_154244e79a2c76a5c4202aa74f6e182e_fd129ee31a9a.jpg
+      label: labels/train/train_000006_usd_total_2Dollar_102_jpeg_jpg_rf_154244e79a2c76a5c4202aa74f6e182e_fd129ee31a9a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 211
+        class: USD_2
+        class_id: 1
+        confidence: 0.200696841
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_20
+        xyxy:
+        - 0.0
+        - 0.378
+        - 454.799
+        - 537.206
+        image_size:
+        - 455
+        - 542
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.519'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_102_jpeg_jpg.rf.dc8098db40ac238542d2ce2750fcd885.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_102_jpeg_jpg.rf.dc8098db40ac238542d2ce2750fcd885.txt
+      image: images/train/train_000007_usd_total_2Dollar_102_jpeg_jpg_rf_dc8098db40ac238542d2ce2750fcd885_b538b95be246.jpg
+      label: labels/train/train_000007_usd_total_2Dollar_102_jpeg_jpg_rf_dc8098db40ac238542d2ce2750fcd885_b538b95be246.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 125
+        class: USD_2
+        class_id: 1
+        confidence: 0.495937735
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 1.427
+        - 43.273
+        - 454.122
+        - 253.4
+        image_size:
+        - 455
+        - 542
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.821'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_103_jpeg_jpg.rf.7e53ee2b9576c00e690957eb30453fda.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_103_jpeg_jpg.rf.7e53ee2b9576c00e690957eb30453fda.txt
+      image: images/train/train_000008_usd_total_2Dollar_103_jpeg_jpg_rf_7e53ee2b9576c00e690957eb30453fda_b55cba418407.jpg
+      label: labels/train/train_000008_usd_total_2Dollar_103_jpeg_jpg_rf_7e53ee2b9576c00e690957eb30453fda_b55cba418407.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 71
+        class: USD_2
+        class_id: 1
+        confidence: 0.716100335
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 10.378
+        - 0.0
+        - 379.049
+        - 509.693
+        image_size:
+        - 387
+        - 516
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.997'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_103_jpeg_jpg.rf.8aef7e3c462d3f4e1831f176d1462a12.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_103_jpeg_jpg.rf.8aef7e3c462d3f4e1831f176d1462a12.txt
+      image: images/train/train_000009_usd_total_2Dollar_103_jpeg_jpg_rf_8aef7e3c462d3f4e1831f176d1462a12_bbc583a84ff5.jpg
+      label: labels/train/train_000009_usd_total_2Dollar_103_jpeg_jpg_rf_8aef7e3c462d3f4e1831f176d1462a12_bbc583a84ff5.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 75
+        class: USD_2
+        class_id: 1
+        confidence: 0.686125755
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 10.97
+        - 0.0
+        - 379.562
+        - 509.628
+        image_size:
+        - 387
+        - 516
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.997'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_106_jpeg_jpg.rf.cada50cbcf7c289a93d8ff3cda3a9065.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_106_jpeg_jpg.rf.cada50cbcf7c289a93d8ff3cda3a9065.txt
+      image: images/train/train_000010_usd_total_2Dollar_106_jpeg_jpg_rf_cada50cbcf7c289a93d8ff3cda3a9065_3311effb62c8.jpg
+      label: labels/train/train_000010_usd_total_2Dollar_106_jpeg_jpg_rf_cada50cbcf7c289a93d8ff3cda3a9065_3311effb62c8.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 196
+        class: USD_2
+        class_id: 1
+        confidence: 0.253854573
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 42.815
+        - 0.275
+        - 289.087
+        - 345.244
+        image_size:
+        - 350
+        - 350
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.962'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_107_jpeg_jpg.rf.ed321a38bf2976df2dbfdae544bc7331.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_107_jpeg_jpg.rf.ed321a38bf2976df2dbfdae544bc7331.txt
+      image: images/train/train_000011_usd_total_2Dollar_107_jpeg_jpg_rf_ed321a38bf2976df2dbfdae544bc7331_f319b67fc34c.jpg
+      label: labels/train/train_000011_usd_total_2Dollar_107_jpeg_jpg_rf_ed321a38bf2976df2dbfdae544bc7331_f319b67fc34c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 50
+        class: USD_2
+        class_id: 1
+        confidence: 0.806102574
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 434.0
+        - 1019.112
+        image_size:
+        - 434
+        - 1024
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.819'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_108_jpeg_jpg.rf.aa169442650b872d189a9e3d1897a0ae.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_108_jpeg_jpg.rf.aa169442650b872d189a9e3d1897a0ae.txt
+      image: images/train/train_000012_usd_total_2Dollar_108_jpeg_jpg_rf_aa169442650b872d189a9e3d1897a0ae_edced2b2124a.jpg
+      label: labels/train/train_000012_usd_total_2Dollar_108_jpeg_jpg_rf_aa169442650b872d189a9e3d1897a0ae_edced2b2124a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 167
+        class: USD_2
+        class_id: 1
+        confidence: 0.323470563
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.428
+        - 117.987
+        - 260.251
+        - 289.589
+        image_size:
+        - 262
+        - 500
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.811'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_109_jpeg_jpg.rf.4e01f1a3f3b8e18cac48e5e8c48d79f8.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_109_jpeg_jpg.rf.4e01f1a3f3b8e18cac48e5e8c48d79f8.txt
+      image: images/train/train_000013_usd_total_2Dollar_109_jpeg_jpg_rf_4e01f1a3f3b8e18cac48e5e8c48d79f8_8b893bf6b230.jpg
+      label: labels/train/train_000013_usd_total_2Dollar_109_jpeg_jpg_rf_4e01f1a3f3b8e18cac48e5e8c48d79f8_8b893bf6b230.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 101
+        class: USD_2
+        class_id: 1
+        confidence: 0.554249465
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 1.638
+        - 76.366
+        - 838.0
+        - 458.047
+        image_size:
+        - 838
+        - 990
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.553'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.txt
+      image: images/train/train_000014_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.jpg
+      label: labels/train/train_000014_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 19
+        class: USD_2
+        class_id: 1
+        confidence: 0.926414073
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 2.611
+        - 0.0
+        - 454.0
+        - 254.399
+        image_size:
+        - 454
+        - 255
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.920'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.8d349dad3a4efd00610241f8b9e93d1d.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_10_jpeg_jpg.rf.8d349dad3a4efd00610241f8b9e93d1d.txt
+      image: images/train/train_000015_usd_total_2Dollar_10_jpeg_jpg_rf_8d349dad3a4efd00610241f8b9e93d1d_a56f1066e052.jpg
+      label: labels/train/train_000015_usd_total_2Dollar_10_jpeg_jpg_rf_8d349dad3a4efd00610241f8b9e93d1d_a56f1066e052.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 63
+        class: USD_2
+        class_id: 1
+        confidence: 0.744011164
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.756
+        - 0.242
+        - 454.0
+        - 254.844
+        image_size:
+        - 454
+        - 255
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.911'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.bc4e82f65dc358697001ac3484f068bf.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_10_jpeg_jpg.rf.bc4e82f65dc358697001ac3484f068bf.txt
+      image: images/train/train_000016_usd_total_2Dollar_10_jpeg_jpg_rf_bc4e82f65dc358697001ac3484f068bf_75b94126de3f.jpg
+      label: labels/train/train_000016_usd_total_2Dollar_10_jpeg_jpg_rf_bc4e82f65dc358697001ac3484f068bf_75b94126de3f.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 37
+        class: USD_2
+        class_id: 1
+        confidence: 0.85226506
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 99.312
+        - 0.716
+        - 354.801
+        - 254.344
+        image_size:
+        - 454
+        - 255
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.675'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_113_jpeg_jpg.rf.e61e478b7e93a7a30e6aebafb9db5f00.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_113_jpeg_jpg.rf.e61e478b7e93a7a30e6aebafb9db5f00.txt
+      image: images/train/train_000017_usd_total_2Dollar_113_jpeg_jpg_rf_e61e478b7e93a7a30e6aebafb9db5f00_20fcdc0b9f58.jpg
+      label: labels/train/train_000017_usd_total_2Dollar_113_jpeg_jpg_rf_e61e478b7e93a7a30e6aebafb9db5f00_20fcdc0b9f58.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 190
+        class: USD_2
+        class_id: 1
+        confidence: 0.282200068
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 287.027
+        - 0.0
+        - 487.878
+        - 458.152
+        image_size:
+        - 512
+        - 462
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.929'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_114_jpeg_jpg.rf.dd9aab59fba8f3518c803b1640221b29.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_114_jpeg_jpg.rf.dd9aab59fba8f3518c803b1640221b29.txt
+      image: images/train/train_000018_usd_total_2Dollar_114_jpeg_jpg_rf_dd9aab59fba8f3518c803b1640221b29_ba20b6570a3d.jpg
+      label: labels/train/train_000018_usd_total_2Dollar_114_jpeg_jpg_rf_dd9aab59fba8f3518c803b1640221b29_ba20b6570a3d.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 25
+        class: USD_2
+        class_id: 1
+        confidence: 0.893163145
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 133.159
+        - 83.267
+        - 894.104
+        - 457.109
+        image_size:
+        - 1024
+        - 768
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.994'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_116_jpeg_jpg.rf.10aa224c3063e039bf9ac113f189799c.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_116_jpeg_jpg.rf.10aa224c3063e039bf9ac113f189799c.txt
+      image: images/train/train_000019_usd_total_2Dollar_116_jpeg_jpg_rf_10aa224c3063e039bf9ac113f189799c_5abab0df7f97.jpg
+      label: labels/train/train_000019_usd_total_2Dollar_116_jpeg_jpg_rf_10aa224c3063e039bf9ac113f189799c_5abab0df7f97.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 14
+        class: USD_2
+        class_id: 1
+        confidence: 0.947796881
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 2.005
+        - 0.761
+        - 499.253
+        - 226.095
+        image_size:
+        - 500
+        - 228
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=train;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.820'
+    val:
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_102_jpeg_jpg.rf.12a1e0c5140de609ea4468442e5834c9.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_102_jpeg_jpg.rf.12a1e0c5140de609ea4468442e5834c9.txt
+      image: images/val/val_000000_usd_total_2Dollar_102_jpeg_jpg_rf_12a1e0c5140de609ea4468442e5834c9_10764f6dd859.jpg
+      label: labels/val/val_000000_usd_total_2Dollar_102_jpeg_jpg_rf_12a1e0c5140de609ea4468442e5834c9_10764f6dd859.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 243
+        class: USD_2
+        class_id: 1
+        confidence: 0.887785316
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 1.021
+        - 43.887
+        - 455.0
+        - 268.335
+        image_size:
+        - 455
+        - 542
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.583'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_103_jpeg_jpg.rf.4f943d1804affc9eaf88273cbfe41e2e.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_103_jpeg_jpg.rf.4f943d1804affc9eaf88273cbfe41e2e.txt
+      image: images/val/val_000001_usd_total_2Dollar_103_jpeg_jpg_rf_4f943d1804affc9eaf88273cbfe41e2e_befdf63605c0.jpg
+      label: labels/val/val_000001_usd_total_2Dollar_103_jpeg_jpg_rf_4f943d1804affc9eaf88273cbfe41e2e_befdf63605c0.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 275
+        class: USD_2
+        class_id: 1
+        confidence: 0.371575087
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 3.381
+        - 71.601
+        - 385.873
+        - 446.832
+        image_size:
+        - 387
+        - 516
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.573'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_108_jpeg_jpg.rf.99733a58c6613ca782057e9116dade66.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_108_jpeg_jpg.rf.99733a58c6613ca782057e9116dade66.txt
+      image: images/val/val_000002_usd_total_2Dollar_108_jpeg_jpg_rf_99733a58c6613ca782057e9116dade66_e6b2ced65afd.jpg
+      label: labels/val/val_000002_usd_total_2Dollar_108_jpeg_jpg_rf_99733a58c6613ca782057e9116dade66_e6b2ced65afd.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 274
+        class: USD_2
+        class_id: 1
+        confidence: 0.393391401
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 203.48
+        - 261.108
+        - 380.241
+        image_size:
+        - 262
+        - 500
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.903'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_109_jpeg_jpg.rf.e255aaf9011d6eb35fc3ebccfd984f6f.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_109_jpeg_jpg.rf.e255aaf9011d6eb35fc3ebccfd984f6f.txt
+      image: images/val/val_000003_usd_total_2Dollar_109_jpeg_jpg_rf_e255aaf9011d6eb35fc3ebccfd984f6f_cd774464f81e.jpg
+      label: labels/val/val_000003_usd_total_2Dollar_109_jpeg_jpg_rf_e255aaf9011d6eb35fc3ebccfd984f6f_cd774464f81e.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 247
+        class: USD_2
+        class_id: 1
+        confidence: 0.831252515
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 8.817
+        - 0.0
+        - 838.0
+        - 980.118
+        image_size:
+        - 838
+        - 990
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.730'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_118_jpeg_jpg.rf.5722913c24de6e4d1b67c940a5f7aa2b.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_118_jpeg_jpg.rf.5722913c24de6e4d1b67c940a5f7aa2b.txt
+      image: images/val/val_000004_usd_total_2Dollar_118_jpeg_jpg_rf_5722913c24de6e4d1b67c940a5f7aa2b_dd158cfde458.jpg
+      label: labels/val/val_000004_usd_total_2Dollar_118_jpeg_jpg_rf_5722913c24de6e4d1b67c940a5f7aa2b_dd158cfde458.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 276
+        class: USD_2
+        class_id: 1
+        confidence: 0.366947651
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 1.514
+        - 171.216
+        - 550.0
+        - 412.0
+        image_size:
+        - 550
+        - 412
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.816'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_122_jpeg_jpg.rf.6e746b59d26f3c6f137dc83e373c7ff6.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_122_jpeg_jpg.rf.6e746b59d26f3c6f137dc83e373c7ff6.txt
+      image: images/val/val_000005_usd_total_2Dollar_122_jpeg_jpg_rf_6e746b59d26f3c6f137dc83e373c7ff6_f37ae7121480.jpg
+      label: labels/val/val_000005_usd_total_2Dollar_122_jpeg_jpg_rf_6e746b59d26f3c6f137dc83e373c7ff6_f37ae7121480.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 280
+        class: USD_2
+        class_id: 1
+        confidence: 0.332623869
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.154
+        - 0.34
+        - 400.0
+        - 178.366
+        image_size:
+        - 400
+        - 400
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.767'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_122_jpeg_jpg.rf.72c237d8c9423e645ff083d8318bb34b.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_122_jpeg_jpg.rf.72c237d8c9423e645ff083d8318bb34b.txt
+      image: images/val/val_000006_usd_total_2Dollar_122_jpeg_jpg_rf_72c237d8c9423e645ff083d8318bb34b_0d71f84a7d42.jpg
+      label: labels/val/val_000006_usd_total_2Dollar_122_jpeg_jpg_rf_72c237d8c9423e645ff083d8318bb34b_0d71f84a7d42.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 296
+        class: USD_2
+        class_id: 1
+        confidence: 0.170593664
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 224.123
+        - 0.0
+        - 400.0
+        - 397.102
+        image_size:
+        - 400
+        - 400
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.897'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_124_jpeg_jpg.rf.666b4d03a8adc04d93483255c416acf3.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_124_jpeg_jpg.rf.666b4d03a8adc04d93483255c416acf3.txt
+      image: images/val/val_000007_usd_total_2Dollar_124_jpeg_jpg_rf_666b4d03a8adc04d93483255c416acf3_8ebfd2163148.jpg
+      label: labels/val/val_000007_usd_total_2Dollar_124_jpeg_jpg_rf_666b4d03a8adc04d93483255c416acf3_8ebfd2163148.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 241
+        class: USD_2
+        class_id: 1
+        confidence: 0.898237228
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 4.152
+        - 512.0
+        - 349.889
+        image_size:
+        - 512
+        - 384
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.957'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_125_jpeg_jpg.rf.189602737c3892beb3a1d0b24d2a69f5.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_125_jpeg_jpg.rf.189602737c3892beb3a1d0b24d2a69f5.txt
+      image: images/val/val_000008_usd_total_2Dollar_125_jpeg_jpg_rf_189602737c3892beb3a1d0b24d2a69f5_796e322f57a6.jpg
+      label: labels/val/val_000008_usd_total_2Dollar_125_jpeg_jpg_rf_189602737c3892beb3a1d0b24d2a69f5_796e322f57a6.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 236
+        class: USD_2
+        class_id: 1
+        confidence: 0.940300226
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 2.788
+        - 0.0
+        - 799.936
+        - 330.707
+        image_size:
+        - 800
+        - 332
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.866'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_130_jpeg_jpg.rf.511daad465341ef0d858a157ef7181e0.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_130_jpeg_jpg.rf.511daad465341ef0d858a157ef7181e0.txt
+      image: images/val/val_000009_usd_total_2Dollar_130_jpeg_jpg_rf_511daad465341ef0d858a157ef7181e0_4f6cc2f29386.jpg
+      label: labels/val/val_000009_usd_total_2Dollar_130_jpeg_jpg_rf_511daad465341ef0d858a157ef7181e0_4f6cc2f29386.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 279
+        class: USD_2
+        class_id: 1
+        confidence: 0.335255295
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 139.285
+        - 1.775
+        - 501.534
+        - 359.405
+        image_size:
+        - 640
+        - 360
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.567'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_130_jpeg_jpg.rf.a6f624cb4d5d4242fdb9467abd80af39.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_130_jpeg_jpg.rf.a6f624cb4d5d4242fdb9467abd80af39.txt
+      image: images/val/val_000010_usd_total_2Dollar_130_jpeg_jpg_rf_a6f624cb4d5d4242fdb9467abd80af39_b58aaa8a4b12.jpg
+      label: labels/val/val_000010_usd_total_2Dollar_130_jpeg_jpg_rf_a6f624cb4d5d4242fdb9467abd80af39_b58aaa8a4b12.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 239
+        class: USD_2
+        class_id: 1
+        confidence: 0.912071288
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 5.907
+        - 0.0
+        - 639.302
+        - 360.0
+        image_size:
+        - 640
+        - 360
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.820'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_133_jpeg_jpg.rf.9d84e690928cdc46f87bb0f56cb8b218.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_133_jpeg_jpg.rf.9d84e690928cdc46f87bb0f56cb8b218.txt
+      image: images/val/val_000011_usd_total_2Dollar_133_jpeg_jpg_rf_9d84e690928cdc46f87bb0f56cb8b218_299ee08b3136.jpg
+      label: labels/val/val_000011_usd_total_2Dollar_133_jpeg_jpg_rf_9d84e690928cdc46f87bb0f56cb8b218_299ee08b3136.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 267
+        class: USD_2
+        class_id: 1
+        confidence: 0.535170197
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.558
+        - 0.0
+        - 463.406
+        - 238.606
+        image_size:
+        - 464
+        - 240
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.998'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_136_jpeg_jpg.rf.870d0e9ae1a2e1abec83d993af36cb3f.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_136_jpeg_jpg.rf.870d0e9ae1a2e1abec83d993af36cb3f.txt
+      image: images/val/val_000012_usd_total_2Dollar_136_jpeg_jpg_rf_870d0e9ae1a2e1abec83d993af36cb3f_e0b6284e1202.jpg
+      label: labels/val/val_000012_usd_total_2Dollar_136_jpeg_jpg_rf_870d0e9ae1a2e1abec83d993af36cb3f_e0b6284e1202.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 240
+        class: USD_2
+        class_id: 1
+        confidence: 0.911092281
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 255.892
+        - 2.169
+        - 622.31
+        - 367.143
+        image_size:
+        - 876
+        - 368
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.991'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_137_jpeg_jpg.rf.5dace0db52c2b2005d3df3c4b5c03684.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_137_jpeg_jpg.rf.5dace0db52c2b2005d3df3c4b5c03684.txt
+      image: images/val/val_000013_usd_total_2Dollar_137_jpeg_jpg_rf_5dace0db52c2b2005d3df3c4b5c03684_1810f2066aff.jpg
+      label: labels/val/val_000013_usd_total_2Dollar_137_jpeg_jpg_rf_5dace0db52c2b2005d3df3c4b5c03684_1810f2066aff.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 246
+        class: USD_2
+        class_id: 1
+        confidence: 0.831393301
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 1.083
+        - 542.0
+        - 226.803
+        image_size:
+        - 542
+        - 455
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.606'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_151_jpeg_jpg.rf.14f6ad3511d345786646777fd46ed6fd.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_151_jpeg_jpg.rf.14f6ad3511d345786646777fd46ed6fd.txt
+      image: images/val/val_000014_usd_total_2Dollar_151_jpeg_jpg_rf_14f6ad3511d345786646777fd46ed6fd_d5b31d5900a9.jpg
+      label: labels/val/val_000014_usd_total_2Dollar_151_jpeg_jpg_rf_14f6ad3511d345786646777fd46ed6fd_d5b31d5900a9.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 269
+        class: USD_2
+        class_id: 1
+        confidence: 0.479071647
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.372
+        - 54.947
+        - 225.0
+        - 263.582
+        image_size:
+        - 225
+        - 300
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.973'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_153_jpeg_jpg.rf.ccee10ea51e3f9d3437afa3ad5d42a93.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_153_jpeg_jpg.rf.ccee10ea51e3f9d3437afa3ad5d42a93.txt
+      image: images/val/val_000015_usd_total_2Dollar_153_jpeg_jpg_rf_ccee10ea51e3f9d3437afa3ad5d42a93_50fbd928255f.jpg
+      label: labels/val/val_000015_usd_total_2Dollar_153_jpeg_jpg_rf_ccee10ea51e3f9d3437afa3ad5d42a93_50fbd928255f.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 255
+        class: USD_2
+        class_id: 1
+        confidence: 0.680857241
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.115
+        - 184.337
+        - 426.0
+        - 610.732
+        image_size:
+        - 426
+        - 800
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.936'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_157_jpeg_jpg.rf.540f7467108f6ceedbe843d5337f1d0e.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_157_jpeg_jpg.rf.540f7467108f6ceedbe843d5337f1d0e.txt
+      image: images/val/val_000016_usd_total_2Dollar_157_jpeg_jpg_rf_540f7467108f6ceedbe843d5337f1d0e_79681f66cd7e.jpg
+      label: labels/val/val_000016_usd_total_2Dollar_157_jpeg_jpg_rf_540f7467108f6ceedbe843d5337f1d0e_79681f66cd7e.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 288
+        class: USD_2
+        class_id: 1
+        confidence: 0.244442791
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 76.233
+        - 0.0
+        - 446.847
+        - 728.305
+        image_size:
+        - 474
+        - 750
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.552'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_161_jpeg_jpg.rf.7e43021ee51f87c47f187848fd373b13.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_161_jpeg_jpg.rf.7e43021ee51f87c47f187848fd373b13.txt
+      image: images/val/val_000017_usd_total_2Dollar_161_jpeg_jpg_rf_7e43021ee51f87c47f187848fd373b13_07a399695922.jpg
+      label: labels/val/val_000017_usd_total_2Dollar_161_jpeg_jpg_rf_7e43021ee51f87c47f187848fd373b13_07a399695922.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 252
+        class: USD_2
+        class_id: 1
+        confidence: 0.768250287
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 191.011
+        - 414.647
+        - 510.318
+        image_size:
+        - 416
+        - 800
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.715'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_164_jpeg_jpg.rf.83d2d14c21aa9449421a76fe02898533.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_164_jpeg_jpg.rf.83d2d14c21aa9449421a76fe02898533.txt
+      image: images/val/val_000018_usd_total_2Dollar_164_jpeg_jpg_rf_83d2d14c21aa9449421a76fe02898533_b58b51546609.jpg
+      label: labels/val/val_000018_usd_total_2Dollar_164_jpeg_jpg_rf_83d2d14c21aa9449421a76fe02898533_b58b51546609.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 259
+        class: USD_2
+        class_id: 1
+        confidence: 0.622426271
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.779
+        - 60.768
+        - 199.434
+        - 259.144
+        image_size:
+        - 200
+        - 320
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:1.000'
+    - split: val
+      source_image: data/cashsnap_v1/images/val/usd_total_2Dollar_168_jpeg_jpg.rf.e840cd257d05ac843b573e06a7467744.jpg
+      source_label: data/cashsnap_v1/labels/val/usd_total_2Dollar_168_jpeg_jpg.rf.e840cd257d05ac843b573e06a7467744.txt
+      image: images/val/val_000019_usd_total_2Dollar_168_jpeg_jpg_rf_e840cd257d05ac843b573e06a7467744_99fc4e439f98.jpg
+      label: labels/val/val_000019_usd_total_2Dollar_168_jpeg_jpg_rf_e840cd257d05ac843b573e06a7467744_99fc4e439f98.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 289
+        class: USD_2
+        class_id: 1
+        confidence: 0.237174526
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.659
+        - 24.456
+        - 462.0
+        - 226.783
+        image_size:
+        - 462
+        - 512
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=val;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.957'
+    test:
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_113_jpeg_jpg.rf.ac847b91b4ad6fb11cf3d0168739db44.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_113_jpeg_jpg.rf.ac847b91b4ad6fb11cf3d0168739db44.txt
+      image: images/test/test_000000_usd_total_2Dollar_113_jpeg_jpg_rf_ac847b91b4ad6fb11cf3d0168739db44_e721f2595f6c.jpg
+      label: labels/test/test_000000_usd_total_2Dollar_113_jpeg_jpg_rf_ac847b91b4ad6fb11cf3d0168739db44_e721f2595f6c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 314
+        class: USD_2
+        class_id: 1
+        confidence: 0.54439342
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 0.0
+        - 511.975
+        - 203.927
+        image_size:
+        - 512
+        - 462
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.784'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_115_jpeg_jpg.rf.8718572cea63afd97e0ceab75283365d.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_115_jpeg_jpg.rf.8718572cea63afd97e0ceab75283365d.txt
+      image: images/test/test_000001_usd_total_2Dollar_115_jpeg_jpg_rf_8718572cea63afd97e0ceab75283365d_c9f88947fc36.jpg
+      label: labels/test/test_000001_usd_total_2Dollar_115_jpeg_jpg_rf_8718572cea63afd97e0ceab75283365d_c9f88947fc36.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 311
+        class: USD_2
+        class_id: 1
+        confidence: 0.601354539
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 276.047
+        - 0.0
+        - 866.934
+        - 768.0
+        image_size:
+        - 1024
+        - 768
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.652'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_117_jpeg_jpg.rf.e024632e9b03ad64dc3186830bd781db.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_117_jpeg_jpg.rf.e024632e9b03ad64dc3186830bd781db.txt
+      image: images/test/test_000002_usd_total_2Dollar_117_jpeg_jpg_rf_e024632e9b03ad64dc3186830bd781db_776d9fdfd852.jpg
+      label: labels/test/test_000002_usd_total_2Dollar_117_jpeg_jpg_rf_e024632e9b03ad64dc3186830bd781db_776d9fdfd852.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 312
+        class: USD_2
+        class_id: 1
+        confidence: 0.572047055
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 0.0
+        - 0.0
+        - 650.0
+        - 191.949
+        image_size:
+        - 650
+        - 432
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.502'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_120_jpeg_jpg.rf.6e33f2d68724c0a20bef45eae9b0812e.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_120_jpeg_jpg.rf.6e33f2d68724c0a20bef45eae9b0812e.txt
+      image: images/test/test_000003_usd_total_2Dollar_120_jpeg_jpg_rf_6e33f2d68724c0a20bef45eae9b0812e_be3f9a80981e.jpg
+      label: labels/test/test_000003_usd_total_2Dollar_120_jpeg_jpg_rf_6e33f2d68724c0a20bef45eae9b0812e_be3f9a80981e.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 301
+        class: USD_2
+        class_id: 1
+        confidence: 0.908529937
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 3.507
+        - 0.665
+        - 449.511
+        - 180.91
+        image_size:
+        - 450
+        - 181
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.677'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_128_jpeg_jpg.rf.8f0d4de7ac7e77d2fbe6d5bdbc193fae.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_128_jpeg_jpg.rf.8f0d4de7ac7e77d2fbe6d5bdbc193fae.txt
+      image: images/test/test_000004_usd_total_2Dollar_128_jpeg_jpg_rf_8f0d4de7ac7e77d2fbe6d5bdbc193fae_f12de1b478b7.jpg
+      label: labels/test/test_000004_usd_total_2Dollar_128_jpeg_jpg_rf_8f0d4de7ac7e77d2fbe6d5bdbc193fae_f12de1b478b7.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 315
+        class: USD_2
+        class_id: 1
+        confidence: 0.5052737
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 0.0
+        - 1024.0
+        - 417.696
+        image_size:
+        - 1024
+        - 868
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.865'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_135_jpeg_jpg.rf.0d43a0b999fae8637a3e0e7c8dc48583.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_135_jpeg_jpg.rf.0d43a0b999fae8637a3e0e7c8dc48583.txt
+      image: images/test/test_000005_usd_total_2Dollar_135_jpeg_jpg_rf_0d43a0b999fae8637a3e0e7c8dc48583_b57838d7d524.jpg
+      label: labels/test/test_000005_usd_total_2Dollar_135_jpeg_jpg_rf_0d43a0b999fae8637a3e0e7c8dc48583_b57838d7d524.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 300
+        class: USD_2
+        class_id: 1
+        confidence: 0.938336492
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 0.0
+        - 0.0
+        - 650.0
+        - 266.914
+        image_size:
+        - 650
+        - 648
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.611'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_135_jpeg_jpg.rf.9d78740172bad016c32f879efcce4f65.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_135_jpeg_jpg.rf.9d78740172bad016c32f879efcce4f65.txt
+      image: images/test/test_000006_usd_total_2Dollar_135_jpeg_jpg_rf_9d78740172bad016c32f879efcce4f65_faacb7521997.jpg
+      label: labels/test/test_000006_usd_total_2Dollar_135_jpeg_jpg_rf_9d78740172bad016c32f879efcce4f65_faacb7521997.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 313
+        class: USD_2
+        class_id: 1
+        confidence: 0.567793846
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 270.273
+        - 642.095
+        image_size:
+        - 650
+        - 648
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.818'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_13_jpeg_jpg.rf.15ecd148d710015e910586a75af70657.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_13_jpeg_jpg.rf.15ecd148d710015e910586a75af70657.txt
+      image: images/test/test_000007_usd_total_2Dollar_13_jpeg_jpg_rf_15ecd148d710015e910586a75af70657_d2a4b4179d36.jpg
+      label: labels/test/test_000007_usd_total_2Dollar_13_jpeg_jpg_rf_15ecd148d710015e910586a75af70657_d2a4b4179d36.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 322
+        class: USD_2
+        class_id: 1
+        confidence: 0.191675261
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 30.281
+        - 0.0
+        - 237.91
+        - 451.282
+        image_size:
+        - 512
+        - 456
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.940'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_13_jpeg_jpg.rf.b4af0c6373b2ae14ab5a39b85c3b5793.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_13_jpeg_jpg.rf.b4af0c6373b2ae14ab5a39b85c3b5793.txt
+      image: images/test/test_000008_usd_total_2Dollar_13_jpeg_jpg_rf_b4af0c6373b2ae14ab5a39b85c3b5793_47866d3a708a.jpg
+      label: labels/test/test_000008_usd_total_2Dollar_13_jpeg_jpg_rf_b4af0c6373b2ae14ab5a39b85c3b5793_47866d3a708a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 324
+        class: USD_2
+        class_id: 1
+        confidence: 0.180045545
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 5.314
+        - 244.844
+        - 511.612
+        - 456.0
+        image_size:
+        - 512
+        - 456
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.599'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_14_jpeg_jpg.rf.9d5d2f17c7d25db4c50c9bfdf1c61dac.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_14_jpeg_jpg.rf.9d5d2f17c7d25db4c50c9bfdf1c61dac.txt
+      image: images/test/test_000009_usd_total_2Dollar_14_jpeg_jpg_rf_9d5d2f17c7d25db4c50c9bfdf1c61dac_dccb893b756c.jpg
+      label: labels/test/test_000009_usd_total_2Dollar_14_jpeg_jpg_rf_9d5d2f17c7d25db4c50c9bfdf1c61dac_dccb893b756c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 321
+        class: USD_2
+        class_id: 1
+        confidence: 0.212330177
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 296.687
+        - 0.0
+        - 561.173
+        - 520.927
+        image_size:
+        - 600
+        - 521
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.860'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_163_jpeg_jpg.rf.73792b13a754b20498fa08058497b3cc.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_163_jpeg_jpg.rf.73792b13a754b20498fa08058497b3cc.txt
+      image: images/test/test_000010_usd_total_2Dollar_163_jpeg_jpg_rf_73792b13a754b20498fa08058497b3cc_45a8d4411e87.jpg
+      label: labels/test/test_000010_usd_total_2Dollar_163_jpeg_jpg_rf_73792b13a754b20498fa08058497b3cc_45a8d4411e87.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 325
+        class: USD_2
+        class_id: 1
+        confidence: 0.155055478
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 287.6
+        - 669.674
+        image_size:
+        - 580
+        - 678
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.732'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_171_jpeg_jpg.rf.13385e17b93251d810dcc8736d67ad8d.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_171_jpeg_jpg.rf.13385e17b93251d810dcc8736d67ad8d.txt
+      image: images/test/test_000011_usd_total_2Dollar_171_jpeg_jpg_rf_13385e17b93251d810dcc8736d67ad8d_19e1938efc96.jpg
+      label: labels/test/test_000011_usd_total_2Dollar_171_jpeg_jpg_rf_13385e17b93251d810dcc8736d67ad8d_19e1938efc96.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 319
+        class: USD_2
+        class_id: 1
+        confidence: 0.304115623
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.606
+        - 0.0
+        - 228.0
+        - 499.326
+        image_size:
+        - 228
+        - 500
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.660'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_184_jpeg_jpg.rf.66209700f33ecec72d0b216a78a83921.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_184_jpeg_jpg.rf.66209700f33ecec72d0b216a78a83921.txt
+      image: images/test/test_000012_usd_total_2Dollar_184_jpeg_jpg_rf_66209700f33ecec72d0b216a78a83921_0521f3a85b3a.jpg
+      label: labels/test/test_000012_usd_total_2Dollar_184_jpeg_jpg_rf_66209700f33ecec72d0b216a78a83921_0521f3a85b3a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 302
+        class: USD_2
+        class_id: 1
+        confidence: 0.860554874
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 254.0
+        - 600.0
+        image_size:
+        - 254
+        - 600
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.819'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_187_jpeg_jpg.rf.bd122abdbb4e77a5da6ae496141fcdb8.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_187_jpeg_jpg.rf.bd122abdbb4e77a5da6ae496141fcdb8.txt
+      image: images/test/test_000013_usd_total_2Dollar_187_jpeg_jpg_rf_bd122abdbb4e77a5da6ae496141fcdb8_19574a626e82.jpg
+      label: labels/test/test_000013_usd_total_2Dollar_187_jpeg_jpg_rf_bd122abdbb4e77a5da6ae496141fcdb8_19574a626e82.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 317
+        class: USD_2
+        class_id: 1
+        confidence: 0.363428444
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 97.012
+        - 155.704
+        - 252.302
+        image_size:
+        - 156
+        - 350
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:1.000'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_18_jpeg_jpg.rf.18ea9d9681d5796958950e2ddce42da9.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_18_jpeg_jpg.rf.18ea9d9681d5796958950e2ddce42da9.txt
+      image: images/test/test_000014_usd_total_2Dollar_18_jpeg_jpg_rf_18ea9d9681d5796958950e2ddce42da9_2a58fe11e227.jpg
+      label: labels/test/test_000014_usd_total_2Dollar_18_jpeg_jpg_rf_18ea9d9681d5796958950e2ddce42da9_2a58fe11e227.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 310
+        class: USD_2
+        class_id: 1
+        confidence: 0.621926367
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_5
+        xyxy:
+        - 340.983
+        - 0.0
+        - 629.398
+        - 577.737
+        image_size:
+        - 678
+        - 580
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.537'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_191_jpeg_jpg.rf.c0f805d06629cbabff545a93db6a2352.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_191_jpeg_jpg.rf.c0f805d06629cbabff545a93db6a2352.txt
+      image: images/test/test_000015_usd_total_2Dollar_191_jpeg_jpg_rf_c0f805d06629cbabff545a93db6a2352_8088535694db.jpg
+      label: labels/test/test_000015_usd_total_2Dollar_191_jpeg_jpg_rf_c0f805d06629cbabff545a93db6a2352_8088535694db.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 304
+        class: USD_2
+        class_id: 1
+        confidence: 0.820014834
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 368.0
+        - 871.51
+        image_size:
+        - 368
+        - 876
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.918'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_192_jpeg_jpg.rf.8c9efb433f35f1eeb1978a96cd518268.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_192_jpeg_jpg.rf.8c9efb433f35f1eeb1978a96cd518268.txt
+      image: images/test/test_000016_usd_total_2Dollar_192_jpeg_jpg_rf_8c9efb433f35f1eeb1978a96cd518268_aecb372b729a.jpg
+      label: labels/test/test_000016_usd_total_2Dollar_192_jpeg_jpg_rf_8c9efb433f35f1eeb1978a96cd518268_aecb372b729a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 316
+        class: USD_2
+        class_id: 1
+        confidence: 0.405517489
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 1.868
+        - 43.359
+        - 453.22
+        - 248.915
+        image_size:
+        - 455
+        - 542
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=target:0.740'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_198_jpeg_jpg.rf.b3fff80504e9da77503ee9f8fe195344.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_198_jpeg_jpg.rf.b3fff80504e9da77503ee9f8fe195344.txt
+      image: images/test/test_000017_usd_total_2Dollar_198_jpeg_jpg_rf_b3fff80504e9da77503ee9f8fe195344_5021e62c2d44.jpg
+      label: labels/test/test_000017_usd_total_2Dollar_198_jpeg_jpg_rf_b3fff80504e9da77503ee9f8fe195344_5021e62c2d44.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 309
+        class: USD_2
+        class_id: 1
+        confidence: 0.638512671
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 1.225
+        - 202.815
+        - 261.128
+        - 379.831
+        image_size:
+        - 262
+        - 500
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.946'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_28_jpeg_jpg.rf.43d50aa1de626cdf14fcf59d2507a294.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_28_jpeg_jpg.rf.43d50aa1de626cdf14fcf59d2507a294.txt
+      image: images/test/test_000018_usd_total_2Dollar_28_jpeg_jpg_rf_43d50aa1de626cdf14fcf59d2507a294_eb29d71c8d74.jpg
+      label: labels/test/test_000018_usd_total_2Dollar_28_jpeg_jpg_rf_43d50aa1de626cdf14fcf59d2507a294_eb29d71c8d74.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 303
+        class: USD_2
+        class_id: 1
+        confidence: 0.827636123
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 0.0
+        - 550.0
+        - 243.786
+        image_size:
+        - 550
+        - 412
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.750'
+    - split: test
+      source_image: data/cashsnap_v1/images/test/usd_total_2Dollar_31_jpeg_jpg.rf.d6c7d62cd949b5fe18ba92559b1aa589.jpg
+      source_label: data/cashsnap_v1/labels/test/usd_total_2Dollar_31_jpeg_jpg.rf.d6c7d62cd949b5fe18ba92559b1aa589.txt
+      image: images/test/test_000019_usd_total_2Dollar_31_jpeg_jpg_rf_d6c7d62cd949b5fe18ba92559b1aa589_1dfd379055c5.jpg
+      label: labels/test/test_000019_usd_total_2Dollar_31_jpeg_jpg_rf_d6c7d62cd949b5fe18ba92559b1aa589_1dfd379055c5.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 323
+        class: USD_2
+        class_id: 1
+        confidence: 0.18882677
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 21.723
+        - 0.648
+        - 165.005
+        - 313.549
+        image_size:
+        - 360
+        - 315
+        clamped: false
+        review_notes: 'accepted_box from source-name USD_2 pseudo-label policy: filename
+          contains usd_total_2Dollar, top detector proposal, confidence>=0.15, 0.25<=area_ratio<=1.02;
+          overlay samples inspected, diagnostic not hand-reviewed per row. split=test;
+          original_note=Source filename contains usd_total_2Dollar; top detector proposal
+          for USD_2 pseudo-label review gate=reject:0.860'

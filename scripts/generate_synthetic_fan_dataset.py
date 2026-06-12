@@ -711,17 +711,25 @@ def visible_obb_line(mask: np.ndarray, class_name: str, image_size: int) -> str 
     return f"{CLASS_TO_ID[class_name]} {coords}"
 
 
-def prepared_note(ref: NoteRef, cache: dict[Path, Image.Image]) -> Image.Image:
-    if ref.path not in cache:
-        cache[ref.path] = note_alpha(Image.open(ref.path)).copy()
-    return cache[ref.path].copy()
+def prepared_note(ref: NoteRef, cache: dict[tuple[Path, str], Image.Image], source_alpha_policy: str) -> Image.Image:
+    key = (ref.path, source_alpha_policy)
+    if key not in cache:
+        with Image.open(ref.path) as raw:
+            source = ImageOps.exif_transpose(raw)
+            if source_alpha_policy == "opaque":
+                note = source.convert("RGBA")
+                note.putalpha(255)
+            else:
+                note = note_alpha(source)
+        cache[key] = note.copy()
+    return cache[key].copy()
 
 
 def make_scene(
     refs: list[NoteRef],
     image_size: int,
     rng: random.Random,
-    note_cache: dict[Path, Image.Image] | None = None,
+    note_cache: dict[tuple[Path, str], Image.Image] | None = None,
     min_notes: int = 4,
     max_notes: int = 12,
     layout_modes: list[str] | None = None,
@@ -738,6 +746,7 @@ def make_scene(
     drop_unknown_denom_labels: bool = False,
     balance_classes: bool = False,
     backgrounds: list[BackgroundRef] | None = None,
+    source_alpha_policy: str = "auto",
     perspective_probability: float = 0.35,
     camera_geom_probability: float = 0.0,
     lens_distort_probability: float = 0.0,
@@ -803,7 +812,11 @@ def make_scene(
             ref = rng.choice(refs_by_class[rng.choice(balanced_classes)])
         else:
             ref = rng.choice(refs)
-        note = prepared_note(ref, note_cache) if note_cache is not None else note_alpha(Image.open(ref.path))
+        if note_cache is not None:
+            note = prepared_note(ref, note_cache, source_alpha_policy)
+        else:
+            with Image.open(ref.path) as raw:
+                note = note_alpha(ImageOps.exif_transpose(raw))
         if layout_mode == "radial_slice":
             target_w = int(image_size * rng.uniform(0.72, 1.02))
         elif layout_mode == "strip_fan":
@@ -1112,6 +1125,15 @@ def main() -> None:
     parser.add_argument("--thin-strip-min-frac", type=float, default=0.07, help="Minimum source-note width kept for thin_radial_slice crops.")
     parser.add_argument("--thin-strip-max-frac", type=float, default=0.20, help="Maximum source-note width kept for thin_radial_slice crops.")
     parser.add_argument("--note-shadow-prob", type=float, default=0.0, help="Probability that each upper note casts a soft contact shadow.")
+    parser.add_argument(
+        "--source-alpha-policy",
+        choices=["auto", "opaque"],
+        default="auto",
+        help=(
+            "auto extracts note alpha for clean cutouts/scans; opaque keeps each source crop as an intact rectangle, "
+            "which is safer for real detector/crop-classifier tiles."
+        ),
+    )
     parser.add_argument("--balance-classes", action="store_true", help="Sample a class uniformly first, then sample a reference asset from that class.")
     parser.add_argument("--perspective-prob", type=float, default=0.35, help="Probability of applying a mild local perspective warp to each note.")
     parser.add_argument("--camera-geom-prob", type=float, default=0.0, help="Probability of applying mild whole-scene affine camera framing to the RGB image and ID mask before labels are exported.")
@@ -1198,7 +1220,7 @@ def main() -> None:
 
     counts = {"train": 0, "val": 0, "test": 0}
     boxes = {"train": 0, "val": 0, "test": 0}
-    note_cache: dict[Path, Image.Image] = {}
+    note_cache: dict[tuple[Path, str], Image.Image] = {}
     i = 0
     attempts = 0
     while i < args.count:
@@ -1224,6 +1246,7 @@ def main() -> None:
             drop_unknown_denom_labels=args.drop_unknown_denom_labels,
             balance_classes=args.balance_classes,
             backgrounds=backgrounds,
+            source_alpha_policy=args.source_alpha_policy,
             perspective_probability=args.perspective_prob,
             camera_geom_probability=args.camera_geom_prob,
             lens_distort_probability=args.lens_distort_prob,

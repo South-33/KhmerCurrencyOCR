@@ -1,0 +1,176 @@
+path: ../..
+train: configs/generated_lists/official21/cashsnap_official21_usd2_pseudo232_plus_empty234ctrl_v1_train.txt
+val: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/val
+test: data/processed/roboflow_khmer_us_currency_official21_partial_bridge_v1/images/test
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_bridge:
+  schema: roboflow_khmer_us_currency_bridge_v1
+  class_scope: official
+  source_roots:
+  - data/raw_datasets/roboflow_khmer_us_currency_v10
+  - data/raw_datasets/roboflow_khmer_us_currency
+  unsupported_policy: exclude_image
+  dedupe: true
+cashsnap_sources:
+  train_mix_base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  train_mix_extra_sources: &id001
+  - runs/cashsnap/missing_schema_usd2_filename_pseudolabel_v1/usd2_filename_conf015_area025_pseudo_official21_v1/materialized/images/train
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_v1_train.txt
+  extra_sources: *id001
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_min_label_area: null
+  extra_max_label_area: null
+  extra_edge_margin: null
+  extra_single_label_only: true
+  extra_max_per_class: null
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 0
+  out_extra_list: configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1_extra.txt
+  extra_names: {}
+  recursive: false
+  base_images: 4365
+  base_unique_images: 4365
+  extra_images_before_regex_filter: 232
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_geometry_filter: 232
+  extra_geometry_filtered_out_images: 0
+  extra_geometry_filter:
+    min_label_area: null
+    max_label_area: null
+    edge_margin: null
+    single_label_only: true
+    kept_label_area_range:
+    - 0.320978
+    - 1.0
+    kept_edge_margin_range:
+    - -1.0e-06
+    - 0.122103
+  extra_images_before_class_cap: 232
+  extra_class_cap_sampled_out_images: 0
+  extra_class_cap_counts: {}
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 232
+  extra_images: 232
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 4597
+  combined_duplicate_images_removed: 0
+  added_images: 232
+  extra_class_counts:
+    USD_2: 232
+cashsnap_policy:
+  intended_use: Matched row-count control for USD1 contrast calibration; appends 234
+    repeated empty-label rows to the USD2 pseudo232 mix.
+  promotion_rule: Control only; compare against USD2 pseudo232 plus USD1 repeat candidate.
+cashsnap_empty_repeat_control:
+  schema: cashsnap_yolo_empty_repeat_control_config_v1
+  created_utc: '2026-06-11T02:27:45.665298+00:00'
+  tag: official21_usd2_pseudo232_plus_empty234ctrl_v1
+  base_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1.yaml
+  control_pool_config: configs/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1_train.txt
+  control_pool_sources:
+  - configs/generated_lists/official21/cashsnap_official21_roboflow_plus_current_accept6_cap180_empty360_plus_usd2_filename_pseudo232_v1_train.txt
+  out_config: configs/official21/cashsnap_official21_usd2_pseudo232_plus_empty234ctrl_v1.yaml
+  out_list: configs/generated_lists/official21/cashsnap_official21_usd2_pseudo232_plus_empty234ctrl_v1_train.txt
+  seed: 0
+  requested_empty_rows: 234
+  available_empty_rows: 360
+  selected_empty_rows: 234
+  selected_unique_rows: 234
+  selected_sample:
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000040_asian_currency_IMG_4505_jpg_rf_a4ba435ffd38cb317fea6bd944d9ea0f_f5be42f65e1b.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000117_asian_currency_IMG_4535_jpg_rf_45f66b673be9ce2c72cafecbaf1e56a0_0d1c454051b1.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000124_asian_currency_IMG_4537_jpg_rf_afdfee423fda85dcd78f7f121f4203ba_671024740c82.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000132_asian_currency_IMG_4542_jpg_rf_10663c7625da8e80771b489bd18313c8_c0d7a6790366.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000141_asian_currency_IMG_4545_jpg_rf_1bab840eddae9843950705ae96f5a49f_5d337a9222f6.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000186_asian_currency_IMG_4566_jpg_rf_3a25782302cfb92055bec938655829b4_60b5ff224151.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000225_asian_currency_IMG_4586_jpg_rf_18ff0f5b2c23a789c2093b55f80799ec_976bdf98c7a3.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000248_asian_currency_IMG_4598_jpg_rf_d2ac221c84ab574cfb53c2f1580afa74_25dc251d4738.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000249_asian_currency_IMG_4602_jpg_rf_9193b3558224ce2a488642a82a4b334c_247343d29b12.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000255_asian_currency_IMG_4605_jpg_rf_1e4d0d57571d7c0b1aecc4c89f22a178_b0dfa82cb021.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000266_asian_currency_IMG_4608_jpg_rf_99cb9e4eb3fbf6633703096e875546e1_d18751291da2.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000273_asian_currency_IMG_4611_jpg_rf_76973068cf046d9ab2fd678b471cfd6e_44bbc81af89f.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000360_asian_currency_IMG_4649_jpg_rf_72f8cfcf1eaff0eb25e13bdd1e8ab82a_8fd384ac3fc3.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000371_asian_currency_IMG_4653_jpg_rf_86fe96f7c925c84c66633d23936994da_e70568e0d3c3.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000402_asian_currency_IMG_4666_jpg_rf_688b1a5810e94aa3cdac32d5ea23b64a_4db6134c952b.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000418_asian_currency_IMG_4674_jpg_rf_9f690a24ca0d84c68cc1dc1a64e1f68b_84f3b52c5a71.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000432_asian_currency_IMG_4682_jpg_rf_7debf1cb937a006861b233867931563c_10a8103c56a4.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000490_asian_currency_IMG_4707_jpg_rf_6f9f00a402883d7c41e657d47cb384e6_99f8ef0487a9.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000500_asian_currency_IMG_4712_jpg_rf_66fb9cb4574af3fe089cf31dc42db0c4_de28a025f507.jpg
+  - runs/cashsnap/real_data_label_audit_v1/khr100_schema_expansion_annotation_proposals_v1/official21_current_core13_accept6_trainvaltest_bridge_v1/materialized/images/train/train_000502_asian_currency_IMG_4713_jpg_rf_ae543db53c5b9da4be56eb8ff82635a4_37d10885a071.jpg
+  base_rows: 4597
+  base_unique_rows: 4597
+  combined_rows: 4831
+  combined_unique_rows: 4597
+  combined_duplicate_rows: 234
+  base_empty_rows: 360
+  selected_empty_label_rows: 234
+  combined_empty_rows: 594
+  base_class_counts:
+    USD_1: 237
+    USD_2: 232
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  selected_class_counts: {}
+  combined_class_counts:
+    USD_1: 237
+    USD_2: 232
+    USD_5: 343
+    USD_10: 348
+    USD_20: 236
+    USD_50: 229
+    USD_100: 343
+    KHR_100: 177
+    KHR_500: 374
+    KHR_1000: 361
+    KHR_2000: 323
+    KHR_5000: 343
+    KHR_10000: 414
+    KHR_20000: 184
+    KHR_50000: 175
+  intended_use: Matched row-count control for USD1 contrast calibration; appends 234
+    repeated empty-label rows to the USD2 pseudo232 mix.
+  promotion_rule: Control only; compare against USD2 pseudo232 plus USD1 repeat candidate.

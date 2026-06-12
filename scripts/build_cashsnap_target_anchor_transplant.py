@@ -78,6 +78,7 @@ class Background:
     label_path: Path
     source: str
     source_image_path: Path | None = None
+    avoid_xyxy_norm: tuple[float, float, float, float] | None = None
 
 
 @dataclass(frozen=True)
@@ -238,11 +239,52 @@ def load_manifest_images(manifest_path: Path) -> list[Path]:
     return unique
 
 
-def load_manifest_backgrounds(manifest_path: Path, cashsnap_root: Path, max_source_boxes: int) -> list[Background]:
+def load_background_avoid_boxes(path: Path | None) -> dict[Path, tuple[float, float, float, float]]:
+    if path is None:
+        return {}
+    if not path.exists():
+        raise SystemExit(f"Missing background avoid-box manifest: {repo_rel(path)}")
+    boxes: dict[Path, tuple[float, float, float, float]] = {}
+    with path.open("r", newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        required = {"image", "x1", "y1", "x2", "y2"}
+        missing = required - set(reader.fieldnames or [])
+        if missing:
+            raise SystemExit(f"{repo_rel(path)} missing columns: {', '.join(sorted(missing))}")
+        for row_no, row in enumerate(reader, start=2):
+            image_path = repo_path(row["image"]).resolve()
+            values = [float(row[key]) for key in ("x1", "y1", "x2", "y2")]
+            if values[2] <= values[0] or values[3] <= values[1]:
+                raise SystemExit(f"{repo_rel(path)}:{row_no} invalid avoid box")
+            if max(values) > 1.0:
+                with Image.open(image_path) as image:
+                    width, height = image.size
+                values = [
+                    values[0] / max(1, width),
+                    values[1] / max(1, height),
+                    values[2] / max(1, width),
+                    values[3] / max(1, height),
+                ]
+            if min(values) < 0.0 or max(values) > 1.0:
+                raise SystemExit(f"{repo_rel(path)}:{row_no} avoid box must be normalized or image-pixel bounded")
+            boxes[image_path] = (values[0], values[1], values[2], values[3])
+    if not boxes:
+        raise SystemExit(f"No avoid boxes found in {repo_rel(path)}")
+    return boxes
+
+
+def load_manifest_backgrounds(
+    manifest_path: Path,
+    cashsnap_root: Path,
+    max_source_boxes: int,
+    avoid_boxes: dict[Path, tuple[float, float, float, float]] | None = None,
+) -> list[Background]:
+    avoid_boxes = avoid_boxes or {}
     backgrounds: list[Background] = []
     for image_path in load_manifest_images(manifest_path):
         if image_path.suffix.lower() not in IMAGE_EXTS:
             continue
+        resolved_image = image_path.resolve()
         label_path = label_path_for_image(image_path, cashsnap_root)
         if max_source_boxes > 0 and len(label_rows(label_path)) > max_source_boxes:
             continue
@@ -251,7 +293,8 @@ def load_manifest_backgrounds(manifest_path: Path, cashsnap_root: Path, max_sour
                 image_path=image_path,
                 label_path=label_path,
                 source="train_anchor_positive",
-                source_image_path=image_path.resolve(),
+                source_image_path=resolved_image,
+                avoid_xyxy_norm=avoid_boxes.get(resolved_image),
             )
         )
     if not backgrounds:
@@ -374,6 +417,96 @@ def sample_xyxy(sample: BoxSample, image_size: tuple[int, int], pad_fraction: fl
     x2 = max(x1 + 1, min(image_width, x2))
     y2 = max(y1 + 1, min(image_height, y2))
     return x1, y1, x2, y2
+
+
+def rect_area(box: tuple[float, float, float, float]) -> float:
+    x1, y1, x2, y2 = box
+    return max(0.0, x2 - x1) * max(0.0, y2 - y1)
+
+
+def rect_intersection_area(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> float:
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    ix1 = max(ax1, bx1)
+    iy1 = max(ay1, by1)
+    ix2 = min(ax2, bx2)
+    iy2 = min(ay2, by2)
+    return max(0.0, ix2 - ix1) * max(0.0, iy2 - iy1)
+
+
+def avoid_overlap_metadata(
+    avoid_xyxy_norm: tuple[float, float, float, float] | None,
+    render_xyxy: tuple[float, float, float, float],
+    image_size: tuple[int, int],
+) -> dict[str, Any]:
+    if avoid_xyxy_norm is None:
+        return {}
+    image_width, image_height = image_size
+    avoid_xyxy = (
+        avoid_xyxy_norm[0] * image_width,
+        avoid_xyxy_norm[1] * image_height,
+        avoid_xyxy_norm[2] * image_width,
+        avoid_xyxy_norm[3] * image_height,
+    )
+    overlap = rect_intersection_area(avoid_xyxy, render_xyxy)
+    avoid_area = rect_area(avoid_xyxy)
+    render_area = rect_area(render_xyxy)
+    union = avoid_area + render_area - overlap
+    return {
+        "background_avoid_xyxy": [round(float(value), 2) for value in avoid_xyxy],
+        "background_avoid_overlap_area_px": round(float(overlap), 3),
+        "background_avoid_overlap_over_avoid": rounded_ratio(overlap, avoid_area),
+        "background_avoid_overlap_over_foreground_aabb": rounded_ratio(overlap, render_area),
+        "background_avoid_iou": rounded_ratio(overlap, union),
+    }
+
+
+def free_side_center(
+    avoid_xyxy_norm: tuple[float, float, float, float] | None,
+    image_size: tuple[int, int],
+    box_size: tuple[float, float],
+    rng: random.Random,
+    margin_px: float,
+) -> tuple[float, float] | None:
+    if avoid_xyxy_norm is None:
+        return None
+    image_width, image_height = image_size
+    box_w, box_h = box_size
+    margin = max(0.0, float(margin_px))
+    avoid = (
+        avoid_xyxy_norm[0] * image_width,
+        avoid_xyxy_norm[1] * image_height,
+        avoid_xyxy_norm[2] * image_width,
+        avoid_xyxy_norm[3] * image_height,
+    )
+    half_w = box_w / 2.0
+    half_h = box_h / 2.0
+    full_x = (margin + half_w, image_width - margin - half_w)
+    full_y = (margin + half_h, image_height - margin - half_h)
+    candidates = [
+        (full_x[0], avoid[0] - margin - half_w, full_y[0], full_y[1]),
+        (avoid[2] + margin + half_w, full_x[1], full_y[0], full_y[1]),
+        (full_x[0], full_x[1], full_y[0], avoid[1] - margin - half_h),
+        (full_x[0], full_x[1], avoid[3] + margin + half_h, full_y[1]),
+    ]
+    valid: list[tuple[float, tuple[float, float, float, float]]] = []
+    for x1, x2, y1, y2 in candidates:
+        if x2 <= x1 or y2 <= y1:
+            continue
+        valid.append(((x2 - x1) * (y2 - y1), (x1, x2, y1, y2)))
+    if not valid:
+        return None
+    total_area = sum(area for area, _ in valid)
+    pick = rng.uniform(0.0, total_area)
+    cursor = 0.0
+    chosen = valid[-1][1]
+    for area, region in valid:
+        cursor += area
+        if pick <= cursor:
+            chosen = region
+            break
+    x1, x2, y1, y2 = chosen
+    return rng.uniform(x1, x2), rng.uniform(y1, y2)
 
 
 def crop_sharpness(crop: Image.Image) -> float:
@@ -552,10 +685,10 @@ def load_assets(
     return dict(assets)
 
 
-def choose_class(rng: random.Random, counts: Counter[str]) -> str:
+def choose_class(rng: random.Random, counts: Counter[str], class_names: list[str]) -> str:
     # Keep exposure balanced while preserving the global class-id order.
-    min_count = min(counts.get(name, 0) for name in CLASS_NAMES)
-    candidates = [name for name in CLASS_NAMES if counts.get(name, 0) == min_count]
+    min_count = min(counts.get(name, 0) for name in class_names)
+    candidates = [name for name in class_names if counts.get(name, 0) == min_count]
     return rng.choice(candidates)
 
 
@@ -1085,21 +1218,170 @@ def poisson_composite(
     return out
 
 
-def add_sensor_noise(image: Image.Image, rng: random.Random) -> Image.Image:
+def add_sensor_noise(image: Image.Image, rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
+    meta: dict[str, Any] = {"camera_isp_policy": "legacy"}
     arr = np.asarray(image.convert("RGB")).astype(np.float32)
     if rng.random() < 0.75:
-        noise = np.random.default_rng(rng.randint(0, 2**31 - 1)).normal(0, rng.uniform(1.5, 6.5), arr.shape)
+        sigma = rng.uniform(1.5, 6.5)
+        noise = np.random.default_rng(rng.randint(0, 2**31 - 1)).normal(0, sigma, arr.shape)
         arr += noise
+        meta["legacy_noise_sigma"] = round(float(sigma), 3)
     if rng.random() < 0.35:
         gain = np.array([rng.uniform(0.93, 1.08), rng.uniform(0.93, 1.08), rng.uniform(0.93, 1.08)])
         arr *= gain
+        meta["legacy_rgb_gain"] = [round(float(value), 4) for value in gain]
     arr = np.clip(arr, 0, 255).astype(np.uint8)
     out = Image.fromarray(arr, "RGB")
     if rng.random() < 0.30:
-        out = out.filter(ImageFilter.GaussianBlur(radius=rng.uniform(0.15, 0.55)))
+        radius = rng.uniform(0.15, 0.55)
+        out = out.filter(ImageFilter.GaussianBlur(radius=radius))
+        meta["legacy_blur_radius"] = round(float(radius), 3)
     if rng.random() < 0.20:
-        out = ImageOps.autocontrast(out, cutoff=rng.uniform(0.0, 1.2))
+        cutoff = rng.uniform(0.0, 1.2)
+        out = ImageOps.autocontrast(out, cutoff=cutoff)
+        meta["legacy_autocontrast_cutoff"] = round(float(cutoff), 3)
+    return out, meta
+
+
+def shift_channel(channel: np.ndarray, dx: int, dy: int) -> np.ndarray:
+    if dx == 0 and dy == 0:
+        return channel
+    out = channel.copy()
+    height, width = channel.shape
+    src_x1 = max(0, -dx)
+    src_x2 = min(width, width - dx)
+    src_y1 = max(0, -dy)
+    src_y2 = min(height, height - dy)
+    dst_x1 = max(0, dx)
+    dst_x2 = min(width, width + dx)
+    dst_y1 = max(0, dy)
+    dst_y2 = min(height, height + dy)
+    if src_x1 < src_x2 and src_y1 < src_y2:
+        out[dst_y1:dst_y2, dst_x1:dst_x2] = channel[src_y1:src_y2, src_x1:src_x2]
     return out
+
+
+def jpeg_roundtrip_rgb(
+    image: Image.Image,
+    rng: random.Random,
+    min_quality: int,
+    max_quality: int,
+) -> tuple[Image.Image, dict[str, Any]]:
+    quality = rng.randint(min_quality, max_quality)
+    subsampling = rng.choice([0, 1, 2])
+    buffer = io.BytesIO()
+    image.convert("RGB").save(buffer, format="JPEG", quality=quality, subsampling=subsampling)
+    buffer.seek(0)
+    with Image.open(buffer).convert("RGB") as compressed:
+        out = compressed.copy()
+    return out, {"jpeg_quality": quality, "jpeg_subsampling": subsampling}
+
+
+def motion_blur(image: Image.Image, rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
+    kernel_size = rng.choice([3, 5, 7])
+    angle = rng.uniform(-25.0, 25.0)
+    kernel = np.zeros((kernel_size, kernel_size), dtype=np.float32)
+    kernel[kernel_size // 2, :] = 1.0
+    matrix = cv2.getRotationMatrix2D((kernel_size / 2 - 0.5, kernel_size / 2 - 0.5), angle, 1.0)
+    kernel = cv2.warpAffine(kernel, matrix, (kernel_size, kernel_size))
+    kernel_sum = float(kernel.sum())
+    if kernel_sum <= 0:
+        return image, {}
+    kernel /= kernel_sum
+    arr = np.asarray(image.convert("RGB"))
+    blurred = cv2.filter2D(arr, -1, kernel)
+    return Image.fromarray(blurred, "RGB"), {
+        "motion_blur_kernel": kernel_size,
+        "motion_blur_angle": round(float(angle), 3),
+    }
+
+
+def resize_roundtrip(image: Image.Image, rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
+    width, height = image.size
+    scale = rng.uniform(0.58, 0.92)
+    small_size = (max(16, int(width * scale)), max(16, int(height * scale)))
+    down_filter = rng.choice([Image.Resampling.BILINEAR, Image.Resampling.BICUBIC, Image.Resampling.LANCZOS])
+    up_filter = rng.choice([Image.Resampling.BILINEAR, Image.Resampling.BICUBIC])
+    out = image.resize(small_size, down_filter).resize((width, height), up_filter)
+    return out, {"resize_roundtrip_scale": round(float(scale), 4)}
+
+
+def apply_phone_isp_v1(image: Image.Image, rng: random.Random) -> tuple[Image.Image, dict[str, Any]]:
+    np_rng = np.random.default_rng(rng.randint(0, 2**31 - 1))
+    arr = np.asarray(image.convert("RGB")).astype(np.float32)
+
+    exposure = rng.uniform(0.82, 1.24)
+    black_offset = rng.uniform(-8.0, 6.0)
+    wb_gain = np.array(
+        [rng.uniform(0.88, 1.14), rng.uniform(0.92, 1.08), rng.uniform(0.86, 1.14)],
+        dtype=np.float32,
+    )
+    gamma = rng.uniform(0.86, 1.18)
+    arr = (arr + black_offset) * exposure * wb_gain
+    arr = np.clip(arr, 0, 255)
+    arr = 255.0 * np.power(np.clip(arr / 255.0, 0, 1), gamma)
+
+    luma = (0.2126 * arr[:, :, 0] + 0.7152 * arr[:, :, 1] + 0.0722 * arr[:, :, 2]) / 255.0
+    noise_sigma = rng.uniform(2.0, 8.5)
+    luma_weight = 0.70 + 0.75 * (1.0 - luma)
+    arr += np_rng.normal(0.0, noise_sigma, arr.shape) * luma_weight[:, :, None]
+
+    if rng.random() < 0.42:
+        red_dx, red_dy = rng.choice([-1, 0, 1]), rng.choice([-1, 0, 1])
+        blue_dx, blue_dy = rng.choice([-1, 0, 1]), rng.choice([-1, 0, 1])
+    else:
+        red_dx = red_dy = blue_dx = blue_dy = 0
+    arr_u8 = np.clip(arr, 0, 255).astype(np.uint8)
+    if any(value != 0 for value in (red_dx, red_dy, blue_dx, blue_dy)):
+        arr_u8[:, :, 0] = shift_channel(arr_u8[:, :, 0], red_dx, red_dy)
+        arr_u8[:, :, 2] = shift_channel(arr_u8[:, :, 2], blue_dx, blue_dy)
+
+    out = Image.fromarray(arr_u8, "RGB")
+    meta: dict[str, Any] = {
+        "camera_isp_policy": "phone_isp_v1",
+        "phone_isp_exposure": round(float(exposure), 4),
+        "phone_isp_black_offset": round(float(black_offset), 3),
+        "phone_isp_wb_gain": [round(float(value), 4) for value in wb_gain],
+        "phone_isp_gamma": round(float(gamma), 4),
+        "phone_isp_noise_sigma": round(float(noise_sigma), 3),
+    }
+    if any(value != 0 for value in (red_dx, red_dy, blue_dx, blue_dy)):
+        meta["phone_isp_red_shift_xy"] = [red_dx, red_dy]
+        meta["phone_isp_blue_shift_xy"] = [blue_dx, blue_dy]
+
+    if rng.random() < 0.46:
+        radius = rng.uniform(0.18, 0.95)
+        out = out.filter(ImageFilter.GaussianBlur(radius=radius))
+        meta["phone_isp_gaussian_blur_radius"] = round(float(radius), 3)
+    elif rng.random() < 0.22:
+        out, blur_meta = motion_blur(out, rng)
+        meta.update({f"phone_isp_{key}": value for key, value in blur_meta.items()})
+
+    if rng.random() < 0.46:
+        sharpness = rng.uniform(0.80, 1.34)
+        out = ImageEnhance.Sharpness(out).enhance(sharpness)
+        meta["phone_isp_sharpness"] = round(float(sharpness), 3)
+    if rng.random() < 0.54:
+        out, resize_meta = resize_roundtrip(out, rng)
+        meta.update({f"phone_isp_{key}": value for key, value in resize_meta.items()})
+    if rng.random() < 0.86:
+        out, jpeg_meta = jpeg_roundtrip_rgb(out, rng, 46, 92)
+        meta.update({f"phone_isp_{key}": value for key, value in jpeg_meta.items()})
+    if rng.random() < 0.22:
+        cutoff = rng.uniform(0.0, 1.4)
+        out = ImageOps.autocontrast(out, cutoff=cutoff)
+        meta["phone_isp_autocontrast_cutoff"] = round(float(cutoff), 3)
+    return out, meta
+
+
+def apply_camera_isp(image: Image.Image, rng: random.Random, policy: str) -> tuple[Image.Image, dict[str, Any]]:
+    if policy == "none":
+        return image.convert("RGB"), {"camera_isp_policy": "none"}
+    if policy == "legacy":
+        return add_sensor_noise(image, rng)
+    if policy == "phone_isp_v1":
+        return apply_phone_isp_v1(image, rng)
+    raise ValueError(f"unsupported camera ISP policy: {policy}")
 
 
 def mask_to_label(mask: np.ndarray, class_name: str) -> str | None:
@@ -1135,6 +1417,7 @@ def render_one(
     box_scale_jitter: float,
     geometry_size_jitter: float,
     position_jitter_fraction: float,
+    background_avoid_placement_policy: str,
     warp_alpha_feather_px: float,
     tone_match_policy: str,
     inpaint_under_foreground_px: int,
@@ -1147,7 +1430,11 @@ def render_one(
     min_render_width_px: float,
     min_render_height_px: float,
     min_render_area_px: float,
+    min_render_margin_px: float,
     inpaint_metadata_limits: dict[str, float],
+    max_background_avoid_overlap_fraction: float,
+    max_background_avoid_iou: float,
+    camera_isp_policy: str,
 ) -> tuple[Image.Image, str, dict[str, Any]] | None:
     with Image.open(background.image_path).convert("RGB") as image:
         base = image.copy()
@@ -1185,6 +1472,17 @@ def render_one(
         geometry_size_jitter,
         position_jitter_fraction,
     )
+    if background_avoid_placement_policy == "free_side" and background.avoid_xyxy_norm is not None:
+        free_center = free_side_center(
+            background.avoid_xyxy_norm,
+            (width, height),
+            (box_w, box_h),
+            rng,
+            max(8.0, min_render_margin_px),
+        )
+        if free_center is None:
+            return None
+        cx, cy = free_center
     angle = rng.gauss(0, 8.0)
     if rng.random() < 0.18:
         angle += rng.choice([-1, 1]) * rng.uniform(10, 28)
@@ -1198,6 +1496,21 @@ def render_one(
     quad = jitter_quad(quad, rng, amount=min(box_w, box_h) * rng.uniform(0.0, 0.055))
     if pose_policy == "aabb_aspect_repair" or box_scale != 1.0:
         quad = shift_quad_inside(quad, (width, height))
+    render_xyxy = (
+        float(quad[:, 0].min()),
+        float(quad[:, 1].min()),
+        float(quad[:, 0].max()),
+        float(quad[:, 1].max()),
+    )
+    avoid_metadata = avoid_overlap_metadata(background.avoid_xyxy_norm, render_xyxy, (width, height))
+    if avoid_metadata:
+        if (
+            max_background_avoid_overlap_fraction > 0
+            and float(avoid_metadata["background_avoid_overlap_over_avoid"]) > max_background_avoid_overlap_fraction
+        ):
+            return None
+        if max_background_avoid_iou > 0 and float(avoid_metadata["background_avoid_iou"]) > max_background_avoid_iou:
+            return None
     x1 = max(0, int(np.floor(quad[:, 0].min())) - 12)
     y1 = max(0, int(np.floor(quad[:, 1].min())) - 12)
     x2 = min(width, int(np.ceil(quad[:, 0].max())) + 12)
@@ -1232,7 +1545,13 @@ def render_one(
     else:
         base_arr = poisson_composite(base_arr, warped, composite_policy, rng)
     mask = alpha > 18
-    if min_render_short_px > 0 or min_render_width_px > 0 or min_render_height_px > 0 or min_render_area_px > 0:
+    if (
+        min_render_short_px > 0
+        or min_render_width_px > 0
+        or min_render_height_px > 0
+        or min_render_area_px > 0
+        or min_render_margin_px > 0
+    ):
         ys, xs = np.where(mask)
         if len(xs) == 0:
             return None
@@ -1247,10 +1566,17 @@ def render_one(
             return None
         if render_area < min_render_area_px:
             return None
+        if min_render_margin_px > 0:
+            left_margin = int(xs.min())
+            top_margin = int(ys.min())
+            right_margin = width - int(xs.max()) - 1
+            bottom_margin = height - int(ys.max()) - 1
+            if min(left_margin, top_margin, right_margin, bottom_margin) < min_render_margin_px:
+                return None
     label = mask_to_label(mask, asset.class_name)
     if label is None:
         return None
-    out = add_sensor_noise(Image.fromarray(base_arr, "RGB"), rng)
+    out, camera_isp_meta = apply_camera_isp(Image.fromarray(base_arr, "RGB"), rng, camera_isp_policy)
     metadata = {
         "class_name": asset.class_name,
         "asset": repo_rel(asset.path),
@@ -1276,6 +1602,7 @@ def render_one(
         "box_scale_jitter": round(float(box_scale_jitter), 4),
         "geometry_size_jitter": round(float(geometry_size_jitter), 4),
         "position_jitter_fraction": round(float(position_jitter_fraction), 4),
+        "background_avoid_placement_policy": background_avoid_placement_policy,
         "warp_alpha_feather_px": round(float(warp_alpha_feather_px), 4),
         "tone_match_policy": tone_match_policy,
         "inpaint_under_foreground_px": int(inpaint_under_foreground_px),
@@ -1291,7 +1618,10 @@ def render_one(
         "min_render_width_px": round(float(min_render_width_px), 3),
         "min_render_height_px": round(float(min_render_height_px), 3),
         "min_render_area_px": round(float(min_render_area_px), 3),
+        "min_render_margin_px": round(float(min_render_margin_px), 3),
+        **camera_isp_meta,
         **inpaint_metadata,
+        **avoid_metadata,
     }
     if foreground_style is not None:
         metadata.update(
@@ -1387,6 +1717,17 @@ def parse_args() -> argparse.Namespace:
         help="Optional manifest/list of train-positive source images to use as backgrounds.",
     )
     parser.add_argument(
+        "--background-avoid-boxes",
+        default="",
+        help="Optional CSV with image,x1,y1,x2,y2 boxes to avoid covering when placing the rendered target.",
+    )
+    parser.add_argument(
+        "--background-avoid-placement-policy",
+        default="none",
+        choices=("none", "free_side"),
+        help="When avoid boxes are present, optionally choose target centers from free side regions around the avoid box.",
+    )
+    parser.add_argument(
         "--background-max-source-boxes",
         type=int,
         default=0,
@@ -1456,6 +1797,12 @@ def parse_args() -> argparse.Namespace:
         default="background",
         choices=("background", "preserve_luma", "none"),
         help="Controls foreground tone matching against the local background patch before compositing.",
+    )
+    parser.add_argument(
+        "--camera-isp-policy",
+        default="legacy",
+        choices=("legacy", "phone_isp_v1", "none"),
+        help="Final full-image camera/ISP postprocess. legacy preserves historical sensor-noise behavior.",
     )
     parser.add_argument(
         "--shadow-policy",
@@ -1538,6 +1885,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-render-height-px", type=float, default=0.0)
     parser.add_argument("--min-render-area-px", type=float, default=0.0)
     parser.add_argument(
+        "--min-render-margin-px",
+        type=float,
+        default=0.0,
+        help="Reject/retry rows whose rendered target is closer than this many pixels to any image edge; <=0 disables.",
+    )
+    parser.add_argument(
         "--max-inpaint-source-box-fraction",
         type=float,
         default=0.0,
@@ -1567,12 +1920,29 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Reject/retry rows whose source box is poorly covered by the rendered note; <=0 disables.",
     )
+    parser.add_argument(
+        "--max-background-avoid-overlap-fraction",
+        type=float,
+        default=0.0,
+        help="Reject/retry rows whose target AABB covers more than this fraction of a background avoid box; <=0 disables.",
+    )
+    parser.add_argument(
+        "--max-background-avoid-iou",
+        type=float,
+        default=0.0,
+        help="Reject/retry rows whose target AABB has more than this IoU with a background avoid box; <=0 disables.",
+    )
     parser.add_argument("--out-root", default="data/synthetic/cashsnap_target_anchor_transplant_generated_probe_v1")
     parser.add_argument(
         "--out-config",
         default="configs/webgl_ablation/cashsnap_target_anchor_transplant_generated_probe_puresynth_realval_v1.yaml",
     )
     parser.add_argument("--per-class", type=int, default=96, help="Generated train positives per class.")
+    parser.add_argument(
+        "--class-include",
+        default="",
+        help="Comma-separated class names to render. Empty renders all schema classes.",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--clean", action="store_true")
     parser.add_argument("--status", default="in_circulation", help="Comma-separated asset status filter; empty allows all.")
@@ -1595,6 +1965,12 @@ def parse_args() -> argparse.Namespace:
         help="Use class-specific real geometry only when the class has at least this many samples.",
     )
     parser.add_argument("--preview-count", type=int, default=20)
+    parser.add_argument(
+        "--max-attempts-per-target",
+        type=int,
+        default=20,
+        help="Abort after this many render attempts per requested output row.",
+    )
     return parser.parse_args()
 
 
@@ -1604,12 +1980,17 @@ def main() -> None:
     cashsnap_root = repo_path(args.cashsnap_root)
     background_root = repo_path(args.background_root) if args.background_root else None
     background_manifest = repo_path(args.background_manifest) if args.background_manifest.strip() else None
+    background_avoid_boxes_path = (
+        repo_path(args.background_avoid_boxes) if args.background_avoid_boxes.strip() else None
+    )
     fallback_background_root = repo_path(args.fallback_background_root) if args.fallback_background_root.strip() else None
     manifest_path = repo_path(args.asset_manifest)
     out_root = repo_path(args.out_root)
     out_config = repo_path(args.out_config)
     if args.per_class <= 0:
         raise SystemExit("--per-class must be > 0")
+    if args.max_attempts_per_target <= 0:
+        raise SystemExit("--max-attempts-per-target must be > 0")
     if args.background_max_source_boxes < 0:
         raise SystemExit("--background-max-source-boxes must be >= 0")
     if args.min_class_source_backgrounds < 1:
@@ -1618,6 +1999,12 @@ def main() -> None:
     unknown_exclude_classes = sorted(source_background_exclude_classes - set(CLASS_NAMES))
     if unknown_exclude_classes:
         raise SystemExit(f"Unknown --source-background-exclude-class values: {', '.join(unknown_exclude_classes)}")
+    active_class_names = [value.strip() for value in args.class_include.split(",") if value.strip()]
+    if not active_class_names:
+        active_class_names = list(CLASS_NAMES)
+    unknown_active_classes = sorted(set(active_class_names) - set(CLASS_NAMES))
+    if unknown_active_classes:
+        raise SystemExit(f"Unknown --class-include values: {', '.join(unknown_active_classes)}")
     if args.clean:
         safe_clean(out_root)
     (out_root / "images" / "train").mkdir(parents=True, exist_ok=True)
@@ -1633,8 +2020,14 @@ def main() -> None:
         geometry_manifest_path,
         args.geometry_manifest_mode,
     )
+    background_avoid_boxes = load_background_avoid_boxes(background_avoid_boxes_path)
     if background_manifest is not None:
-        backgrounds = load_manifest_backgrounds(background_manifest, cashsnap_root, args.background_max_source_boxes)
+        backgrounds = load_manifest_backgrounds(
+            background_manifest,
+            cashsnap_root,
+            args.background_max_source_boxes,
+            background_avoid_boxes,
+        )
     elif background_root is not None:
         backgrounds = load_patch_backgrounds(background_root, args.background_split)
     else:
@@ -1667,8 +2060,15 @@ def main() -> None:
         raise SystemExit("--inpaint-source-box-pad-fraction must be >= 0")
     if args.min_render_short_px < 0:
         raise SystemExit("--min-render-short-px must be >= 0")
-    if args.min_render_width_px < 0 or args.min_render_height_px < 0 or args.min_render_area_px < 0:
-        raise SystemExit("--min-render-width/height/area-px must be >= 0")
+    if (
+        args.min_render_width_px < 0
+        or args.min_render_height_px < 0
+        or args.min_render_area_px < 0
+        or args.min_render_margin_px < 0
+    ):
+        raise SystemExit("--min-render-width/height/area/margin-px must be >= 0")
+    if args.max_background_avoid_overlap_fraction < 0 or args.max_background_avoid_iou < 0:
+        raise SystemExit("--max-background-avoid-overlap-fraction/iou must be >= 0")
     inpaint_metadata_limits = {
         "inpaint_source_box_fraction": args.max_inpaint_source_box_fraction,
         "inpaint_mask_fraction": args.max_inpaint_mask_fraction,
@@ -1703,7 +2103,7 @@ def main() -> None:
         else {}
     )
 
-    target_count = args.per_class * len(CLASS_NAMES)
+    target_count = args.per_class * len(active_class_names)
     class_counts: Counter[str] = Counter()
     background_counts: Counter[str] = Counter()
     geometry_counts: Counter[str] = Counter()
@@ -1712,9 +2112,9 @@ def main() -> None:
     attempts = 0
     while len(records) < target_count:
         attempts += 1
-        if attempts > target_count * 20:
+        if attempts > target_count * args.max_attempts_per_target:
             raise SystemExit("Too many failed transplant attempts; check geometry/asset/background inputs.")
-        class_name = choose_class(rng, class_counts)
+        class_name = choose_class(rng, class_counts, active_class_names)
         class_backgrounds = [] if class_name in source_background_exclude_classes else backgrounds_by_class.get(class_name, [])
         if len(class_backgrounds) >= args.min_class_source_backgrounds:
             background_pool = class_backgrounds
@@ -1741,6 +2141,7 @@ def main() -> None:
             args.box_scale_jitter,
             args.geometry_size_jitter,
             args.position_jitter_fraction,
+            args.background_avoid_placement_policy,
             args.warp_alpha_feather_px,
             args.tone_match_policy,
             args.inpaint_under_foreground_px,
@@ -1753,7 +2154,11 @@ def main() -> None:
             args.min_render_width_px,
             args.min_render_height_px,
             args.min_render_area_px,
+            args.min_render_margin_px,
             inpaint_metadata_limits,
+            args.max_background_avoid_overlap_fraction,
+            args.max_background_avoid_iou,
+            args.camera_isp_policy,
         )
         if rendered is None:
             continue
@@ -1800,11 +2205,18 @@ def main() -> None:
         "schema": "cashsnap_target_anchor_transplant_summary_v1",
         "seed": args.seed,
         "per_class": args.per_class,
+        "max_attempts_per_target": args.max_attempts_per_target,
+        "class_include": active_class_names,
         "images": len(records),
         "class_counts": dict(sorted(class_counts.items())),
         "background_source_images": len(backgrounds),
         "fallback_background_source_images": len(fallback_backgrounds),
         "background_max_source_boxes": args.background_max_source_boxes,
+        "background_avoid_boxes": repo_rel(background_avoid_boxes_path) if background_avoid_boxes_path else None,
+        "background_avoid_box_count": len(background_avoid_boxes),
+        "background_avoid_placement_policy": args.background_avoid_placement_policy,
+        "max_background_avoid_overlap_fraction": args.max_background_avoid_overlap_fraction,
+        "max_background_avoid_iou": args.max_background_avoid_iou,
         "background_root": (
             repo_rel(background_manifest)
             if background_manifest is not None
@@ -1843,6 +2255,7 @@ def main() -> None:
         "position_jitter_fraction": args.position_jitter_fraction,
         "warp_alpha_feather_px": args.warp_alpha_feather_px,
         "tone_match_policy": args.tone_match_policy,
+        "camera_isp_policy": args.camera_isp_policy,
         "inpaint_under_foreground_px": args.inpaint_under_foreground_px,
         "inpaint_under_foreground_radius": args.inpaint_under_foreground_radius,
         "inpaint_source_box_pad_fraction": args.inpaint_source_box_pad_fraction,
@@ -1857,6 +2270,7 @@ def main() -> None:
         "min_render_width_px": args.min_render_width_px,
         "min_render_height_px": args.min_render_height_px,
         "min_render_area_px": args.min_render_area_px,
+        "min_render_margin_px": args.min_render_margin_px,
         "inpaint_metadata_limits": {
             key: value for key, value in inpaint_metadata_limits.items() if value > 0
         },

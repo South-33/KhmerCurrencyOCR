@@ -1,0 +1,34 @@
+path: ../..
+train: images/train
+val: configs\generated_lists\audit\cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_val_v1.txt
+test: configs\generated_lists\audit\cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_test_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_partial_visibility:
+  schema: cashsnap_real_partial_visibility_dataset_v1
+  label_policy: single visible-instance AABB after countable center/corner crop
+  not_a_promotion_config: true
+cashsnap_sources:
+  cloned_from_config: data/processed/cashsnap_real_countablepartial_sourceclean_vis50_70_p12_v1/data.yaml
+  clone_split_overrides: &id001
+    val: configs\generated_lists\audit\cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_val_v1.txt
+    test: configs\generated_lists\audit\cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_test_v1.txt
+cashsnap_data_config_clone:
+  schema: cashsnap_yolo_data_config_clone_v1
+  source_config: data/processed/cashsnap_real_countablepartial_sourceclean_vis50_70_p12_v1/data.yaml
+  split_overrides: *id001
+  tag: cashsnap_real_countablepartial_sourceclean_vis70_plus_center50_eval_v1
+  intended_use: 'Policy-cleaner partial-visible eval view: keep vis70 and center-strip
+    50 percent rows, exclude ambiguous corner 50 percent crops.'

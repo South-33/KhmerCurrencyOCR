@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
 import shutil
+from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 
 
@@ -33,6 +36,14 @@ def parse_args() -> argparse.Namespace:
 def resolve(path_text: str) -> Path:
     path = Path(path_text)
     return path if path.is_absolute() else ROOT / path
+
+
+def repo_rel(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(ROOT).as_posix()
+    except ValueError:
+        return resolved.as_posix()
 
 
 def split_list(value: str) -> list[str]:
@@ -78,10 +89,10 @@ def copy_split(
                 {
                     "split": output_split,
                     "class_name": class_name,
-                    "source_dataset": source_root.relative_to(ROOT).as_posix(),
+                    "source_dataset": repo_rel(source_root),
                     "source_split": split,
-                    "source_path": source.relative_to(ROOT).as_posix(),
-                    "image_path": target.relative_to(ROOT).as_posix(),
+                    "source_path": repo_rel(source),
+                    "image_path": repo_rel(target),
                 }
             )
             copied += 1
@@ -139,7 +150,23 @@ def main() -> None:
         )
         writer.writeheader()
         writer.writerows(rows)
-    print(f"wrote {len(rows)} images to {out_dir.relative_to(ROOT)}")
+
+    class_counts = Counter(f"{row['split']}/{row['class_name']}" for row in rows)
+    summary = {
+        "schema": "cashsnap_imagefolder_mix_v1",
+        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "base": repo_rel(base),
+        "train_extra": [repo_rel(path) for path in extras],
+        "train_extra_splits": extra_splits,
+        "out": repo_rel(out_dir),
+        "rows": len(rows),
+        "counts": counts,
+        "class_counts": dict(sorted(class_counts.items())),
+        "note": "Base ImageFolder splits are copied as-is; extra datasets are copied into the train split only.",
+    }
+    (out_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    print(f"wrote {len(rows)} images to {repo_rel(out_dir)}")
     for key, count in counts.items():
         print(f"{key}: {count}")
 

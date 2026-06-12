@@ -1,0 +1,353 @@
+path: ../../runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized
+train: images/train
+nc: 21
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_official21_review_bridge:
+  schema: cashsnap_official21_review_bridge_v1
+  created_utc: '2026-06-10T19:08:14.926060+00:00'
+  base_data: data/cashsnap_v1/data.yaml
+  official21_schema: configs/taxonomy/cashsnap_official21_schema_draft_v1.yaml
+  proposal_stats:
+    proposal_csv: runs/cashsnap/official21_missing_schema_seed_accept11_v1/combined_accepted_proposals.csv
+    rows: 11
+    accepted_boxes_raw: 11
+    reviewed_not_accepted: 0
+    skipped_reviewed_rows: []
+    skipped_reviewed_rows_truncated: 0
+    accepted_decision: accepted_box
+    proposal_class: any
+    proposal_class_mode: any
+    accepted_boxes_after_dedupe: 11
+    accepted_images_after_dedupe: 11
+    deduped_boxes: 0
+    dedupe_iou: 0.9
+    deduped_examples: []
+    deduped_examples_truncated: 0
+  splits:
+    train:
+      images: 11
+      labeled_images: 11
+      empty_images: 0
+      boxes: 11
+      accepted_proposal_boxes: 11
+      base_class_counts: {}
+      official_class_counts:
+        KHR_100: 6
+        USD_2: 4
+        KHR_200: 1
+      accepted_proposal_class_counts:
+        KHR_100: 6
+        USD_2: 4
+        KHR_200: 1
+      image_mirror_modes:
+        hardlink: 11
+      manifest: runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/metadata/train.jsonl
+  scope: proposal_images
+  dry_run: false
+  image_mode: auto
+  selected_splits:
+  - train
+  out_root: runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized
+  data_yaml: runs/cashsnap/official21_missing_schema_seed_accept11_v1/materialized/data.yaml
+  out_config: configs/official21/cashsnap_official21_missing_schema_seed_accept11_v1.yaml
+  review_gate: Only rows with normalized review_decision='accepted_box' are promoted
+    from proposal hints to labels.
+  training_precondition: Before using this output for training, register/classify
+    the out-root in the data lifecycle registry and run scripts/check_data_lifecycle_registry.py.
+  manifest_preview:
+    train:
+    - split: train
+      source_image: data/cashsnap_v1/images/train/cambodia_currency_project_IMG_5770_png.rf.7a3e73962734c87701895eee049504b3.jpg
+      source_label: data/cashsnap_v1/labels/train/cambodia_currency_project_IMG_5770_png.rf.7a3e73962734c87701895eee049504b3.txt
+      image: images/train/train_000000_cambodia_currency_project_IMG_5770_png_rf_7a3e73962734c87701895eee049504b3_0e95ea076617.jpg
+      label: labels/train/train_000000_cambodia_currency_project_IMG_5770_png_rf_7a3e73962734c87701895eee049504b3_0e95ea076617.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 12
+        class: KHR_200
+        class_id: 9
+        confidence: 0.794421554
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: KHR_50000
+        xyxy:
+        - 131.398
+        - 120.023
+        - 503.871
+        - 576.956
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: 'Codex visual review: clear KHR_200 note; current 13-class schema
+          lacks KHR_200. Prior visual acceptance transferred from khr_200_01; box
+          IoU=0.9999.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_113_jpg.rf.18bb902c0e913e24070579b71506d826.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100-riel_113_jpg.rf.18bb902c0e913e24070579b71506d826.txt
+      image: images/train/train_000001_khmer_us_currency_100-riel_113_jpg_rf_18bb902c0e913e24070579b71506d826_04eadd1041ec.jpg
+      label: labels/train/train_000001_khmer_us_currency_100-riel_113_jpg_rf_18bb902c0e913e24070579b71506d826_04eadd1041ec.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 7
+        class: KHR_100
+        class_id: 8
+        confidence: 0.131619
+        model: balanced_real_p24
+        current_pred_class: KHR_2000
+        xyxy:
+        - 78.16
+        - 174.01
+        - 490.61
+        - 514.07
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_116_jpg.rf.6e13f224f285b9d1465d9cb18bcaca25.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100-riel_116_jpg.rf.6e13f224f285b9d1465d9cb18bcaca25.txt
+      image: images/train/train_000002_khmer_us_currency_100-riel_116_jpg_rf_6e13f224f285b9d1465d9cb18bcaca25_dd37cafe0758.jpg
+      label: labels/train/train_000002_khmer_us_currency_100-riel_116_jpg_rf_6e13f224f285b9d1465d9cb18bcaca25_dd37cafe0758.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 6
+        class: KHR_100
+        class_id: 8
+        confidence: 0.186151
+        model: real_synth_p24
+        current_pred_class: KHR_1000
+        xyxy:
+        - 81.0
+        - 173.61
+        - 488.36
+        - 521.63
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_32_jpg.rf.567cc8a84d47cf7ef63c0f6645c58d8d.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100-riel_32_jpg.rf.567cc8a84d47cf7ef63c0f6645c58d8d.txt
+      image: images/train/train_000003_khmer_us_currency_100-riel_32_jpg_rf_567cc8a84d47cf7ef63c0f6645c58d8d_5147a6728171.jpg
+      label: labels/train/train_000003_khmer_us_currency_100-riel_32_jpg_rf_567cc8a84d47cf7ef63c0f6645c58d8d_5147a6728171.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 3
+        class: KHR_100
+        class_id: 8
+        confidence: 0.91947
+        model: real_synth_p24
+        current_pred_class: KHR_20000
+        xyxy:
+        - 19.35
+        - 99.56
+        - 507.24
+        - 535.87
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_43_jpg.rf.dc6a5ba2f57361e155030a765093cf9d.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100-riel_43_jpg.rf.dc6a5ba2f57361e155030a765093cf9d.txt
+      image: images/train/train_000004_khmer_us_currency_100-riel_43_jpg_rf_dc6a5ba2f57361e155030a765093cf9d_c5fc4f8a892b.jpg
+      label: labels/train/train_000004_khmer_us_currency_100-riel_43_jpg_rf_dc6a5ba2f57361e155030a765093cf9d_c5fc4f8a892b.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 4
+        class: KHR_100
+        class_id: 8
+        confidence: 0.876377
+        model: real_synth_p24
+        current_pred_class: KHR_20000
+        xyxy:
+        - 66.01
+        - 131.88
+        - 485.33
+        - 486.99
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_87_jpg.rf.1dffdfe1736ea8ba5dc4aa84305fd79f.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100-riel_87_jpg.rf.1dffdfe1736ea8ba5dc4aa84305fd79f.txt
+      image: images/train/train_000005_khmer_us_currency_100-riel_87_jpg_rf_1dffdfe1736ea8ba5dc4aa84305fd79f_f053253ba786.jpg
+      label: labels/train/train_000005_khmer_us_currency_100-riel_87_jpg_rf_1dffdfe1736ea8ba5dc4aa84305fd79f_f053253ba786.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 2
+        class: KHR_100
+        class_id: 8
+        confidence: 0.954144
+        model: auditclean_sourcecap48
+        current_pred_class: KHR_20000
+        xyxy:
+        - 52.9
+        - 121.05
+        - 484.01
+        - 489.98
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/khmer_us_currency_100kh-1_jpg.rf.3d6e0c52fcc33a59729a08b02feb3cfc.jpg
+      source_label: data/cashsnap_v1/labels/train/khmer_us_currency_100kh-1_jpg.rf.3d6e0c52fcc33a59729a08b02feb3cfc.txt
+      image: images/train/train_000006_khmer_us_currency_100kh-1_jpg_rf_3d6e0c52fcc33a59729a08b02feb3cfc_68b76afbf582.jpg
+      label: labels/train/train_000006_khmer_us_currency_100kh-1_jpg_rf_3d6e0c52fcc33a59729a08b02feb3cfc_68b76afbf582.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 5
+        class: KHR_100
+        class_id: 8
+        confidence: 0.299296
+        model: real_synth_p24
+        current_pred_class: USD_50
+        xyxy:
+        - 74.36
+        - 0.0
+        - 640.0
+        - 636.36
+        image_size:
+        - 640
+        - 640
+        clamped: false
+        review_notes: codex_fullsize_overlay_clean_single_khr100_v1
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.txt
+      image: images/train/train_000007_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.jpg
+      label: labels/train/train_000007_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 9
+        class: USD_2
+        class_id: 1
+        confidence: 0.874712527
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 4.301
+        - 0.833
+        - 454.0
+        - 252.816
+        image_size:
+        - 454
+        - 255
+        clamped: false
+        review_notes: 'Codex visual review: clear whole USD_2 note; current 13-class
+          schema lacks USD_2. Prior visual acceptance transferred from usd_2_02; box
+          IoU=1.0000.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_126_jpeg_jpg.rf.168711ca0cf770ae6c78c505936908ec.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_126_jpeg_jpg.rf.168711ca0cf770ae6c78c505936908ec.txt
+      image: images/train/train_000008_usd_total_2Dollar_126_jpeg_jpg_rf_168711ca0cf770ae6c78c505936908ec_a0bdd81b6d6f.jpg
+      label: labels/train/train_000008_usd_total_2Dollar_126_jpeg_jpg_rf_168711ca0cf770ae6c78c505936908ec_a0bdd81b6d6f.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 11
+        class: USD_2
+        class_id: 1
+        confidence: 0.84307611
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 0.0
+        - 0.519
+        - 396.247
+        - 167.008
+        image_size:
+        - 397
+        - 396
+        clamped: false
+        review_notes: 'Codex visual review: clear whole USD_2 note; current 13-class
+          schema lacks USD_2. Prior visual acceptance transferred from usd_2_04; box
+          IoU=0.9999.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_139_jpeg_jpg.rf.23d7ee9a571f71e8feca41ce5513a4a4.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_139_jpeg_jpg.rf.23d7ee9a571f71e8feca41ce5513a4a4.txt
+      image: images/train/train_000009_usd_total_2Dollar_139_jpeg_jpg_rf_23d7ee9a571f71e8feca41ce5513a4a4_73b9ff4a6142.jpg
+      label: labels/train/train_000009_usd_total_2Dollar_139_jpeg_jpg_rf_23d7ee9a571f71e8feca41ce5513a4a4_73b9ff4a6142.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 10
+        class: USD_2
+        class_id: 1
+        confidence: 0.865242362
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 0.0
+        - 542.0
+        - 224.763
+        image_size:
+        - 542
+        - 455
+        clamped: false
+        review_notes: 'Codex visual review: clear whole USD_2 note; current 13-class
+          schema lacks USD_2. Prior visual acceptance transferred from usd_2_03; box
+          IoU=1.0000.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_90_jpeg_jpg.rf.695d968ab5e4a799d9353f3209460ee9.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_90_jpeg_jpg.rf.695d968ab5e4a799d9353f3209460ee9.txt
+      image: images/train/train_000010_usd_total_2Dollar_90_jpeg_jpg_rf_695d968ab5e4a799d9353f3209460ee9_45551e831d34.jpg
+      label: labels/train/train_000010_usd_total_2Dollar_90_jpeg_jpg_rf_695d968ab5e4a799d9353f3209460ee9_45551e831d34.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 8
+        class: USD_2
+        class_id: 1
+        confidence: 0.987364352
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.0
+        - 235.707
+        - 328.134
+        - 564.706
+        image_size:
+        - 332
+        - 800
+        clamped: false
+        review_notes: 'Codex visual review: clear whole USD_2 note; current 13-class
+          schema lacks USD_2. Prior visual acceptance transferred from usd_2_01; box
+          IoU=1.0000.'

@@ -1,0 +1,21 @@
+{
+  "schema": "cashsnap_filtered_manifest_image_lists_v1",
+  "source_manifest": "data/processed/cashsnap_real_countablepartial_sourceclean_p6_v1/manifest.csv",
+  "filter": {
+    "mode": [
+      "center_x",
+      "center_y"
+    ],
+    "target_visible_fraction": "0.50"
+  },
+  "counts": {
+    "train": 52,
+    "val": 21,
+    "test": 21
+  },
+  "lists": {
+    "train": "configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_train.txt",
+    "val": "configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_val.txt",
+    "test": "configs/generated_lists/webgl_ablation/cashsnap_real_countablepartial_sourceclean_center50_p6_v1_test.txt"
+  }
+}

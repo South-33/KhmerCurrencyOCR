@@ -20,12 +20,21 @@ METRIC_FILES = {
     "partial_test_conf015": "light_eval_countablepartial_filtered_test_conf015.json",
     "partial_test_conf025": "light_eval_countablepartial_filtered_test_conf025.json",
     "partial_val_conf005": "light_eval_countablepartial_filtered_val_conf005.json",
+    "partial_val_conf015": "light_eval_countablepartial_filtered_val_conf015.json",
+    "partial_val_conf025": "light_eval_countablepartial_filtered_val_conf025.json",
 }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", action="append", default=[], metavar="LABEL=RUN_DIR")
+    parser.add_argument(
+        "--metric-override",
+        action="append",
+        default=[],
+        metavar="LABEL:METRIC=PATH",
+        help="Use a specific metric JSON for one model/metric slot.",
+    )
     parser.add_argument("--background-json", action="append", default=[], type=Path)
     parser.add_argument("--baseline-label", default="pilotA")
     parser.add_argument("--out-json", required=True, type=Path)
@@ -63,6 +72,26 @@ def parse_model_specs(values: list[str]) -> dict[str, Path]:
     return out
 
 
+def parse_metric_overrides(values: list[str]) -> dict[tuple[str, str], Path]:
+    out: dict[tuple[str, str], Path] = {}
+    known_metrics = set(METRIC_FILES)
+    for value in values:
+        if "=" not in value or ":" not in value.split("=", 1)[0]:
+            raise SystemExit(f"--metric-override expected LABEL:METRIC=PATH, got {value!r}")
+        raw_key, raw_path = value.split("=", 1)
+        label, metric_name = raw_key.split(":", 1)
+        label = label.strip()
+        metric_name = metric_name.strip()
+        if not label or not metric_name:
+            raise SystemExit(f"empty label or metric in --metric-override {value!r}")
+        if metric_name not in known_metrics:
+            raise SystemExit(
+                f"unknown metric {metric_name!r}; expected one of {sorted(known_metrics)}"
+            )
+        out[(label, metric_name)] = resolve(raw_path)
+    return out
+
+
 def metric_summary(path: Path) -> dict[str, Any]:
     data = read_json(path)
     box = data.get("box", {})
@@ -86,6 +115,8 @@ def lightweight_summary(path: Path) -> dict[str, Any]:
         "tp": data.get("tp"),
         "fp": data.get("fp"),
         "fn": data.get("fn"),
+        "ignored_detections": data.get("ignored_detections"),
+        "ignored_by_class": data.get("ignored_by_class", {}),
     }
 
 
@@ -109,6 +140,8 @@ def background_rows(paths: list[Path]) -> dict[str, dict[str, dict[str, Any]]]:
                 "detections": row.get("detections"),
                 "fp_per_image": row.get("fp_per_image"),
                 "by_class": row.get("by_class", {}),
+                "ignored_detections": row.get("ignored_detections"),
+                "ignored_by_class": row.get("ignored_by_class", {}),
             }
     return rows
 
@@ -147,18 +180,43 @@ def add_deltas(models: dict[str, dict[str, Any]], baseline_label: str) -> None:
                 model.get("partial_test_conf005", {}).get("precision"),
                 baseline.get("partial_test_conf005", {}).get("precision"),
             ),
+            "partial_val_conf005_recall": delta(
+                model.get("partial_val_conf005", {}).get("recall"),
+                baseline.get("partial_val_conf005", {}).get("recall"),
+            ),
+            "partial_val_conf005_precision": delta(
+                model.get("partial_val_conf005", {}).get("precision"),
+                baseline.get("partial_val_conf005", {}).get("precision"),
+            ),
+            "partial_val_conf015_recall": delta(
+                model.get("partial_val_conf015", {}).get("recall"),
+                baseline.get("partial_val_conf015", {}).get("recall"),
+            ),
+            "partial_val_conf015_precision": delta(
+                model.get("partial_val_conf015", {}).get("precision"),
+                baseline.get("partial_val_conf015", {}).get("precision"),
+            ),
+            "partial_val_conf025_recall": delta(
+                model.get("partial_val_conf025", {}).get("recall"),
+                baseline.get("partial_val_conf025", {}).get("recall"),
+            ),
+            "partial_val_conf025_precision": delta(
+                model.get("partial_val_conf025", {}).get("precision"),
+                baseline.get("partial_val_conf025", {}).get("precision"),
+            ),
         }
 
 
 def main() -> int:
     args = parse_args()
     model_dirs = parse_model_specs(args.model)
+    metric_overrides = parse_metric_overrides(args.metric_override)
     bg_rows = background_rows([resolve(path) for path in args.background_json])
     models: dict[str, dict[str, Any]] = {}
     for label, run_dir in model_dirs.items():
         model: dict[str, Any] = {"run_dir": repo_rel(run_dir)}
         for metric_name, file_name in METRIC_FILES.items():
-            path = run_dir / file_name
+            path = metric_overrides.get((label, metric_name), run_dir / file_name)
             if not path.exists():
                 continue
             if metric_name.startswith("partial_"):

@@ -1,4 +1,4 @@
-const STACK_CONFIG_URL = "/configs/cashsnap_two_stage_strictbest_trueempty_proposal_gate_browser_stack.json";
+const STACK_CONFIG_URL = "/configs/cashsnap_two_stage_real_synth_p24_khr100_unknown_gate_browser_stack.json";
 const DEFAULT_CLASS_NAMES = [
   "USD_1",
   "USD_5",
@@ -257,6 +257,7 @@ function preprocess(image) {
 
 function parseOutput(output, meta) {
   const detections = [];
+  const classMinConf = state.config?.detector?.class_min_conf ?? {};
   for (let i = 0; i < output.dims[1]; i += 1) {
     const offset = i * 6;
     const score = output.data[offset + 4];
@@ -265,17 +266,22 @@ function parseOutput(output, meta) {
     }
     const classId = Math.round(output.data[offset + 5]);
     const classNames = state.config?.detector?.classes ?? DEFAULT_CLASS_NAMES;
+    const detectorName = classNames[classId] || `class_${classId}`;
+    const classFloor = Number(classMinConf[detectorName]);
+    if (Number.isFinite(classFloor) && score < classFloor) {
+      continue;
+    }
     const x1 = (output.data[offset] - meta.padX) / meta.scale;
     const y1 = (output.data[offset + 1] - meta.padY) / meta.scale;
     const x2 = (output.data[offset + 2] - meta.padX) / meta.scale;
     const y2 = (output.data[offset + 3] - meta.padY) / meta.scale;
     detections.push({
       classId,
-      detectorName: classNames[classId] || `class_${classId}`,
+      detectorName,
       detectorScore: score,
       fragmentName: "",
       fragmentScore: 0,
-      name: classNames[classId] || `class_${classId}`,
+      name: detectorName,
       score,
       x1: clamp(x1, 0, state.image.width),
       y1: clamp(y1, 0, state.image.height),
@@ -550,6 +556,7 @@ async function runModel() {
     fragmentClassifierApplyToAll: state.config?.fragment_classifier?.apply_to_all_proposals ?? false,
     rejectFragmentClasses: state.config?.fusion?.reject_fragment_classes ?? [],
     rejectFragmentClassMinConf: state.config?.fusion?.reject_fragment_class_min_conf ?? 0,
+    detectorClassMinConf: state.config?.detector?.class_min_conf ?? {},
     fragmentOverrideEnabled: state.config?.fusion?.fragment_override_enabled ?? true,
     rejectAfterNms,
     clusteredProposals: clustered.length,

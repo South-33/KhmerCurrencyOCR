@@ -56,6 +56,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workers", default="auto", help="Integer worker count or 'auto'.")
     parser.add_argument("--device", default="auto")
     parser.add_argument("--optimizer", default=None)
+    parser.add_argument("--box", type=float, default=None)
+    parser.add_argument("--cls", type=float, default=None)
+    parser.add_argument("--dfl", type=float, default=None)
     parser.add_argument("--lr0", type=float, default=None)
     parser.add_argument("--lrf", type=float, default=None)
     parser.add_argument("--warmup-epochs", type=float, default=None)
@@ -77,6 +80,7 @@ def parse_args() -> argparse.Namespace:
         help="Pass optional torch.compile mode to train_yolo.py.",
     )
     parser.add_argument("--max-train-batches", type=int, default=None)
+    parser.add_argument("--freeze", type=int, default=None)
     parser.add_argument("--mosaic", type=float, default=None)
     parser.add_argument("--erasing", type=float, default=None)
     parser.add_argument("--hsv-h", type=float, default=None)
@@ -121,6 +125,18 @@ def parse_args() -> argparse.Namespace:
         default=HEADROOM_MIN_FREE_RAM_GB,
         help="Refuse to launch training below this available system RAM floor. Use 0 to disable.",
     )
+    parser.add_argument(
+        "--memory-clean-preset",
+        choices=["winmemorycleaner", "winmemorycleaner-task", "memreduct"],
+        default=None,
+        help="Optional run_with_headroom RAM-cleaner preset to trigger under memory pressure.",
+    )
+    parser.add_argument("--memory-clean-task", default=None)
+    parser.add_argument("--memory-clean-task-arg", default=None)
+    parser.add_argument("--memory-clean-min-free-ram-gb", type=float, default=None)
+    parser.add_argument("--memory-clean-cooldown-seconds", type=float, default=None)
+    parser.add_argument("--memory-clean-timeout-seconds", type=float, default=None)
+    parser.add_argument("--memory-clean-settle-seconds", type=float, default=None)
     parser.add_argument("--interval", type=float, default=2.0)
     return parser.parse_args()
 
@@ -192,6 +208,16 @@ def append_optional(command: list[str], flag: str, value) -> None:
         command.extend([flag, str(value)])
 
 
+def append_memory_clean_args(command: list[str], args: argparse.Namespace) -> None:
+    append_optional(command, "--memory-clean-preset", args.memory_clean_preset)
+    append_optional(command, "--memory-clean-task", args.memory_clean_task)
+    append_optional(command, "--memory-clean-task-arg", args.memory_clean_task_arg)
+    append_optional(command, "--memory-clean-min-free-ram-gb", args.memory_clean_min_free_ram_gb)
+    append_optional(command, "--memory-clean-cooldown-seconds", args.memory_clean_cooldown_seconds)
+    append_optional(command, "--memory-clean-timeout-seconds", args.memory_clean_timeout_seconds)
+    append_optional(command, "--memory-clean-settle-seconds", args.memory_clean_settle_seconds)
+
+
 def build_command(
     args: argparse.Namespace,
     batch: int,
@@ -221,6 +247,9 @@ def build_command(
     ]
     append_optional(train_command, "--device", args.device)
     append_optional(train_command, "--optimizer", args.optimizer)
+    append_optional(train_command, "--box", args.box)
+    append_optional(train_command, "--cls", args.cls)
+    append_optional(train_command, "--dfl", args.dfl)
     append_optional(train_command, "--lr0", args.lr0)
     append_optional(train_command, "--lrf", args.lrf)
     append_optional(train_command, "--warmup-epochs", args.warmup_epochs)
@@ -231,6 +260,7 @@ def build_command(
     append_optional(train_command, "--cache", args.cache)
     append_optional(train_command, "--compile", args.compile)
     append_optional(train_command, "--max-train-batches", args.max_train_batches)
+    append_optional(train_command, "--freeze", args.freeze)
     append_optional(train_command, "--mosaic", args.mosaic)
     append_optional(train_command, "--erasing", args.erasing)
     append_optional(train_command, "--hsv-h", args.hsv_h)
@@ -254,7 +284,7 @@ def build_command(
     if exist_ok:
         train_command.append("--exist-ok")
 
-    return [
+    command = [
         sys.executable,
         str(ROOT / "scripts" / "run_with_headroom.py"),
         "--max-percent",
@@ -262,18 +292,19 @@ def build_command(
         "--resume-percent",
         str(args.resume_percent),
         "--max-ram-percent",
-            str(args.max_ram_percent),
-            "--max-gpu-mem-percent",
-            str(args.max_gpu_mem_percent),
-            "--min-free-ram-gb",
-            str(args.min_free_ram_gb),
-            "--interval",
+        str(args.max_ram_percent),
+        "--max-gpu-mem-percent",
+        str(args.max_gpu_mem_percent),
+        "--min-free-ram-gb",
+        str(args.min_free_ram_gb),
+        "--interval",
         str(args.interval),
         "--memory-action",
         memory_action,
-        "--",
-        *train_command,
     ]
+    append_memory_clean_args(command, args)
+    command.extend(["--", *train_command])
+    return command
 
 
 def smaller_settings(batch: int, workers: int) -> tuple[int, int] | None:

@@ -1,0 +1,655 @@
+path: ../../runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized
+train: images/train
+nc: 21
+names:
+  0: USD_1
+  1: USD_2
+  2: USD_5
+  3: USD_10
+  4: USD_20
+  5: USD_50
+  6: USD_100
+  7: KHR_50
+  8: KHR_100
+  9: KHR_200
+  10: KHR_500
+  11: KHR_1000
+  12: KHR_2000
+  13: KHR_5000
+  14: KHR_10000
+  15: KHR_15000
+  16: KHR_20000
+  17: KHR_30000
+  18: KHR_50000
+  19: KHR_100000
+  20: KHR_200000
+cashsnap_official21_review_bridge:
+  schema: cashsnap_official21_review_bridge_v1
+  created_utc: '2026-06-11T01:19:54.646350+00:00'
+  base_data: data/cashsnap_v1/data.yaml
+  official21_schema: configs/taxonomy/cashsnap_official21_schema_draft_v1.yaml
+  proposal_stats:
+    proposal_csv: runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_review_queue_v1/review_queue_codex_visual_accept37_v1.csv
+    rows: 52
+    accepted_boxes_raw: 37
+    reviewed_not_accepted: 15
+    skipped_reviewed_rows:
+    - row: 2
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_90_jpeg_jpg.rf.695d968ab5e4a799d9353f3209460ee9.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 3
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_197_jpeg_jpg.rf.6f004a6e0db1fcbd0a7038d293232a26.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 7
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_142_jpeg_jpg.rf.7c5d15fd5bdab8b85ae74e497b4d0298.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 13
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_190_jpeg_jpg.rf.19dfac0284a981b9a50dd8b950da73a3.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 21
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_184_jpeg_jpg.rf.c4231c1b5274dde708c558f84f66d78f.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 26
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_39_jpeg_jpg.rf.26c64f4944f0ff9fc23eec150f46ac68.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 27
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_137_jpeg_jpg.rf.33176b7e0267d85297fba3e4b8d0931f.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 31
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_30_jpeg_jpg.rf.86116c4639026e4c9e3c253c474b818a.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 34
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_139_jpeg_jpg.rf.23d7ee9a571f71e8feca41ce5513a4a4.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 37
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_126_jpeg_jpg.rf.168711ca0cf770ae6c78c505936908ec.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 40
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_113_jpeg_jpg.rf.cff53c3f9468b4f9709f1a12f467a78d.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 42
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_23_jpeg_jpg.rf.4256a4d31b5cf5e1a2d11716877efb24.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 44
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_129_jpeg_jpg.rf.b02a2d46529d1de424a4c61538aefb15.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 49
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_78_jpeg_jpg.rf.79afe72e1471c22bd3b7e1c993829a62.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    - row: 51
+      image: data/cashsnap_v1/images/train/usd_total_2Dollar_23_jpeg_jpg.rf.a2edacbf4fff770cb154d3aef30f5a71.jpg
+      reason: review_decision_not_accepted_box
+      review_decision: hold
+    skipped_reviewed_rows_truncated: 0
+    accepted_decision: accepted_box
+    proposal_class: USD_2
+    proposal_class_mode: exact
+    accepted_boxes_after_dedupe: 37
+    accepted_images_after_dedupe: 37
+    deduped_boxes: 0
+    dedupe_iou: 0.9
+    deduped_examples: []
+    deduped_examples_truncated: 0
+  splits:
+    train:
+      images: 37
+      labeled_images: 37
+      empty_images: 0
+      boxes: 37
+      accepted_proposal_boxes: 37
+      base_class_counts: {}
+      official_class_counts:
+        USD_2: 37
+      accepted_proposal_class_counts:
+        USD_2: 37
+      image_mirror_modes:
+        hardlink: 37
+      manifest: runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized/metadata/train.jsonl
+  scope: proposal_images
+  dry_run: false
+  image_mode: auto
+  selected_splits:
+  - train
+  out_root: runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized
+  data_yaml: runs/cashsnap/missing_schema_usd2_top52_review_v1/official21_usd2_top52_codex_visual_accept37_v1/materialized/data.yaml
+  out_config: configs/official21/cashsnap_official21_usd2_top52_codex_visual_accept37_v1.yaml
+  review_gate: Only rows with normalized review_decision='accepted_box' are promoted
+    from proposal hints to labels.
+  training_precondition: Before using this output for training, register/classify
+    the out-root in the data lifecycle registry and run scripts/check_data_lifecycle_registry.py.
+  manifest_preview:
+    train:
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.txt
+      image: images/train/train_000000_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.jpg
+      label: labels/train/train_000000_usd_total_2Dollar_10_jpeg_jpg_rf_86305d3abee7eb452931003f02207031_efc408ace6a2.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 32
+        class: USD_2
+        class_id: 1
+        confidence: 0.874712527
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 4.301
+        - 0.833
+        - 454.0
+        - 252.816
+        image_size:
+        - 454
+        - 255
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_11_jpeg_jpg.rf.5cd09dcb91d051acddf4f3c20cea2640.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_11_jpeg_jpg.rf.5cd09dcb91d051acddf4f3c20cea2640.txt
+      image: images/train/train_000001_usd_total_2Dollar_11_jpeg_jpg_rf_5cd09dcb91d051acddf4f3c20cea2640_d679b6f41a8c.jpg
+      label: labels/train/train_000001_usd_total_2Dollar_11_jpeg_jpg_rf_5cd09dcb91d051acddf4f3c20cea2640_d679b6f41a8c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 8
+        class: USD_2
+        class_id: 1
+        confidence: 0.968444943
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 5.425
+        - 29.44
+        - 746.943
+        - 401.713
+        image_size:
+        - 750
+        - 474
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_124_jpeg_jpg.rf.0bf3a849e25d7123c2270a926a533aff.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_124_jpeg_jpg.rf.0bf3a849e25d7123c2270a926a533aff.txt
+      image: images/train/train_000002_usd_total_2Dollar_124_jpeg_jpg_rf_0bf3a849e25d7123c2270a926a533aff_247b0729034e.jpg
+      label: labels/train/train_000002_usd_total_2Dollar_124_jpeg_jpg_rf_0bf3a849e25d7123c2270a926a533aff_247b0729034e.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 52
+        class: USD_2
+        class_id: 1
+        confidence: 0.778231502
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.564
+        - 2.302
+        - 512.0
+        - 349.609
+        image_size:
+        - 512
+        - 384
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_129_jpeg_jpg.rf.e6bea0def8ff661829320f36304e81be.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_129_jpeg_jpg.rf.e6bea0def8ff661829320f36304e81be.txt
+      image: images/train/train_000003_usd_total_2Dollar_129_jpeg_jpg_rf_e6bea0def8ff661829320f36304e81be_4d46cf6fff1f.jpg
+      label: labels/train/train_000003_usd_total_2Dollar_129_jpeg_jpg_rf_e6bea0def8ff661829320f36304e81be_4d46cf6fff1f.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 48
+        class: USD_2
+        class_id: 1
+        confidence: 0.789754212
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 3.796
+        - 0.413
+        - 600.0
+        - 252.684
+        image_size:
+        - 600
+        - 254
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_131_jpeg_jpg.rf.a8f566c0f9fe01ad2af589e8f67deba0.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_131_jpeg_jpg.rf.a8f566c0f9fe01ad2af589e8f67deba0.txt
+      image: images/train/train_000004_usd_total_2Dollar_131_jpeg_jpg_rf_a8f566c0f9fe01ad2af589e8f67deba0_ee4c704d8840.jpg
+      label: labels/train/train_000004_usd_total_2Dollar_131_jpeg_jpg_rf_a8f566c0f9fe01ad2af589e8f67deba0_ee4c704d8840.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 33
+        class: USD_2
+        class_id: 1
+        confidence: 0.873283446
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.716
+        - 71.006
+        - 375.0
+        - 419.178
+        image_size:
+        - 375
+        - 500
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_138_jpeg_jpg.rf.7ce2200895d829e978e59fac10c3141d.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_138_jpeg_jpg.rf.7ce2200895d829e978e59fac10c3141d.txt
+      image: images/train/train_000005_usd_total_2Dollar_138_jpeg_jpg_rf_7ce2200895d829e978e59fac10c3141d_7c77a9a18356.jpg
+      label: labels/train/train_000005_usd_total_2Dollar_138_jpeg_jpg_rf_7ce2200895d829e978e59fac10c3141d_7c77a9a18356.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 46
+        class: USD_2
+        class_id: 1
+        confidence: 0.791726947
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 74.189
+        - 0.0
+        - 435.061
+        - 385.546
+        image_size:
+        - 516
+        - 387
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_147_jpeg_jpg.rf.af6bdecab55b120b7c749c297d069c8a.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_147_jpeg_jpg.rf.af6bdecab55b120b7c749c297d069c8a.txt
+      image: images/train/train_000006_usd_total_2Dollar_147_jpeg_jpg_rf_af6bdecab55b120b7c749c297d069c8a_e94982deb49e.jpg
+      label: labels/train/train_000006_usd_total_2Dollar_147_jpeg_jpg_rf_af6bdecab55b120b7c749c297d069c8a_e94982deb49e.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 45
+        class: USD_2
+        class_id: 1
+        confidence: 0.79824239
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.203
+        - 226.242
+        - 340.251
+        - 570.905
+        image_size:
+        - 344
+        - 800
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_151_jpeg_jpg.rf.56767fd8a67241fcd56d9f1448c2d3ff.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_151_jpeg_jpg.rf.56767fd8a67241fcd56d9f1448c2d3ff.txt
+      image: images/train/train_000007_usd_total_2Dollar_151_jpeg_jpg_rf_56767fd8a67241fcd56d9f1448c2d3ff_92bfdd29a430.jpg
+      label: labels/train/train_000007_usd_total_2Dollar_151_jpeg_jpg_rf_56767fd8a67241fcd56d9f1448c2d3ff_92bfdd29a430.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 11
+        class: USD_2
+        class_id: 1
+        confidence: 0.96334976
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.866
+        - 36.839
+        - 225.0
+        - 246.804
+        image_size:
+        - 225
+        - 300
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_153_jpeg_jpg.rf.816b8e39331596bf609ad1740de3cf4d.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_153_jpeg_jpg.rf.816b8e39331596bf609ad1740de3cf4d.txt
+      image: images/train/train_000008_usd_total_2Dollar_153_jpeg_jpg_rf_816b8e39331596bf609ad1740de3cf4d_034bda4bdae9.jpg
+      label: labels/train/train_000008_usd_total_2Dollar_153_jpeg_jpg_rf_816b8e39331596bf609ad1740de3cf4d_034bda4bdae9.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 19
+        class: USD_2
+        class_id: 1
+        confidence: 0.935492814
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 187.79
+        - 426.0
+        - 610.156
+        image_size:
+        - 426
+        - 800
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_155_jpeg_jpg.rf.1edc344a52584bcfc23d7a24c1931c10.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_155_jpeg_jpg.rf.1edc344a52584bcfc23d7a24c1931c10.txt
+      image: images/train/train_000009_usd_total_2Dollar_155_jpeg_jpg_rf_1edc344a52584bcfc23d7a24c1931c10_e1698bf1a519.jpg
+      label: labels/train/train_000009_usd_total_2Dollar_155_jpeg_jpg_rf_1edc344a52584bcfc23d7a24c1931c10_e1698bf1a519.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 38
+        class: USD_2
+        class_id: 1
+        confidence: 0.841321826
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.516
+        - 99.848
+        - 254.228
+        - 353.791
+        image_size:
+        - 255
+        - 454
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_155_jpeg_jpg.rf.fb222a10c8071b8afa3b591078040297.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_155_jpeg_jpg.rf.fb222a10c8071b8afa3b591078040297.txt
+      image: images/train/train_000010_usd_total_2Dollar_155_jpeg_jpg_rf_fb222a10c8071b8afa3b591078040297_28edf5803404.jpg
+      label: labels/train/train_000010_usd_total_2Dollar_155_jpeg_jpg_rf_fb222a10c8071b8afa3b591078040297_28edf5803404.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 28
+        class: USD_2
+        class_id: 1
+        confidence: 0.8924281
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.893
+        - 99.361
+        - 254.749
+        - 353.393
+        image_size:
+        - 255
+        - 454
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_156_jpeg_jpg.rf.a2dcadb9537a9fdf659b6b090d0499a2.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_156_jpeg_jpg.rf.a2dcadb9537a9fdf659b6b090d0499a2.txt
+      image: images/train/train_000011_usd_total_2Dollar_156_jpeg_jpg_rf_a2dcadb9537a9fdf659b6b090d0499a2_79d0ff301c12.jpg
+      label: labels/train/train_000011_usd_total_2Dollar_156_jpeg_jpg_rf_a2dcadb9537a9fdf659b6b090d0499a2_79d0ff301c12.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 15
+        class: USD_2
+        class_id: 1
+        confidence: 0.947737992
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 2.125
+        - 18.542
+        - 299.827
+        - 225.0
+        image_size:
+        - 300
+        - 225
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_161_jpeg_jpg.rf.4e07f649aac1b4030aadf3de0bc63431.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_161_jpeg_jpg.rf.4e07f649aac1b4030aadf3de0bc63431.txt
+      image: images/train/train_000012_usd_total_2Dollar_161_jpeg_jpg_rf_4e07f649aac1b4030aadf3de0bc63431_dbd4ce6f06ca.jpg
+      label: labels/train/train_000012_usd_total_2Dollar_161_jpeg_jpg_rf_4e07f649aac1b4030aadf3de0bc63431_dbd4ce6f06ca.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 6
+        class: USD_2
+        class_id: 1
+        confidence: 0.970050752
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 280.135
+        - 416.0
+        - 608.477
+        image_size:
+        - 416
+        - 800
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_164_jpeg_jpg.rf.70b9514209798e78e70aa9ec3ff4bab5.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_164_jpeg_jpg.rf.70b9514209798e78e70aa9ec3ff4bab5.txt
+      image: images/train/train_000013_usd_total_2Dollar_164_jpeg_jpg_rf_70b9514209798e78e70aa9ec3ff4bab5_dd99aec9c3c6.jpg
+      label: labels/train/train_000013_usd_total_2Dollar_164_jpeg_jpg_rf_70b9514209798e78e70aa9ec3ff4bab5_dd99aec9c3c6.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 35
+        class: USD_2
+        class_id: 1
+        confidence: 0.863698065
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 1.377
+        - 61.007
+        - 199.041
+        - 259.564
+        image_size:
+        - 200
+        - 320
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_170_jpeg_jpg.rf.331dfccefda4e30840cfe4ae6a480309.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_170_jpeg_jpg.rf.331dfccefda4e30840cfe4ae6a480309.txt
+      image: images/train/train_000014_usd_total_2Dollar_170_jpeg_jpg_rf_331dfccefda4e30840cfe4ae6a480309_a0a2a7712a7a.jpg
+      label: labels/train/train_000014_usd_total_2Dollar_170_jpeg_jpg_rf_331dfccefda4e30840cfe4ae6a480309_a0a2a7712a7a.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 22
+        class: USD_2
+        class_id: 1
+        confidence: 0.927755237
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 131.512
+        - 26.953
+        - 895.905
+        - 627.955
+        image_size:
+        - 1024
+        - 768
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_178_jpeg_jpg.rf.1473691e6ffed00376699feda00f90ea.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_178_jpeg_jpg.rf.1473691e6ffed00376699feda00f90ea.txt
+      image: images/train/train_000015_usd_total_2Dollar_178_jpeg_jpg_rf_1473691e6ffed00376699feda00f90ea_bbbd68e1dfe5.jpg
+      label: labels/train/train_000015_usd_total_2Dollar_178_jpeg_jpg_rf_1473691e6ffed00376699feda00f90ea_bbbd68e1dfe5.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 12
+        class: USD_2
+        class_id: 1
+        confidence: 0.961177886
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 186.753
+        - 0.0
+        - 613.879
+        - 426.0
+        image_size:
+        - 800
+        - 426
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_178_jpeg_jpg.rf.ac4b1def93439ea8d3ab14c29b13c4ee.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_178_jpeg_jpg.rf.ac4b1def93439ea8d3ab14c29b13c4ee.txt
+      image: images/train/train_000016_usd_total_2Dollar_178_jpeg_jpg_rf_ac4b1def93439ea8d3ab14c29b13c4ee_fda91ad536d2.jpg
+      label: labels/train/train_000016_usd_total_2Dollar_178_jpeg_jpg_rf_ac4b1def93439ea8d3ab14c29b13c4ee_fda91ad536d2.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 47
+        class: USD_2
+        class_id: 1
+        confidence: 0.791679382
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 5.338
+        - 0.0
+        - 800.0
+        - 426.0
+        image_size:
+        - 800
+        - 426
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_179_jpeg_jpg.rf.867d555565b89eeda06fa9b2c539d1c1.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_179_jpeg_jpg.rf.867d555565b89eeda06fa9b2c539d1c1.txt
+      image: images/train/train_000017_usd_total_2Dollar_179_jpeg_jpg_rf_867d555565b89eeda06fa9b2c539d1c1_a45d4305db9c.jpg
+      label: labels/train/train_000017_usd_total_2Dollar_179_jpeg_jpg_rf_867d555565b89eeda06fa9b2c539d1c1_a45d4305db9c.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 9
+        class: USD_2
+        class_id: 1
+        confidence: 0.968315363
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_100
+        xyxy:
+        - 0.0
+        - 66.554
+        - 384.0
+        - 402.902
+        image_size:
+        - 384
+        - 512
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_179_jpeg_jpg.rf.fe270750916bbf9063ab3cb441dfd88d.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_179_jpeg_jpg.rf.fe270750916bbf9063ab3cb441dfd88d.txt
+      image: images/train/train_000018_usd_total_2Dollar_179_jpeg_jpg_rf_fe270750916bbf9063ab3cb441dfd88d_2ce02e211bd3.jpg
+      label: labels/train/train_000018_usd_total_2Dollar_179_jpeg_jpg_rf_fe270750916bbf9063ab3cb441dfd88d_2ce02e211bd3.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 39
+        class: USD_2
+        class_id: 1
+        confidence: 0.831962764
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_1
+        xyxy:
+        - 11.838
+        - 0.0
+        - 378.92
+        - 503.657
+        image_size:
+        - 384
+        - 512
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'
+    - split: train
+      source_image: data/cashsnap_v1/images/train/usd_total_2Dollar_184_jpeg_jpg.rf.55f7ffa7ea5a1c118d572790bb607ab4.jpg
+      source_label: data/cashsnap_v1/labels/train/usd_total_2Dollar_184_jpeg_jpg.rf.55f7ffa7ea5a1c118d572790bb607ab4.txt
+      image: images/train/train_000019_usd_total_2Dollar_184_jpeg_jpg_rf_55f7ffa7ea5a1c118d572790bb607ab4_f79e69f18cb4.jpg
+      label: labels/train/train_000019_usd_total_2Dollar_184_jpeg_jpg_rf_55f7ffa7ea5a1c118d572790bb607ab4_f79e69f18cb4.txt
+      boxes: 1
+      proposal_boxes: 1
+      accepted_proposals:
+      - row: 41
+        class: USD_2
+        class_id: 1
+        confidence: 0.827061296
+        model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+        current_pred_class: USD_50
+        xyxy:
+        - 0.878
+        - 0.0
+        - 254.0
+        - 598.445
+        image_size:
+        - 254
+        - 600
+        clamped: false
+        review_notes: 'codex_visual_obvious_usd2_single_surface_accept37_v1: clear
+          countable USD_2 evidence and no obvious second USD_2 surface outside this
+          box.'

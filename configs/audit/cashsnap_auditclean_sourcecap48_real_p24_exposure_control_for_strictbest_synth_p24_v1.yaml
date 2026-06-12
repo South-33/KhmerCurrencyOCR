@@ -1,0 +1,166 @@
+path: ../..
+train: configs/generated_lists/audit/cashsnap_auditclean_sourcecap48_real_p24_exposure_control_for_strictbest_synth_p24_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  positive_list: runs/cashsnap/real_data_label_audit_v1/candidate_positive_train_audit_clean_v1.txt
+  empty_list: runs/cashsnap/real_data_label_audit_v1/candidate_empty_train_lowrisk_no_teacher_unmatched_v1.txt
+  excluded_sources: []
+  exposure_control_base_config: configs/audit/cashsnap_v1_auditclean_real_p24_bg24_sourcecap48_v1.yaml
+  exposure_control_target_config: configs/audit/cashsnap_auditclean_sourcecap48_real_p24_plus_strictbest_synth_p24_v1.yaml
+cashsnap_subset_policy:
+  schema: cashsnap_audit_clean_balanced_real_config_v1
+  tag: auditclean_real_p24_bg24_sourcecap48_v1
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  positive_list: runs/cashsnap/real_data_label_audit_v1/candidate_positive_train_audit_clean_v1.txt
+  empty_list: runs/cashsnap/real_data_label_audit_v1/candidate_empty_train_lowrisk_no_teacher_unmatched_v1.txt
+  seed: 20260609
+  per_class_real_target: 24
+  background_target: 24
+  excluded_sources: []
+  max_positive_per_source: 48
+  source_cap_overrides:
+    billsbank: 12
+    khmer_us_currency: 1
+  positive_pool_images_before_source_exclusion: 6692
+  positive_pool_images: 6692
+  empty_pool_images_before_source_exclusion: 2472
+  empty_pool_images: 2472
+  selected_positive_images: 292
+  selected_backgrounds: 24
+  selected_images: 316
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 24
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  positive_pool_class_images:
+    USD_1: 586
+    USD_5: 707
+    USD_10: 986
+    USD_20: 865
+    USD_50: 836
+    USD_100: 845
+    KHR_500: 251
+    KHR_1000: 591
+    KHR_2000: 153
+    KHR_5000: 569
+    KHR_10000: 279
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_positive_sources:
+    asian_currency: 28
+    billsbank: 60
+    cambodia_currency_project: 40
+    cashcountingxl: 35
+    khmer: 32
+    khmer_us_currency: 49
+    usd_total: 48
+  selected_background_sources:
+    cashcountingxl: 23
+    usd_total: 1
+  intended_use: audit_clean_source_diverse_real_p24_bg24_probe
+  promotion_rule: compare_to_balanced_real_p24_and_auditclean_allsource_before_synth_blend
+cashsnap_exposure_control:
+  schema: cashsnap_yolo_exposure_control_v1
+  tag: auditclean_sourcecap48_real_p24_exposure_control_for_strictbest_synth_p24_v1
+  base_config: configs/audit/cashsnap_v1_auditclean_real_p24_bg24_sourcecap48_v1.yaml
+  target_config: configs/audit/cashsnap_auditclean_sourcecap48_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/audit/cashsnap_v1_auditclean_real_p24_bg24_sourcecap48_v1_train.txt
+  target_train_sources:
+  - configs/generated_lists/audit/cashsnap_auditclean_sourcecap48_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  seed: 20260609
+  base_images: 316
+  target_images: 634
+  combined_images: 634
+  duplicated_images: 318
+  base_empty: 24
+  target_empty: 30
+  combined_empty: 30
+  duplicated_empty: 6
+  base_class_counts:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 25
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 30
+    KHR_1000: 24
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 26
+    KHR_20000: 17
+    KHR_50000: 18
+  target_class_counts:
+    USD_1: 48
+    USD_5: 48
+    USD_10: 49
+    USD_20: 48
+    USD_50: 48
+    USD_100: 48
+    KHR_500: 54
+    KHR_1000: 48
+    KHR_2000: 48
+    KHR_5000: 48
+    KHR_10000: 50
+    KHR_20000: 41
+    KHR_50000: 42
+  combined_class_counts:
+    USD_1: 48
+    USD_5: 48
+    USD_10: 49
+    USD_20: 48
+    USD_50: 48
+    USD_100: 48
+    KHR_500: 54
+    KHR_1000: 48
+    KHR_2000: 48
+    KHR_5000: 48
+    KHR_10000: 50
+    KHR_20000: 41
+    KHR_50000: 42
+  duplicated_by_class:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 24
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 24
+    KHR_50000: 24
+  base_multi_label_images: 14
+  class_mix_exact: true
+cashsnap_policy:
+  intended_use: duplicate_real_exposure_control_for_auditclean_sourcecap48_synth_mix
+  promotion_rule: synth_mix_must_beat_this_control_and_product_guards

@@ -1,0 +1,271 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_visibleevidence_review_v4_trainanchors_rowmixctrl_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_v1_balanced_real_only_probe.yaml
+  train_mix_extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_v1_train.txt
+  row_count_class_mix_control_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  row_count_class_mix_control_target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_visibleevidence_review_v4_trainanchors_v1.yaml
+  row_count_class_mix_control_pool_config: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_v1
+  base_config: configs/webgl_ablation/cashsnap_v1_balanced_real_only_probe.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_v1_balanced_real_only_probe_train.txt
+  extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_target_anchor_transplant_poisson_contact_geoscale205_minshort190_bal96_scaled_foreignhardneg6_probe_v1_train.txt
+  extra_label_policy: any
+  extra_max_per_class: 24
+  extra_max_empty: 6
+  extra_max_images: null
+  extra_sample_seed: 20260609
+  extra_names: {}
+  recursive: false
+  base_images: 317
+  base_unique_images: 317
+  extra_images_before_class_cap: 1254
+  extra_class_cap_sampled_out_images: 936
+  extra_class_cap_counts:
+    '0': 24
+    '1': 24
+    '2': 24
+    '3': 24
+    '4': 24
+    '5': 24
+    '6': 24
+    '7': 24
+    '8': 24
+    '9': 24
+    '10': 24
+    '11': 24
+    '12': 24
+  extra_class_cap_empty_count: 6
+  extra_images_before_sampling: 318
+  extra_images: 318
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 635
+  combined_duplicate_images_removed: 0
+  added_images: 318
+  extra_class_counts:
+    KHR_1000: 24
+    KHR_10000: 24
+    KHR_2000: 24
+    KHR_20000: 24
+    KHR_500: 24
+    KHR_5000: 24
+    KHR_50000: 24
+    USD_1: 24
+    USD_10: 24
+    USD_100: 24
+    USD_20: 24
+    USD_5: 24
+    USD_50: 24
+cashsnap_policy:
+  intended_use: row-count matched nearest class-mix control for reviewed visible-evidence
+    v4 train-anchor diagnostic
+  promotion_rule: diagnostic only unless candidate also beats exact exposure control
+    and champion guardrails
+cashsnap_row_count_control:
+  source: class_mix:target_added_rows
+  matched_dose_images: 24
+  class_mix_all_exact: false
+  class_mix_exact_matches: null
+  row_count_exact: true
+  missing_class_counts: &id001
+    USD_1: 1
+    KHR_10000: 4
+  extra_class_counts: &id002 {}
+cashsnap_row_count_class_mix_control:
+  schema: cashsnap_yolo_row_count_class_mix_control_v1
+  tag: cashsnap_balanced_real_p24_plus_visibleevidence_review_v4_trainanchors_rowmixctrl_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  target_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_visibleevidence_review_v4_trainanchors_v1.yaml
+  control_pool_config: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  target_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_visibleevidence_review_v4_trainanchors_v1_train.txt
+  control_pool_sources:
+  - data/cashsnap_v1/images/train
+  - data/synthetic/cashsnap_webgl_clean_base_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_hand_occlusion_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_thin_edge_partial_candidate_v1/images/train
+  - data/synthetic/cashsnap_webgl_hard_negative_diversity_catalog_gate_v1/images/train
+  - data/synthetic/cashsnap_webgl_back_side_confusion_candidate_v1/images/train
+  allow_repeat: true
+  real_only: false
+  include_empty_fillers: true
+  base_images: 635
+  target_images: 659
+  row_delta: 24
+  target_added_images: 24
+  combined_images: 659
+  control_images: 24
+  control_unique_images: 21
+  control_duplicate_images: 3
+  pool_rejected_rows: 3301
+  eligible_patterns: 28
+  selected_by_group:
+    real: 21
+    synthetic: 3
+  base_empty: 30
+  target_empty: 30
+  combined_empty: 30
+  delta_empty: 0
+  base_class_counts:
+    USD_1: 48
+    USD_5: 48
+    USD_10: 48
+    USD_20: 48
+    USD_50: 48
+    USD_100: 48
+    KHR_500: 48
+    KHR_1000: 49
+    KHR_2000: 48
+    KHR_5000: 48
+    KHR_10000: 60
+    KHR_20000: 41
+    KHR_50000: 42
+  target_class_counts:
+    USD_1: 50
+    USD_5: 50
+    USD_10: 48
+    USD_20: 48
+    USD_50: 50
+    USD_100: 48
+    KHR_500: 57
+    KHR_1000: 65
+    KHR_2000: 48
+    KHR_5000: 54
+    KHR_10000: 90
+    KHR_20000: 41
+    KHR_50000: 42
+  target_delta_class_counts:
+    USD_1: 2
+    USD_5: 2
+    USD_50: 2
+    KHR_500: 9
+    KHR_1000: 16
+    KHR_5000: 6
+    KHR_10000: 30
+  combined_class_counts:
+    USD_1: 49
+    USD_5: 50
+    USD_10: 48
+    USD_20: 48
+    USD_50: 50
+    USD_100: 48
+    KHR_500: 57
+    KHR_1000: 65
+    KHR_2000: 48
+    KHR_5000: 54
+    KHR_10000: 86
+    KHR_20000: 41
+    KHR_50000: 42
+  missing_class_counts: *id001
+  extra_class_counts: *id002
+  class_mix_exact: false
+  row_count_exact: true
+  solver:
+    missing_total: 5
+    missing_by_target_index:
+    - 1
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 4
+    phase1_objective: 5.0
+    phase2_objective: 0.6333333333333333
+  selected_patterns:
+  - rows: 1
+    source_group: synthetic
+    class_counts:
+      USD_1: 1
+      KHR_500: 1
+      KHR_1000: 1
+      KHR_5000: 1
+  - rows: 2
+    source_group: synthetic
+    class_counts:
+      USD_5: 1
+      USD_50: 1
+      KHR_500: 1
+      KHR_5000: 1
+  - rows: 2
+    source_group: real
+    class_counts:
+      KHR_500: 3
+  - rows: 5
+    source_group: real
+    class_counts:
+      KHR_1000: 3
+  - rows: 1
+    source_group: real
+    class_counts:
+      KHR_5000: 3
+  - rows: 13
+    source_group: real
+    class_counts:
+      KHR_10000: 2

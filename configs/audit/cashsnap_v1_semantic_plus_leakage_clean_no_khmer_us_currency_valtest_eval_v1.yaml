@@ -1,0 +1,42 @@
+path: ../..
+train: data/cashsnap_v1/images/train
+val:
+  - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_val_v1.txt
+  - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_test_v1.txt
+test:
+  - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_val_v1.txt
+  - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_test_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_policy:
+  audit_filtered_eval:
+    source_data: configs/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_eval_v1.yaml
+    filter: semantic_plus_leakage_clean_no_khmer_us_currency_valtest_combined
+    excluded_source_groups:
+      - khmer_us_currency
+    purpose: combined source-exclusion diagnostic to reduce one-box AP volatility across val/test
+    splits:
+      val:
+        images: 1436
+        boxes: 404
+        lists:
+          - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_val_v1.txt
+          - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_test_v1.txt
+      test:
+        images: 1436
+        boxes: 404
+        lists:
+          - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_val_v1.txt
+          - configs/generated_lists/audit/cashsnap_v1_semantic_plus_leakage_clean_no_khmer_us_currency_test_v1.txt

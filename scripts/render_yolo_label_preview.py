@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import yaml
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -44,6 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--image", type=Path, required=True, help="Image to annotate.")
     parser.add_argument("--labels", type=Path, required=True, help="YOLO detect or OBB .txt label file.")
     parser.add_argument("--out", type=Path, required=True, help="Output preview image path.")
+    parser.add_argument("--data-yaml", type=Path, default=None, help="Optional YOLO data.yaml to read class names.")
     parser.add_argument("--format", choices=["auto", "detect", "obb"], default="auto", help="Label format.")
     parser.add_argument("--max-side", type=int, default=2000, help="Resize preview so the longest side is at most this.")
     return parser.parse_args()
@@ -76,6 +78,21 @@ def read_labels(path: Path, label_format: str) -> list[tuple[int, list[float]]]:
         class_id = int(parts[0])
         rows.append((class_id, [float(value) for value in parts[1:]]))
     return rows
+
+
+def load_names(data_yaml: Path | None) -> dict[int, str]:
+    if data_yaml is None:
+        return DEFAULT_NAMES
+    path = resolve_path(data_yaml)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: expected YAML mapping")
+    raw_names = data.get("names")
+    if isinstance(raw_names, list):
+        return {index: str(name) for index, name in enumerate(raw_names)}
+    if isinstance(raw_names, dict):
+        return {int(index): str(name) for index, name in raw_names.items()}
+    raise ValueError(f"{path}: expected names list or mapping")
 
 
 def draw_label(draw: ImageDraw.ImageDraw, xy: tuple[float, float, float, float], text: str, color: tuple[int, int, int], font: ImageFont.ImageFont) -> None:
@@ -115,6 +132,7 @@ def main() -> None:
 
     with Image.open(image_path) as image:
         preview = image.convert("RGB")
+    names = load_names(args.data_yaml)
     original_width, original_height = preview.size
     scale = min(1.0, args.max_side / max(original_width, original_height))
     if scale < 1.0:
@@ -125,7 +143,7 @@ def main() -> None:
     font = load_font(max(18, round(max(width, height) * 0.018)))
     for class_id, values in read_labels(label_path, args.format):
         color = COLORS[class_id % len(COLORS)]
-        name = DEFAULT_NAMES.get(class_id, f"class_{class_id}")
+        name = names.get(class_id, f"class_{class_id}")
         if len(values) == 4:
             cx, cy, box_width, box_height = values
             x1 = (cx - box_width / 2) * width

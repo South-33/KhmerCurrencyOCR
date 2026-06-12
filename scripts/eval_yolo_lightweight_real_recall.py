@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import random
 from collections import Counter, defaultdict
@@ -53,9 +54,21 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional YOLO prediction NMS IoU. Matching still uses --iou.",
     )
+    parser.add_argument(
+        "--agnostic-nms",
+        action="store_true",
+        help="Use class-agnostic YOLO NMS before matching predictions.",
+    )
     parser.add_argument("--max-images", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--json-out", required=True, type=Path)
+    parser.add_argument("--per-image-csv-out", default=None, type=Path)
+    parser.add_argument(
+        "--false-pred-jsonl-out",
+        default=None,
+        type=Path,
+        help="Optional JSONL export of every false-positive prediction after filtering/NMS.",
+    )
     parser.add_argument(
         "--ignore-pred-class",
         action="append",
@@ -330,6 +343,7 @@ def main() -> None:
     fp_examples_by_class: dict[int, list[dict[str, Any]]] = defaultdict(list)
     fn_examples_by_class: dict[int, list[dict[str, Any]]] = defaultdict(list)
     large_fp_examples_by_class: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    false_prediction_rows: list[dict[str, Any]] = []
     prediction_area_stats: dict[str, float | int] = {
         "count": 0,
         "sum": 0.0,
@@ -359,6 +373,7 @@ def main() -> None:
     source_tp: Counter[str] = Counter()
     source_fp: Counter[str] = Counter()
     source_fn: Counter[str] = Counter()
+    per_image_rows: list[dict[str, Any]] = []
 
     for batch in batched(images, max(1, args.batch)):
         results = model.predict(
@@ -366,6 +381,7 @@ def main() -> None:
             imgsz=args.imgsz,
             conf=args.conf,
             iou=args.nms_iou if args.nms_iou is not None else 0.7,
+            agnostic_nms=args.agnostic_nms,
             batch=len(batch),
             device=args.device,
             verbose=False,
@@ -427,6 +443,18 @@ def main() -> None:
                 fp_by_class[fp_class_id] += 1
                 source_fp[source_group] += 1
                 update_area_stats(fp_area_stats, float(prediction.get("area_ratio", 0.0)))
+                false_prediction_rows.append(
+                    {
+                        "image": repo_rel(image_path),
+                        "source_group": source_group,
+                        "class_id": fp_class_id,
+                        "class_name": names.get(fp_class_id, str(fp_class_id)),
+                        "confidence": float(prediction.get("confidence", 0.0)),
+                        "xyxy": prediction.get("xyxy", []),
+                        "area_ratio": float(prediction.get("area_ratio", 0.0)),
+                        "labels": labels,
+                    }
+                )
                 if len(fp_examples_by_class[fp_class_id]) < 12:
                     fp_examples_by_class[fp_class_id].append(
                         {
@@ -480,6 +508,31 @@ def main() -> None:
             fn_by_class.update(per_class_fn)
             source_tp[source_group] += sum(per_class_tp.values())
             source_fn[source_group] += sum(per_class_fn.values())
+            per_image_rows.append(
+                {
+                    "image": repo_rel(image_path),
+                    "source_group": source_group,
+                    "gt": len(labels),
+                    "tp": sum(per_class_tp.values()),
+                    "fn": sum(per_class_fn.values()),
+                    "fp": len(false_predictions),
+                    "total_predictions": len(predictions),
+                    "label_classes": ";".join(
+                        names.get(int(label["class_id"]), str(label["class_id"])) for label in labels
+                    ),
+                    "pred_classes": ";".join(
+                        names.get(int(prediction["class_id"]), str(prediction["class_id"])) for prediction in predictions
+                    ),
+                    "false_pred_classes": ";".join(
+                        names.get(int(prediction["class_id"]), str(prediction["class_id"]))
+                        for prediction in false_predictions
+                    ),
+                    "max_prediction_confidence": max(
+                        (float(prediction["confidence"]) for prediction in predictions),
+                        default=0.0,
+                    ),
+                }
+            )
             if false_predictions:
                 images_with_fp += 1
                 source_images_with_fp[source_group] += 1
@@ -574,6 +627,7 @@ def main() -> None:
         "conf": args.conf,
         "iou": args.iou,
         "nms_iou": args.nms_iou if args.nms_iou is not None else 0.7,
+        "agnostic_nms": bool(args.agnostic_nms),
         "ignored_pred_class_ids": sorted(ignored_pred_class_ids),
         "ignored_pred_class_names": [names.get(class_id, str(class_id)) for class_id in sorted(ignored_pred_class_ids)],
         "class_min_conf": {
@@ -638,6 +692,32 @@ def main() -> None:
     out_path = resolve(args.json_out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if args.per_image_csv_out:
+        per_image_csv = resolve(args.per_image_csv_out)
+        per_image_csv.parent.mkdir(parents=True, exist_ok=True)
+        fields = [
+            "image",
+            "source_group",
+            "gt",
+            "tp",
+            "fn",
+            "fp",
+            "total_predictions",
+            "label_classes",
+            "pred_classes",
+            "false_pred_classes",
+            "max_prediction_confidence",
+        ]
+        with per_image_csv.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(per_image_rows)
+    if args.false_pred_jsonl_out:
+        false_pred_jsonl = resolve(args.false_pred_jsonl_out)
+        false_pred_jsonl.parent.mkdir(parents=True, exist_ok=True)
+        with false_pred_jsonl.open("w", encoding="utf-8") as handle:
+            for row in false_prediction_rows:
+                handle.write(json.dumps(row, sort_keys=True) + "\n")
     print(
         f"light_eval={repo_rel(out_path)} images={len(images)} "
         f"recall={fmt_metric(summary['recall'])} precision={fmt_metric(summary['precision'])} "

@@ -1,0 +1,312 @@
+path: ../..
+train: configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_fpneg32_v1_train.txt
+val: data/cashsnap_v1/images/val
+test: data/cashsnap_v1/images/test
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
+cashsnap_sources:
+  source_data: configs/cashsnap_v1_plus_webgl_trainable_candidates.yaml
+  always_include_prefixes: []
+  target_exclude_prefixes:
+  - data/synthetic/
+  train_mix_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  train_mix_extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_mined_real_partial_stress_train_candidates_v1.txt
+  fp_mined_negative_dose_base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1.yaml
+  fp_mined_negative_probe_json: runs/cashsnap/partial_proposal_control_train_empty_champion_conf005_v1.json
+  fp_mined_negative_image_root: configs/cashsnap_v1.yaml#train:empty-label
+cashsnap_subset_policy:
+  per_class_real_target: 24
+  background_target: 24
+  always_included_images: 0
+  target_excluded_images: 336
+  selected_images: 317
+  selected_backgrounds: 24
+  selected_target_backgrounds: 24
+  selected_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+  selected_target_class_images:
+    USD_1: 24
+    USD_5: 24
+    USD_10: 24
+    USD_20: 24
+    USD_50: 24
+    USD_100: 24
+    KHR_500: 24
+    KHR_1000: 25
+    KHR_2000: 24
+    KHR_5000: 24
+    KHR_10000: 24
+    KHR_20000: 14
+    KHR_50000: 15
+cashsnap_train_mix:
+  schema: cashsnap_yolo_train_mix_v1
+  tag: balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_v1_train.txt
+  extra_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_mined_real_partial_stress_train_candidates_v1.txt
+  extra_label_policy: non-empty
+  extra_row_require_regex: ''
+  extra_row_block_regex: ''
+  extra_max_per_class: 8
+  extra_max_empty: null
+  extra_max_images: null
+  extra_sample_seed: 20260610
+  extra_names: {}
+  recursive: false
+  base_images: 635
+  base_unique_images: 635
+  extra_images_before_regex_filter: 4329
+  extra_regex_require_filtered_out_images: 0
+  extra_regex_block_filtered_out_images: 0
+  extra_images_before_class_cap: 4329
+  extra_class_cap_sampled_out_images: 4241
+  extra_class_cap_counts:
+    '0': 8
+    '1': 8
+    '2': 8
+    '3': 8
+    '4': 8
+    '5': 8
+    '6': 8
+    '7': 8
+    '8': 8
+    '9': 8
+    '10': 8
+  extra_class_cap_empty_count: 0
+  extra_images_before_sampling: 88
+  extra_images: 88
+  extra_duplicate_images: 0
+  extra_sampled_out_images: 0
+  combined_images: 723
+  combined_duplicate_images_removed: 0
+  added_images: 88
+  extra_class_counts:
+    KHR_1000: 8
+    KHR_10000: 8
+    KHR_2000: 8
+    KHR_500: 8
+    KHR_5000: 8
+    USD_1: 8
+    USD_10: 8
+    USD_100: 8
+    USD_20: 8
+    USD_5: 8
+    USD_50: 8
+cashsnap_policy:
+  intended_use: diagnostic mined-real partialstress cap8 dose paired with 32 champion
+    train-empty FP-mined hard negatives
+  promotion_rule: must beat the duplicate-empty control on partial/overlap recall
+    without increasing FP/prediction counts or weakening clean/source/KHR guardrails
+cashsnap_fp_mined_negative_dose:
+  schema: cashsnap_fp_mined_negative_dose_v1
+  base_config: configs/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1.yaml
+  base_train_sources:
+  - configs/generated_lists/webgl_ablation/cashsnap_balanced_real_p24_plus_strictbest_synth_p24_mined_real_partialstress_cap8_v1_train.txt
+  probe_json: runs/cashsnap/partial_proposal_control_train_empty_champion_conf005_v1.json
+  probe_schema: cashsnap_yolo_background_false_positive_probe_v1
+  model_label: champion
+  model: runs/cashsnap/fixed_step_real_p24_plus_strictbest_synth_p24_from_clean_e1_i416_b2_w0_adamw_lr5e5_nowarmup_noamp_cachefalse_steps318_seed0/weights/last.pt
+  image_root: configs/cashsnap_v1.yaml#train:empty-label
+  conf: 0.05
+  mine_source: probe-top
+  replace_existing_root: configs/cashsnap_v1.yaml#train:empty-label
+  requested_count: 32
+  selection: spread
+  seed: 20260607
+  source_name_require_regex: ''
+  source_name_block_regex: ''
+  removed_existing_rows: 0
+  insert_at: 723
+  base_images: 723
+  selected_fp_mined_negative_images: 32
+  combined_images: 755
+  source_top_detections: 200
+  unique_fp_images_in_top: 200
+  selected_images:
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_90_jpeg_jpg.rf.695d968ab5e4a799d9353f3209460ee9.jpg
+    detections_in_top: 1
+    max_confidence: 0.98734
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_196_jpeg_jpg.rf.45db22c56bf5a1e6bd38a7ae302605c9.jpg
+    detections_in_top: 1
+    max_confidence: 0.976657
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6437_jpg.rf.8d1b2f0a6fe1fa9e55f333ec432a796b.jpg
+    detections_in_top: 1
+    max_confidence: 0.968418
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_151_jpeg_jpg.rf.56767fd8a67241fcd56d9f1448c2d3ff.jpg
+    detections_in_top: 1
+    max_confidence: 0.963279
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_156_jpeg_jpg.rf.a2dcadb9537a9fdf659b6b090d0499a2.jpg
+    detections_in_top: 1
+    max_confidence: 0.948171
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_61_jpeg_jpg.rf.a3e1dc79f655a08ae215919898d0297f.jpg
+    detections_in_top: 1
+    max_confidence: 0.937313
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_184_jpeg_jpg.rf.c4231c1b5274dde708c558f84f66d78f.jpg
+    detections_in_top: 1
+    max_confidence: 0.928172
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_32_jpg.rf.567cc8a84d47cf7ef63c0f6645c58d8d.jpg
+    detections_in_top: 1
+    max_confidence: 0.919764
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_51_jpg.rf.c66063c87e2c9e9dfdfaefa010b57d88.jpg
+    detections_in_top: 1
+    max_confidence: 0.905746
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_20_jpg.rf.b5e4f7265efa3c258828b4668ee6e87e.jpg
+    detections_in_top: 1
+    max_confidence: 0.896069
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S5_jpg.rf.3d97ffc77932c8df9d5aad28af5dc541.jpg
+    detections_in_top: 1
+    max_confidence: 0.888411
+    classes:
+      KHR_5000: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_IMG_8641_JPG.rf.3d9117b1644127f924eeb472be1a4166.jpg
+    detections_in_top: 1
+    max_confidence: 0.881637
+    classes:
+      KHR_10000: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_10_jpeg_jpg.rf.86305d3abee7eb452931003f02207031.jpg
+    detections_in_top: 1
+    max_confidence: 0.874401
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_139_jpeg_jpg.rf.23d7ee9a571f71e8feca41ce5513a4a4.jpg
+    detections_in_top: 1
+    max_confidence: 0.86481
+    classes:
+      USD_100: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_msg-553567819-533015_jpg.rf.64b33b289c55c3231b2bc3f05cc5fe81.jpg
+    detections_in_top: 1
+    max_confidence: 0.852606
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_100-riel_23_jpg.rf.00b7ccdc55e8b2eb85f7732b51eb1f2d.jpg
+    detections_in_top: 1
+    max_confidence: 0.845769
+    classes:
+      KHR_20000: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_126_jpeg_jpg.rf.168711ca0cf770ae6c78c505936908ec.jpg
+    detections_in_top: 1
+    max_confidence: 0.842606
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S14_jpg.rf.c1af9004bdf21a77677fb20343844dcb.jpg
+    detections_in_top: 1
+    max_confidence: 0.841597
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S12_jpg.rf.f72371a9fd60e3eb1bf0c7347168138a.jpg
+    detections_in_top: 1
+    max_confidence: 0.837447
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/khmer_us_currency_IMG_8684_JPG.rf.23d2ae1f6a3806fcddf446cdb9464667.jpg
+    detections_in_top: 1
+    max_confidence: 0.83385
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S11_jpg.rf.e3e6a29c7e96e04ee0a8ec244a2344a2.jpg
+    detections_in_top: 1
+    max_confidence: 0.828963
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S11_jpg.rf.8042c4e04fe91fbe5be4df2447b94361.jpg
+    detections_in_top: 1
+    max_confidence: 0.825864
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S13_jpg.rf.a1c180a5c6ef80a9331dafc9b9e869f1.jpg
+    detections_in_top: 1
+    max_confidence: 0.820856
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_msg-553567819-533001_jpg.rf.63655817a9bff990b8da4546f9ecf0f2.jpg
+    detections_in_top: 1
+    max_confidence: 0.81673
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cambodia_currency_project_IMG_5761_png.rf.8716fefeb7e34545f775ba575b022b6a.jpg
+    detections_in_top: 1
+    max_confidence: 0.810561
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_6412_jpg.rf.d13e2913a32bbc5899f64f34c033f70a.jpg
+    detections_in_top: 1
+    max_confidence: 0.803506
+    classes:
+      KHR_1000: 1
+  - image: data/cashsnap_v1/images/train/cambodia_currency_project_IMG_5770_png.rf.7a3e73962734c87701895eee049504b3.jpg
+    detections_in_top: 1
+    max_confidence: 0.796082
+    classes:
+      KHR_50000: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S13_jpg.rf.494678fd8c2c8f51ce2a75013985a59a.jpg
+    detections_in_top: 1
+    max_confidence: 0.792155
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_msg-553567819-533026_jpg.rf.adb99e6b4747566b438f531b1f8bab60.jpg
+    detections_in_top: 1
+    max_confidence: 0.787285
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/usd_total_2Dollar_53_jpeg_jpg.rf.d5b701f878e9b1a0b84a8267ab1b34cd.jpg
+    detections_in_top: 1
+    max_confidence: 0.785113
+    classes:
+      USD_50: 1
+  - image: data/cashsnap_v1/images/train/cashcountingxl_S14_jpg.rf.e6922a61c2e4d5c9badeb3a034df4535.jpg
+    detections_in_top: 1
+    max_confidence: 0.779256
+    classes:
+      USD_1: 1
+  - image: data/cashsnap_v1/images/train/asian_currency_IMG_4676_jpg.rf.783cc1c06e52e532858c2ca4bda588f0.jpg
+    detections_in_top: 1
+    max_confidence: 0.771072
+    classes:
+      KHR_50000: 1

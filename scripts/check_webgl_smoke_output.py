@@ -113,7 +113,12 @@ def validate_smoke_output(
         raise SmokeOutputError(f"label count mismatch: {len(labels)} labels for {len(boxes)} boxes")
 
     expected_colors = {tuple(asset["idColor"]) for asset in metadata.get("assets", [])}
-    allowed_colors = expected_colors | {(0, 0, 0)}
+    box_colors = {
+        tuple(box["color"])
+        for box in boxes
+        if isinstance(box.get("color"), list) and len(box["color"]) == 3
+    }
+    allowed_colors = expected_colors | box_colors | {(0, 0, 0)}
     id_colors = id_image.getcolors(maxcolors=10_000_000)
     if id_colors is None:
         raise SmokeOutputError("ID pass has too many colors to be an exact instance mask")

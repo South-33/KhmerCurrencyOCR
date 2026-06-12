@@ -69,6 +69,8 @@ CLASS_NAMES = [
     "KHR_20000",
     "KHR_50000",
 ]
+UNKNOWN_PROP_CLASS_NAME = "UNKNOWN_FOREIGN_NOTE"
+NEGATIVE_PROP_LABEL_POLICIES = ("none", "unknown_banknote")
 OBB_MIN_LARGEST_COMPONENT_FRAC = 0.85
 OBB_MIN_RECT_FILL_FRAC = 0.35
 FRAGMENT_MIN_PIXELS = 500
@@ -192,6 +194,12 @@ def parse_args() -> argparse.Namespace:
         default="classic",
         help="Select prop texture/style mix for zero-label negative scenes.",
     )
+    parser.add_argument(
+        "--negative-prop-label-policy",
+        choices=NEGATIVE_PROP_LABEL_POLICIES,
+        default="none",
+        help="Optionally export unknown-banknote negative props as an UNKNOWN_FOREIGN_NOTE detection class.",
+    )
     parser.add_argument("--recipe-name", default="", help="Human-readable recipe name to write into recipe.json.")
     parser.add_argument(
         "--artifact-status",
@@ -236,6 +244,11 @@ def parse_args() -> argparse.Namespace:
         choices=["in-process", "subprocess"],
         default="subprocess",
         help="Run smoke-output checks in this Python process, or via the legacy subprocess path.",
+    )
+    parser.add_argument(
+        "--drop-failed-variant-checks",
+        action="store_true",
+        help="Package only variants that pass smoke-output checks and record dropped variants under qa/.",
     )
     parser.add_argument("--skip-render", action="store_true", help="Only recheck/contact-sheet existing outputs.")
     parser.add_argument("--skip-yolo-check", action="store_true", help="Do not run check_yolo_dataset.py on the packaged dataset.")
@@ -406,6 +419,8 @@ def render_headroom_prefix(args: argparse.Namespace) -> list[str]:
         args.headroom_max_gpu_mem_percent,
         "--min-free-ram-gb",
         args.min_free_ram_gb,
+        "--memory-action",
+        "exit",
         "--preflight-timeout",
         args.preflight_timeout,
         "--",
@@ -446,6 +461,8 @@ def append_common_render_args(
         args.occluder_policy,
         "--negative-prop-policy",
         args.negative_prop_policy,
+        "--negative-prop-label-policy",
+        args.negative_prop_label_policy,
         "--texture-qa-effects",
         args.texture_qa_effects,
     ])
@@ -1247,6 +1264,7 @@ def write_yolo_dataset(
     out_root: Path,
     fallback_scene_mode: str,
     fragment_review_policy: str,
+    class_names: list[str],
     balanced_subset_report: dict[str, object] | None = None,
 ) -> tuple[Path, Path, Path, Path, Path]:
     images_dir = out_root / "images" / "train"
@@ -1749,8 +1767,9 @@ def write_yolo_dataset(
                 f"path: {out_root.as_posix()}",
                 "train: images/train",
                 "val: images/train",
+                "test: images/train",
                 "names:",
-                *[f"  {index}: {name}" for index, name in enumerate(CLASS_NAMES)],
+                *[f"  {index}: {name}" for index, name in enumerate(class_names)],
                 "",
             ]
         ),
@@ -1763,8 +1782,9 @@ def write_yolo_dataset(
                 f"path: {(out_root / 'obb').as_posix()}",
                 "train: images/train",
                 "val: images/train",
+                "test: images/train",
                 "names:",
-                *[f"  {index}: {name}" for index, name in enumerate(CLASS_NAMES)],
+                *[f"  {index}: {name}" for index, name in enumerate(class_names)],
                 "",
             ]
         ),
@@ -1777,8 +1797,9 @@ def write_yolo_dataset(
                 f"path: {(out_root / 'fragments').as_posix()}",
                 "train: images/train",
                 "val: images/train",
+                "test: images/train",
                 "names:",
-                *[f"  {index}: {name}" for index, name in enumerate(CLASS_NAMES)],
+                *[f"  {index}: {name}" for index, name in enumerate(class_names)],
                 "",
             ]
         ),
@@ -1836,6 +1857,7 @@ def write_recipe_metadata(
             "clean_orientation_policy": args.clean_orientation_policy,
             "occluder_policy": args.occluder_policy,
             "negative_prop_policy": args.negative_prop_policy,
+            "negative_prop_label_policy": args.negative_prop_label_policy,
         },
         "asset_side_policy": args.asset_side_policy,
         "asset_quality_policy": args.asset_quality_policy,
@@ -1986,15 +2008,30 @@ def main() -> int:
     )
     allow_no_overlap = args.scene_mode in {"clean", "clean_single", "clean_context", "texture_qa", "negative"}
     allow_no_boxes = args.scene_mode == "negative"
+    dropped_check_variants: list[dict[str, object]] = []
+    dropped_variant_ids: set[int] = set()
     if check_jobs == 1 or len(variant_rows) == 1:
-        for _variant, out_dir in variant_rows:
-            check_variant(
-                out_dir,
-                allow_no_occluder=allow_no_occluder,
-                allow_no_overlap=allow_no_overlap,
-                allow_no_boxes=allow_no_boxes,
-                check_mode=args.check_mode,
-            )
+        for variant, out_dir in variant_rows:
+            try:
+                check_variant(
+                    out_dir,
+                    allow_no_occluder=allow_no_occluder,
+                    allow_no_overlap=allow_no_overlap,
+                    allow_no_boxes=allow_no_boxes,
+                    check_mode=args.check_mode,
+                )
+            except (RuntimeError, subprocess.CalledProcessError) as exc:
+                if not args.drop_failed_variant_checks:
+                    raise
+                dropped_variant_ids.add(variant)
+                dropped_check_variants.append(
+                    {
+                        "variant": variant,
+                        "path": rel(out_dir),
+                        "reason": str(exc),
+                    }
+                )
+                print(f"dropped_failed_variant_check=variant_{variant:04d}", flush=True)
     else:
         print(f"parallel_check_jobs={check_jobs}", flush=True)
         with concurrent.futures.ThreadPoolExecutor(max_workers=check_jobs) as executor:
@@ -2006,28 +2043,57 @@ def main() -> int:
                     allow_no_overlap,
                     allow_no_boxes,
                     args.check_mode,
-                ): f"variant {variant:04d}"
+                ): (variant, out_dir)
                 for variant, out_dir in variant_rows
             }
             for future in concurrent.futures.as_completed(futures):
-                label = futures[future]
+                variant, out_dir = futures[future]
+                label = f"variant {variant:04d}"
                 try:
                     future.result()
-                except subprocess.CalledProcessError as exc:
-                    raise SystemExit(f"{label} check failed with exit code {exc.returncode}") from exc
+                except (RuntimeError, subprocess.CalledProcessError) as exc:
+                    if not args.drop_failed_variant_checks:
+                        raise SystemExit(f"{label} check failed with exit code {getattr(exc, 'returncode', 'error')}") from exc
+                    dropped_variant_ids.add(variant)
+                    dropped_check_variants.append(
+                        {
+                            "variant": variant,
+                            "path": rel(out_dir),
+                            "reason": str(exc),
+                        }
+                    )
+                    print(f"dropped_failed_variant_check={label}", flush=True)
 
-    variant_dirs: list[tuple[int, Path]] = list(variant_rows)
+    variant_dirs: list[tuple[int, Path]] = [
+        (variant, out_dir) for variant, out_dir in variant_rows if variant not in dropped_variant_ids
+    ]
+    if not variant_dirs:
+        raise SystemExit("all variants failed smoke-output checks")
+    if dropped_check_variants:
+        print(f"dropped_failed_variant_checks={len(dropped_check_variants)} kept={len(variant_dirs)}", flush=True)
 
     contact_sheet = out_root / "contact_sheet.png"
     variant_dirs, balanced_subset_report = select_balanced_subset(variant_dirs, args)
     contact_index = write_contact_sheet(variant_dirs, contact_sheet)
+    class_names = CLASS_NAMES + ([UNKNOWN_PROP_CLASS_NAME] if args.negative_prop_label_policy != "none" else [])
     data_yaml, data_obb_yaml, data_fragments_yaml, count_targets_path, count_summary_path = write_yolo_dataset(
         variant_dirs,
         out_root,
         args.scene_mode,
         args.fragment_review_policy,
+        class_names,
         balanced_subset_report,
     )
+    if dropped_check_variants:
+        write_json(
+            out_root / "qa" / "dropped_failed_variant_checks.json",
+            {
+                "schema": "cashsnap_webgl_dropped_failed_variant_checks_v1",
+                "dropped": len(dropped_check_variants),
+                "kept": len(variant_dirs),
+                "rows": sorted(dropped_check_variants, key=lambda row: int(row["variant"])),
+            },
+        )
     readable_pages = write_readable_contact_sheets(
         variant_dirs,
         out_root / "qa" / "contact_sheets",

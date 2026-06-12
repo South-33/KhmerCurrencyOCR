@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 from collections import Counter
 from pathlib import Path
@@ -57,6 +58,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pad-frac", type=float, default=0.0, help="Optional crop padding as a fraction of box width/height.")
     parser.add_argument("--min-crop-pixels", type=int, default=16, help="Skip degenerate tiny crops below this area.")
     parser.add_argument("--top-class-deltas", type=int, default=8)
+    parser.add_argument(
+        "--max-images-per-family",
+        type=int,
+        default=0,
+        help="Deterministically sample at most this many images per source family before crop extraction.",
+    )
+    parser.add_argument(
+        "--max-crops-per-family",
+        type=int,
+        default=0,
+        help="Stop extracting crops after this many accepted crops per source family.",
+    )
+    parser.add_argument("--sample-seed", type=int, default=0, help="Seed for deterministic image sampling.")
     parser.add_argument(
         "--gate-preset",
         default="",
@@ -192,7 +206,45 @@ def crop_stats(crop: Image.Image) -> dict[str, Any]:
     }
 
 
-def crop_rows(config_path: Path, split: str, class_filter: set[str], pad_frac: float, min_crop_pixels: int) -> list[dict[str, Any]]:
+def stable_sample_key(path: Path, seed: int) -> str:
+    key = f"{seed}:{repo_rel(path)}".encode("utf-8")
+    return hashlib.sha256(key).hexdigest()
+
+
+def image_records(image_paths: list[Path], max_images_per_family: int, sample_seed: int) -> list[dict[str, Any]]:
+    records = [
+        {
+            "path": image_path,
+            "source_group": domain_gap.source_group(image_path),
+            "source_family": domain_gap.source_family(domain_gap.source_group(image_path)),
+        }
+        for image_path in image_paths
+    ]
+    if max_images_per_family <= 0:
+        return records
+    sampled: list[dict[str, Any]] = []
+    by_family: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        by_family.setdefault(str(record["source_family"]), []).append(record)
+    for _family, family_records in sorted(by_family.items()):
+        sampled.extend(
+            sorted(family_records, key=lambda record: stable_sample_key(Path(record["path"]), sample_seed))[
+                :max_images_per_family
+            ]
+        )
+    return sampled
+
+
+def crop_rows(
+    config_path: Path,
+    split: str,
+    class_filter: set[str],
+    pad_frac: float,
+    min_crop_pixels: int,
+    max_images_per_family: int,
+    max_crops_per_family: int,
+    sample_seed: int,
+) -> list[dict[str, Any]]:
     config = read_yaml(config_path)
     dataset_root = domain_gap.data_root(config_path, config)
     split_value = config.get(split)
@@ -200,15 +252,22 @@ def crop_rows(config_path: Path, split: str, class_filter: set[str], pad_frac: f
         raise SystemExit(f"{repo_rel(config_path)} split {split!r} must be a string or list")
     names = config.get("names", {})
     rows: list[dict[str, Any]] = []
-    for image_path in domain_gap.iter_split_images(dataset_root, split_value):
+    crop_counts_by_family: Counter[str] = Counter()
+    images = image_records(domain_gap.iter_split_images(dataset_root, split_value), max_images_per_family, sample_seed)
+    for record in images:
+        image_path = Path(record["path"])
+        source_group = str(record["source_group"])
+        source_family = str(record["source_family"])
+        if max_crops_per_family > 0 and crop_counts_by_family[source_family] >= max_crops_per_family:
+            continue
         label_rows = domain_gap.label_rows(image_path, names)
         if not label_rows:
             continue
-        source_group = domain_gap.source_group(image_path)
-        source_family = domain_gap.source_family(source_group)
         with Image.open(image_path) as image:
             image = image.convert("RGB")
             for label_index, label_row in enumerate(label_rows):
+                if max_crops_per_family > 0 and crop_counts_by_family[source_family] >= max_crops_per_family:
+                    break
                 class_name = str(label_row["class_name"])
                 if class_filter and class_name not in class_filter:
                     continue
@@ -233,6 +292,7 @@ def crop_rows(config_path: Path, split: str, class_filter: set[str], pad_frac: f
                         **stats,
                     }
                 )
+                crop_counts_by_family[source_family] += 1
     return rows
 
 
@@ -399,9 +459,22 @@ def main() -> int:
         raise SystemExit("--pad-frac must be non-negative")
     if args.min_crop_pixels < 1:
         raise SystemExit("--min-crop-pixels must be positive")
+    if args.max_images_per_family < 0:
+        raise SystemExit("--max-images-per-family must be non-negative")
+    if args.max_crops_per_family < 0:
+        raise SystemExit("--max-crops-per-family must be non-negative")
     data_path = resolve(args.data)
     class_names = parse_class_names(args.class_name)
-    rows = crop_rows(data_path, args.split, set(class_names), args.pad_frac, args.min_crop_pixels)
+    rows = crop_rows(
+        data_path,
+        args.split,
+        set(class_names),
+        args.pad_frac,
+        args.min_crop_pixels,
+        args.max_images_per_family,
+        args.max_crops_per_family,
+        args.sample_seed,
+    )
     payload = summarize(rows)
     preset = CROP_VISUAL_GAP_PRESETS.get(args.gate_preset, {})
     crop_limits = dict(preset.get("crop", {})) if isinstance(preset.get("crop", {}), dict) else {}
@@ -413,6 +486,11 @@ def main() -> int:
     payload["data"] = repo_rel(data_path)
     payload["split"] = args.split
     payload["classes"] = class_names
+    payload["sampling"] = {
+        "max_images_per_family": args.max_images_per_family,
+        "max_crops_per_family": args.max_crops_per_family,
+        "sample_seed": args.sample_seed,
+    }
     if args.json_out:
         json_out = resolve(args.json_out)
         write_json(json_out, payload)

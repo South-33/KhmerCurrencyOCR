@@ -1,0 +1,3 @@
+data/synthetic/cashsnap_webgl_overlap_stack_candidate_v1/images/train/variant_1120.png
+data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train/variant_1234.png
+data/synthetic/cashsnap_webgl_fan_fullschema_candidate_v1/images/train/variant_1253.png

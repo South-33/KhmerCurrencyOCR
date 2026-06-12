@@ -48,11 +48,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default="auto", help="Ultralytics device selector, e.g. cpu, 0, 0,1, or auto.")
     parser.add_argument("--conf", type=float, default=None, help="Confidence threshold override.")
     parser.add_argument("--iou", type=float, default=None, help="NMS IoU threshold override.")
+    parser.add_argument(
+        "--classes",
+        default="",
+        help="Optional comma/space-separated class ids to evaluate, e.g. '0,1,2'.",
+    )
     parser.add_argument("--no-plots", action="store_true", help="Skip Ultralytics validation plots.")
     parser.add_argument("--metrics-json", default=None, help="Optional path for machine-readable validation metrics.")
     parser.add_argument("--exist-ok", action="store_true", help="Allow reusing an existing run directory.")
     parser.add_argument("--quiet", action="store_true", help="Reduce Ultralytics validation log output.")
     return parser.parse_args()
+
+
+def parse_classes(value: str) -> list[int] | None:
+    tokens = [token for token in value.replace(",", " ").split() if token]
+    if not tokens:
+        return None
+    class_ids: list[int] = []
+    for token in tokens:
+        try:
+            class_ids.append(int(token))
+        except ValueError as exc:
+            raise SystemExit(f"--classes accepts integer class ids only, got {token!r}") from exc
+    return class_ids
 
 
 def jsonable(value):
@@ -107,6 +125,7 @@ def metrics_payload(metrics, args: argparse.Namespace) -> dict:
         "results": jsonable(results_dict),
         "speed": jsonable(getattr(metrics, "speed", {})),
         "names": jsonable(names),
+        "classes": args.classes,
     }
     if box is None:
         return payload
@@ -197,6 +216,9 @@ def main() -> None:
         val_args["conf"] = args.conf
     if args.iou is not None:
         val_args["iou"] = args.iou
+    class_ids = parse_classes(args.classes)
+    if class_ids is not None:
+        val_args["classes"] = class_ids
 
     model = YOLO(resolve_local_model(args.model))
     metrics = model.val(**val_args)

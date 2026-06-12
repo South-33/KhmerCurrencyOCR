@@ -1,0 +1,20 @@
+# Diagnostic slice: images where VE v4 trainanchors adds candidate-only FPs at conf=0.15.
+# Built from runs/cashsnap/ve_v4_trainanchors_guard_v2/candidate_only_fp_queue_conf015.csv.
+path: ../..
+train: data/cashsnap_v1/images/train
+val: data/cashsnap_v1/images/val
+test: configs/generated_lists/audit/ve_v4_trainanchors_candidate_only_fp_conf015_images_v1.txt
+names:
+  0: USD_1
+  1: USD_5
+  2: USD_10
+  3: USD_20
+  4: USD_50
+  5: USD_100
+  6: KHR_500
+  7: KHR_1000
+  8: KHR_2000
+  9: KHR_5000
+  10: KHR_10000
+  11: KHR_20000
+  12: KHR_50000
