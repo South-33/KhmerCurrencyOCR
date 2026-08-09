@@ -54,6 +54,8 @@ def load_env() -> None:
 
 
 # Dataset definitions: (workspace_id, project_id, version, output_name, export_format)
+# `yolov8` below is Roboflow's dataset-export API identifier, not the model
+# architecture used by Riel Vision. The current detector is YOLO26n.
 # Versions verified via API - use clean/raw versions, not heavily pre-augmented ones.
 # Khmer-US-currency v3 = 1,782 raw images (known clean base). Newer exports
 # can be pulled with --version/--output-name for intake audits before promotion.

@@ -39,7 +39,7 @@ const demoContainer = document.getElementById('demo-container');
 const confSlider = document.getElementById('conf-slider');
 const confVal = document.getElementById('conf-val');
 
-// YOLOv8 parameters
+// YOLO26n browser input parameters
 const MODEL_DIM = 640;
 
 // Initialize slider value

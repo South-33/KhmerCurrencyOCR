@@ -472,9 +472,9 @@ The source FP review queue for the p24 vis70 candidate remains useful:
   - **Countable Partial Precision Gains:** The main benefit of synthetic scaling is on messy overlaps. Partial Val Precision at conf 0.05 jumps from `0.4502` (V16Control) to `0.5192` (2x) and `0.5354` (4x).
   - **Inflection Point:** 2x scale (560 unique images) is the optimal recipe. It reaches the highest Strict Clean Test mAP (`0.8712`) and captures the bulk of precision gains on overlaps. Scaling to 4x (1120 images) degrades Full Real Test mAP (from `0.8664` to `0.8602`) and yields only a marginal +1.6% precision gain.
   - **Evidence:** Compiled scorecard summary is at `runs/cashsnap/production_pilot_eval_suite_v1/scorecard_summary_webgl_ablation_scaled.json`.
-- **Head-to-head benchmarking on splits demonstrates CashSnap's synthetic overlap advantage.** We benchmarked CashSnap v16 against the public Roboflow model (v7), our custom baseline model (trained on 3,420 real images), and untrained Baseline YOLO. Note: The old partial/overlap split (N=100) was deprecated in favor of the new, rigorous WebGL Hard Oblique Fan Split (N=128):
-  - **Clean Split (Non-Overlap):** CashSnap Fine-Tuned reaches **90.46%** mAP50 vs our custom baseline's **48.58%**, Roboflow's **48.49%**, and untrained YOLO26n's **0.52%**.
-  - **WebGL Hard Oblique Fan Split (New Overlap/Occlusion/Angle Eval):** CashSnap Fine-Tuned reaches **58.97%** mAP50 vs our custom baseline's **6.03%** (showing severe real-only baseline collapse), public Roboflow's **1.60%**, and untrained YOLO26n's **0.00%**.
+- **Head-to-head benchmarking on splits demonstrates CashSnap's synthetic overlap advantage.** We benchmarked CashSnap v16 against the public `Khmer-US-currency` model (v7), our real-only YOLO26n model (trained on 3,420 real images), and an untrained YOLO26n checkpoint. Note: The old partial/overlap split (N=100) was deprecated in favor of the new, rigorous WebGL Hard Oblique Fan Split (N=128):
+  - **Clean Split (Non-Overlap):** CashSnap Fine-Tuned reaches **90.46%** mAP50 vs our real-only model's **48.58%**, the public `Khmer-US-currency` model's **48.49%**, and an untrained YOLO26n checkpoint's **0.52%**.
+  - **WebGL Hard Oblique Fan Split (New Overlap/Occlusion/Angle Eval):** CashSnap Fine-Tuned reaches **58.97%** mAP50 vs our real-only model's **6.03%** (showing severe real-only model collapse), the public `Khmer-US-currency` model's **1.60%**, and an untrained YOLO26n checkpoint's **0.00%**.
   - **Evidence:** Clean split results verified in `runs/cashsnap/cashsnap_v16_oblique_ft_hard_eval_v1_metrics.json`, `runs/cashsnap/cashsnap_test_roboflow_core13_realonly_epoch31_best_i416_metrics.json`, and `runs/cashsnap/roboflow_core13_realonly_hard_eval_v1_metrics.json`.
 - **Split unknown-money by product policy.** V6's combined held-out improvement
   comes from true foreign-money suppression, not missing-schema official
@@ -552,9 +552,9 @@ The source FP review queue for the p24 vis70 candidate remains useful:
   `cashsnap_one_model_browsercalib3x_repair_from_demogap_e6/weights/best.onnx`.
   Direct eval is clean real `0.959/0.876`, source-excluded clean `0.928/0.838`,
   hard oblique fan `0.607/0.415`, and browser calibration `0.994/0.765`
-  mAP50/mAP50-95. Roboflow API v7 on the same hard eval is `0.016` mAP50 all-13
-  (`0.021` on its covered classes), so slides should compare one CashSnap model
-  against Roboflow API rather than internal checkpoints. Caveat: held-out
+  mAP50/mAP50-95. The public `Khmer-US-currency` model (v7) on the same hard eval
+  is `0.016` mAP50 all-13 (`0.021` on its covered classes), so slides should compare
+  one CashSnap model against that public model rather than internal checkpoints. Caveat: held-out
   unknown/out-of-schema money FP worsened to `13/465` at conf `0.25`.
 - **Hard oblique hand-occlusion synth needs negative pressure; guarded hand is the best robustness candidate, not promoted.**
   Added 128-image eval and 256-image train roots using `phone_hard_eval_mix`,

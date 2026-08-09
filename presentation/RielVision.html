@@ -643,7 +643,7 @@
                 Methodology
             </h2>
             <p class="text-center mb-12 font-bold w-fit max-w-full mx-auto bg-k-white p-3 px-6 md:px-8 border-2 border-k-red uppercase text-k-blue tracking-wider text-sm md:text-base">
-                Use real data to train the base model to generalize, then fill in the gaps where it fails with synthetic data.
+                Use real data to train the real-only model, then fill in the gaps where it fails with synthetic data.
             </p>
 
             <div class="max-w-5xl mx-auto space-y-16">
@@ -709,27 +709,27 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: BASE MODEL & EVALUATIONS -->
+                <!-- STEP 2: REAL-ONLY MODEL & EVALUATIONS -->
                 <div class="border-brutal bg-k-white p-6 md:p-8 relative gsap-pipeline shadow-[6px_6px_0_var(--blue)]">
-                    <div class="absolute -top-3 left-6 bg-k-blue text-k-white px-2 py-0.5 font-mono font-bold uppercase tracking-wider text-sm md:text-base">// STEP 02 // BASELINE MODEL</div>
+                    <div class="absolute -top-3 left-6 bg-k-blue text-k-white px-2 py-0.5 font-mono font-bold uppercase tracking-wider text-sm md:text-base">// STEP 02 // REAL-ONLY MODEL</div>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mt-2">
                         <div class="lg:col-span-7">
-                            <h3 class="font-mono font-bold mb-3 text-k-blue uppercase text-lg md:text-xl">2. Establish Baseline & Weak Spots</h3>
+                            <h3 class="font-mono font-bold mb-3 text-k-blue uppercase text-lg md:text-xl">2. Establish the Real-Only Model</h3>
                             <p class="text-dark-gray font-sans leading-relaxed mb-4 text-sm md:text-base">
-                                We trained our custom baseline model exclusively on our 3,420 scoured and audited real-world photos. This model acts as our performance floor.
+                                We trained a YOLO26n model exclusively on our 3,420 scoured and audited real-world photos. This is our real-only comparison model.
                             </p>
                             <p class="text-dark-gray font-sans leading-relaxed mb-4 text-sm md:text-base">
-                                Evaluating this baseline model on our clean splits revealed its critical limitations: it performs decently on isolated flat notes but collapses when banknotes overlap.
+                                Evaluating this real-only model on our clean splits revealed its critical limitations: it performs decently on isolated flat notes but collapses when banknotes overlap.
                             </p>
                             <!-- Full width warning inside text column -->
                             <div class="w-full bg-k-red/5 border-l-4 border-k-red p-3 mt-6 font-mono text-dark-gray text-xs md:text-sm">
-                                ⚠️ <strong>CRITICAL FAILURES:</strong> The base model is blind to partially covered banknote borders, overlapping notes, fanned stacks, and tilted smartphone angles.
+                                ⚠️ <strong>CRITICAL FAILURES:</strong> The real-only model is weak on partially covered banknote borders, overlapping notes, fanned stacks, and tilted smartphone angles.
                             </div>
                         </div>
                         
                         <div class="lg:col-span-5 bg-[#f4f4f4] border-t-4 border-k-blue p-4 shadow-sm overflow-x-auto">
-                            <div class="font-bold text-k-blue font-mono mb-4 uppercase tracking-wider text-xs border-b border-k-blue/20 pb-2">// REAL-ONLY BASELINE SCORES</div>
+                            <div class="font-bold text-k-blue font-mono mb-4 uppercase tracking-wider text-xs border-b border-k-blue/20 pb-2">// REAL-ONLY MODEL SCORES</div>
                             
                             <table class="w-full text-left font-mono text-[10px] lg:text-xs">
                                 <thead>
@@ -741,17 +741,17 @@
                                 </thead>
                                 <tbody>
                                     <tr class="border-b border-white border-2 border-x-0 font-bold bg-k-blue/10">
-                                        <td class="py-2.5 px-2 whitespace-nowrap">Our Custom Base</td>
+                                        <td class="py-2.5 px-2 whitespace-nowrap">Our Real-Only Model</td>
                                         <td class="py-2.5 text-center text-k-blue whitespace-nowrap">48.5%</td>
                                         <td class="py-2.5 text-right text-k-white whitespace-nowrap"><span class="bg-k-red px-2 py-1 shadow-sm">6.0%</span></td>
                                     </tr>
                                     <tr class="border-b border-k-blue/10 text-dark-gray">
-                                        <td class="py-2.5 px-2 whitespace-nowrap">Public Roboflow</td>
+                                        <td class="py-2.5 px-2 whitespace-nowrap">Khmer-US-currency v7</td>
                                         <td class="py-2.5 text-center whitespace-nowrap">48.4%</td>
                                         <td class="py-2.5 text-right whitespace-nowrap">1.6%</td>
                                     </tr>
                                     <tr class="text-dark-gray/60">
-                                        <td class="py-2.5 px-2 whitespace-nowrap">Untrained YOLO</td>
+                                        <td class="py-2.5 px-2 whitespace-nowrap">Untrained YOLO26n</td>
                                         <td class="py-2.5 text-center whitespace-nowrap">0.5%</td>
                                         <td class="py-2.5 text-right whitespace-nowrap">0.0%</td>
                                     </tr>
@@ -975,12 +975,12 @@
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">48.5%</div>
                             <div class="chart-bar bg-k-blue/50 border border-k-blue w-full max-w-[40px]" data-height="48.5%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">ROBOFLOW<br/>API</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">KHMER-US<br/>CURRENCY V7</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">48.6%</div>
                             <div class="chart-bar bg-k-blue border border-k-blue w-full max-w-[40px]" data-height="48.6%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">BASE<br/>MODEL</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">REAL-ONLY<br/>MODEL</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value opacity-100 text-k-red font-mono font-bold text-sm md:text-base">92.3%</div>
@@ -997,12 +997,12 @@
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">1.6%</div>
                             <div class="chart-bar bg-k-blue/50 border border-k-blue w-full max-w-[40px]" data-height="1.6%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">ROBOFLOW<br/>API</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">KHMER-US<br/>CURRENCY V7</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">6.0%</div>
                             <div class="chart-bar bg-k-blue border border-k-blue w-full max-w-[40px]" data-height="6.0%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">BASE<br/>MODEL</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">REAL-ONLY<br/>MODEL</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value opacity-100 text-k-red font-mono font-bold text-sm md:text-base">56.6%</div>
@@ -1019,12 +1019,12 @@
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">0.0%</div>
                             <div class="chart-bar bg-k-blue/50 border border-k-blue w-full max-w-[40px]" data-height="0%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">ROBOFLOW<br/>API</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">KHMER-US<br/>CURRENCY V7</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value group-hover:opacity-100 font-mono text-sm md:text-base">1.0%</div>
                             <div class="chart-bar bg-k-blue border border-k-blue w-full max-w-[40px]" data-height="1.0%"></div>
-                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">BASE<br/>MODEL</div>
+                            <div class="chart-label hidden md:block mt-2 font-bold font-mono text-center text-sm md:text-base">REAL-ONLY<br/>MODEL</div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center justify-end h-full relative group">
                             <div class="chart-value opacity-100 text-k-red font-mono font-bold text-sm md:text-base">93.6%</div>
